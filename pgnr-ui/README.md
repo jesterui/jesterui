@@ -30,6 +30,10 @@ Your app is ready to be deployed!
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
 ## Resources
+- Chessground (GitHub): https://github.com/lichess-org/chessground
+- Chessground Examples (GitHub): https://github.com/lichess-org/chessground-examples
+- Chessground Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
+- react/chessground (GitHub): https://github.com/react-chess/chessground
 - react-chessboard (GitHub): https://github.com/Clariity/react-chessboard
 - create-react-app: https://facebook.github.io/create-react-app/docs/getting-started
 - React documentation: https://reactjs.org/
