@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Chessboard as ReactChessboard } from 'react-chessboard'
 // @ts-ignore
 import Chess from 'chess.js';
@@ -7,15 +7,12 @@ import { ChessInstance, Square, Move, } from './ChessJsTypes'
 
 type OnPieceDrop = (sourceSquare: Square, targetSquare: Square) => boolean
 
-
 interface SquareStyle { 
-  background: string, 
+  background?: string
   borderRadius?: string
+  backgroundColor?: string
 }
 
-type MoveStyleEntry = {
-  
-}
 type SquareStyles = {
   [propName in Square]? : SquareStyle
 }
@@ -49,12 +46,12 @@ const validMovesToSquareStyles = (game: ChessInstance, square: Square, moves: Mo
   return moveStyles.reduce((acc, obj) => ({...acc, ...obj}), styles)
 }
 
-function StyledChessboard({ position, onPieceDrop}: { position: string, onPieceDrop: OnPieceDrop}) {
-  const chessboardRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
+function StyledChessboard({ position, onPieceDrop, latestMove}: { position: string, onPieceDrop: OnPieceDrop, latestMove: Move | null}) {
+  const chessboardRef = useRef<HTMLDivElement>(null);
   const [game, setGame] = useState<ChessInstance>(new Chess(position));
 
-  const [rightClickedSquares, setRightClickedSquares] = useState({});
-  const [moveSquares, setMoveSquares] = useState({});
+  const [rightClickedSquares, setRightClickedSquares] = useState<SquareStyles>({});
+  const [moveSquares, setMoveSquares] = useState<SquareStyles>({});
   const [optionSquares, setOptionSquares] = useState<SquareStyles>({});
 
   function onMouseOverSquare(square: Square) {
@@ -63,16 +60,41 @@ function StyledChessboard({ position, onPieceDrop}: { position: string, onPieceD
     setOptionSquares(optionsSquares);
   }
 
-  // Only set squares to {} if not already set to {}
   function onMouseOutSquare() {
+    // Only set squares to {} if not already set to {}
     if (Object.keys(optionSquares).length !== 0) {
       setOptionSquares({})
     }
   }
+  
+  function onSquareClick() {
+    setRightClickedSquares({});
+  }
+
+  function onSquareRightClick(square: Square) {
+    const color = 'rgba(0, 0, 255, 0.4)';
+    const isAlreadyColored = rightClickedSquares[square] && rightClickedSquares[square]?.backgroundColor === color
+    setRightClickedSquares({
+      ...rightClickedSquares,
+      [square]: isAlreadyColored ? undefined : { 
+        backgroundColor: color 
+      }
+    });
+  }
 
   useEffect(() => {
-    setGame(new Chess(position))
+    setGame((g) => {
+      g.load(position)
+      return g
+    })
   }, [position])
+
+  useEffect(() => {
+    latestMove && setMoveSquares({ 
+      [latestMove.to]: { backgroundColor: 'rgba(255, 255, 0, 0.4)' },
+      [latestMove.from]: { backgroundColor: 'rgba(255, 255, 0, 0.4)' }
+    })
+  }, [latestMove])
 
    return (
      <div>
@@ -85,7 +107,9 @@ function StyledChessboard({ position, onPieceDrop}: { position: string, onPieceD
           onPieceDrop={onPieceDrop} 
           onMouseOverSquare={onMouseOverSquare}
           onMouseOutSquare={onMouseOutSquare}
-
+          onSquareClick={onSquareClick}
+          onSquareRightClick={onSquareRightClick}
+          
           customBoardStyle={{
             borderRadius: '4px',
             boxShadow: '0 5px 15px rgba(0, 0, 0, 0.5)'
@@ -102,7 +126,8 @@ function StyledChessboard({ position, onPieceDrop}: { position: string, onPieceD
  
 
 export default function Chessboard() {
- const [game, setGame] = useState(new Chess());
+  const [game, setGame] = useState<ChessInstance>(new Chess());
+  const [latestMove, setLatestMove] = useState<Move | null>(null);
    
 
   function safeGameMutate(modify: (foo: ChessInstance) => void) {
@@ -114,20 +139,27 @@ export default function Chessboard() {
   }
 
   const onDrop = (sourceSquare: Square, targetSquare: Square) => {
-    let move = null;
+    let move: Move | null = null;
     safeGameMutate((game) => {
       move = game.move({
         from: sourceSquare,
         to: targetSquare,
-        promotion: "q", // always promote to a queen for example simplicity
+        promotion: 'q', // always promote to a queen for example simplicity
       });
     });
-    return move !== null;
+    const isValidMove = move !== null
+    if (isValidMove) {
+      setLatestMove(move)
+    }
+    return isValidMove;
   }
 
   return (
     <div>
-      <StyledChessboard position={game.fen()} onPieceDrop={onDrop} />
+      <StyledChessboard 
+        position={game.fen()} 
+        latestMove={latestMove}
+        onPieceDrop={onDrop} />
     </div>
   )
 }
