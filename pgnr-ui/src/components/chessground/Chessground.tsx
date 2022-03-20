@@ -1,11 +1,11 @@
-import React, {  useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Chessground from '@react-chess/chessground'
-import * as cg from 'chessground/types';
-import { Config as CgConfig } from 'chessground/config';
+import * as cg from 'chessground/types'
+import { Config as CgConfig } from 'chessground/config'
 import PgnTable from './PgnTable'
 
 // @ts-ignore
-import Chess from 'chess.js';
+import Chess from 'chess.js'
 import { ChessInstance, Square } from '../ChessJsTypes'
 
 type MoveableColor = cg.Color[]
@@ -17,26 +17,36 @@ const moveableColorProp = (c: MoveableColor) => {
 
 const findValidMoves = (chess: ChessInstance): Map<cg.Key, cg.Key[]> => {
   const dests = new Map()
-  chess.SQUARES.forEach(square => {
-    const ms = chess.moves({square, verbose: true})
+  chess.SQUARES.forEach((square) => {
+    const ms = chess.moves({ square, verbose: true })
     if (ms.length) {
-      dests.set(square, ms.map(m => m.to))
+      dests.set(
+        square,
+        ms.map((m) => m.to)
+      )
     }
   })
   return dests
 }
 
-const StyledChessboard = ({ game, userColor, config }: { config: CgConfig , game: ChessInstance, userColor: MoveableColor }) => {
-  console.log('MOVEABLE: ' + moveableColorProp(userColor))
-  const [validMoves, setValidMoves] = useState<Map<cg.Key, cg.Key[]>>(new Map());
+const StyledChessboard = ({
+  game,
+  userColor,
+  config,
+}: {
+  config: CgConfig
+  game: ChessInstance
+  userColor: MoveableColor
+}) => {
+  const [validMoves, setValidMoves] = useState<Map<cg.Key, cg.Key[]>>(new Map())
 
   useEffect(() => {
-    console.log('calculating valid moves')
+    console.debug('Recalculating valid moves..')
     setValidMoves(findValidMoves(game))
   }, [game])
 
   return (
-    <Chessground 
+    <Chessground
       contained={true}
       config={{
         fen: config.fen || game.fen(),
@@ -53,18 +63,20 @@ const StyledChessboard = ({ game, userColor, config }: { config: CgConfig , game
           lastMove: true,
           check: true,
           ...config.highlight,
-        }
-      }} 
+        },
+      }}
     />
   )
 }
 
-
-export default function Chessboard({ game, userColor, updateGame } : { 
+export default function Chessboard({
+  game,
+  userColor,
+  updateGame,
+}: {
   game: ChessInstance
   userColor: MoveableColor
 } & { updateGame: (fn: (g: ChessInstance) => void) => void }) {
-   
   const onAfter = (orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => {
     updateGame((g: ChessInstance) => {
       g.move({
@@ -75,14 +87,17 @@ export default function Chessboard({ game, userColor, updateGame } : {
     })
   }
 
-return (<StyledChessboard
-  game={game}
-    userColor={userColor} config={{
+  return (
+    <StyledChessboard
+      game={game}
+      userColor={userColor}
+      config={{
         movable: {
           events: {
-            after: onAfter
-          }
-        }
-      }} />
+            after: onAfter,
+          },
+        },
+      }}
+    />
   )
 }

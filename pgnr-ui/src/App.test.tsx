@@ -1,10 +1,10 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+import App from './App'
 
 it('should be rendered without errors', () => {
-  render(<App />);
+  render(<App />)
 
-  const linkElement = screen.getByText('View on GitHub');
-  expect(linkElement).toBeInTheDocument();
-});
+  const linkElement = screen.getByText('View on GitHub')
+  expect(linkElement).toBeInTheDocument()
+})
