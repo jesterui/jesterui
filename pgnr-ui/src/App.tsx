@@ -2,11 +2,14 @@ import React, { useEffect } from 'react'
 import './App.css'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
+import Layout from './Layout'
 
 import { useCurrentGame, useSetCurrentGame } from './context/GamesContext'
 import Chessboard from './components/chessground/Chessground'
 import PgnTable from './components/chessground/PgnTable'
 
+// @ts-ignore
+import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Chess from 'chess.js'
 import { ChessInstance } from './components/ChessJsTypes'
@@ -56,6 +59,7 @@ function BoardContainer() {
 function Index() {
   return (
     <div className="screen-index">
+      <Heading1 color="blueGray">Gameboard</Heading1>
       <BoardContainer />
     </div>
   )
@@ -69,9 +73,11 @@ export default function App() {
       </header>
       <section className="App-container">
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace={true} />} />
+          <Route element={<Layout variant={null} />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace={true} />} />
+          </Route>
         </Routes>
       </section>
       <footer className="App-footer">

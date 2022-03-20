@@ -3,6 +3,8 @@ import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
+// @ts-ignore
+import Heading1 from '@material-tailwind/react/Heading1'
 
 import {
   generatePrivateKey,
@@ -54,7 +56,7 @@ export default function Settings() {
 
   return (
     <div className="screen-settings">
-      <h1>Settings2</h1>
+      <Heading1 color="blueGray">Settings</Heading1>
       <div>
         {defaultRelays.map((relay, index) => (
           <div key={index}>
