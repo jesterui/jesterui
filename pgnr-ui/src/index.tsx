@@ -5,9 +5,13 @@ import '@material-tailwind/react/tailwind.css'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 
+import { GamesProvider } from './context/GamesContext'
+
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <GamesProvider value={undefined}>
+      <App />
+    </GamesProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

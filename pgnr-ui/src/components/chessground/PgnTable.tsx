@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import * as cg from 'chessground/types';
 
 import { ChessInstance } from '../ChessJsTypes'
+import { isJsxElement } from 'typescript';
 
 type PgnLine = { no: number, white: cg.Key, black?: cg.Key}
 
@@ -29,8 +30,8 @@ export default function PgnTable({ game }: { game: ChessInstance }) {
   }, [pgn])
 
   const nbsp = (amount: number, text: string = '') => {
-    const length = amount - text.length
-    return new Array(length > 0 ? length : 0).fill('').map((_) => { return (<>&nbsp;</>)})
+    return new Array(Math.max(0, amount - text.length)).fill('')
+      .map((_, index) => { return (<span key={index}>&nbsp;</span>)})
   }
   const nbsp3 = (text?: string) => {
     return nbsp('999'.length, text)
@@ -41,15 +42,15 @@ export default function PgnTable({ game }: { game: ChessInstance }) {
 
   return (<div className="bg-blue-gray-500" style={{ width: '200px', borderRadius: '4px' }}>
       <table className="w-full">
-      <tbody>
-        {lines.map((line, index) => {
-          return (<tr key={index} className="text-sm font-mono">
-            <th className="border-b border-gray-200 align-middle px-1 py-1 text-center">{nbsp3(`${line.no}`)}{line.no}.</th>
-            <td className="border-b border-gray-200 align-middle px-1 py-1 text-left">{line.white}{nbsp7(line.white)}</td>
-            <td className="border-b border-gray-200 align-middle px-1 py-1 text-left">{line.black}{nbsp7(line.white)}</td>
-          </tr>)
-        })}
-      </tbody>
+        <tbody>
+          {lines.map((line) => {
+            return (<tr key={`${line.no}`} className="text-sm font-mono">
+              <th className="border-b border-gray-200 align-middle px-1 py-1 text-center">{nbsp3(`${line.no}`)}{line.no}.</th>
+              <td className="border-b border-gray-200 align-middle px-1 py-1 text-left">{line.white}{nbsp7(line.white)}</td>
+              <td className="border-b border-gray-200 align-middle px-1 py-1 text-left">{line.black}{nbsp7(line.black)}</td>
+            </tr>)
+          })}
+        </tbody>
       </table>
     </div>
   )
