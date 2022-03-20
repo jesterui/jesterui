@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import './App.css'
 import AppNavbar from './components/AppNavbar'
+import Settings from './components/Settings'
 
 import { useCurrentGame, useSetCurrentGame } from './context/GamesContext'
 import Chessboard from './components/chessground/Chessground'
@@ -23,7 +24,7 @@ function BoardContainer() {
       const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
       return {
         game: new Chess(),
-        color: ['white', 'black'] || [color],
+        color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
       }
     })
   }, [setCurrentGame])
@@ -40,10 +41,22 @@ function BoardContainer() {
 
   return (
     <div style={{ display: 'flex' }}>
-      <div style={{ width: 600, height: 600 }}>
+      <div style={{ width: 400, height: 400 }}>
         {game && <Chessboard game={game!.game} userColor={game!.color} updateGame={updateGame} />}
       </div>
-      <div className="pl-2 overflow-y-scroll">{game && <PgnTable game={game!.game} />}</div>
+      {game && (
+        <div className="pl-2 overflow-y-scroll">
+          <PgnTable game={game!.game} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Index() {
+  return (
+    <div className="screen-index">
+      <BoardContainer />
     </div>
   )
 }
@@ -56,8 +69,8 @@ export default function App() {
       </header>
       <section className="App-container">
         <Routes>
-          <Route path="/" element={<BoardContainer />} />
-          <Route path="/settings" element={<></>} />
+          <Route path="/" element={<Index />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace={true} />} />
         </Routes>
       </section>

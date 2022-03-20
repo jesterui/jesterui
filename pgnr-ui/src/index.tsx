@@ -7,14 +7,29 @@ import '@material-tailwind/react/tailwind.css'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 
+import { SettingsProvider } from './context/SettingsContext'
 import { GamesProvider } from './context/GamesContext'
+
+declare global {
+  interface AppGlobal {
+    PUBLIC_PATH: string
+    SETTINGS_STORE_KEY: string
+    THEMES: ['light', 'dark']
+  }
+
+  interface Window {
+    APP: AppGlobal
+  }
+}
 
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
-      <GamesProvider value={undefined}>
-        <App />
-      </GamesProvider>
+      <SettingsProvider value={undefined}>
+        <GamesProvider value={undefined}>
+          <App />
+        </GamesProvider>
+      </SettingsProvider>
     </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')

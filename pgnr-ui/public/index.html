@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="base-url" href="." />
+    <link rel="public-url" href="%PUBLIC_URL%" data-value="%PUBLIC_URL%" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link
         href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -35,6 +37,28 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>pgnr-ui</title>
+
+    <script>
+      window.APP = { SETTINGS_STORE_KEY: 'jm-settings', THEMES: ['light', 'dark'], THEME_ROOT_ATTR: 'data-theme' }
+      // determine base path depending on whether PUBLIC_URL is set
+      const baseHref = document.querySelector('link[rel="base-url"]').href
+      const publicHref = document.querySelector('link[rel="public-url"]').href
+      const publicUrl = document.querySelector('link[rel="public-url"]').dataset.value
+      const base = publicUrl.length === 0 || baseHref.length > publicHref.length ? baseHref : publicHref
+      window.APP.PUBLIC_PATH = base
+        .replace(`${window.location.protocol}//${window.location.host}`, '') // remove domain part
+        .replace(/\/$/, '') // remove trailing slash
+      // theme
+      const settings = JSON.parse(window.localStorage.getItem(APP.SETTINGS_STORE_KEY) || '{}')
+      const userColorMode = settings.theme
+      const systemColorMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? APP.THEMES[1] : APP.THEMES[0]
+      const initialColorMode = APP.THEMES.includes(userColorMode) ? userColorMode : systemColorMode
+      if (!userColorMode) {
+        const updatedSettings = Object.assign(settings, { theme: initialColorMode })
+        window.localStorage.setItem(APP.SETTINGS_STORE_KEY, JSON.stringify(updatedSettings))
+      }
+      document.documentElement.setAttribute(APP.THEME_ROOT_ATTR, initialColorMode)
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
