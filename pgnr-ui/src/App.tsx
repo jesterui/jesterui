@@ -8,7 +8,7 @@ import PgnTable from './components/chessground/PgnTable'
 
 // @ts-ignore
 import Chess from 'chess.js'
-import { ChessInstance, Square } from './components/ChessJsTypes'
+import { ChessInstance } from './components/ChessJsTypes'
 import * as cg from 'chessground/types'
 
 function BoardContainer() {
@@ -22,10 +22,10 @@ function BoardContainer() {
       const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
       return {
         game: new Chess(),
-        color: ['white', 'black'],
+        color: ['white', 'black'] || [color],
       }
     })
-  }, [])
+  }, [setCurrentGame])
 
   const updateGame = (modify: (g: ChessInstance) => void) => {
     console.debug('onUpdateGame invoked')

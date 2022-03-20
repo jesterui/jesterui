@@ -1,17 +1,14 @@
-import React, { createContext, useState, useContext, PropsWithChildren } from 'react'
-
-import { getSession } from '../util/session'
+import React, { createContext, useState, useContext, ProviderProps } from 'react'
 
 // @ts-ignore
-import Chess from 'chess.js'
-import { ChessInstance, Square } from '../components/ChessJsTypes'
+import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
 
-type MoveableColor = [] | ['white'] | ['black'] | ['white', 'black']
+type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
 export type Game = {
   game: ChessInstance
-  color: MoveableColor
+  color: MovebleColor
 }
 type Games = Game[]
 
@@ -23,7 +20,7 @@ interface GamesContextEntry {
 
 const GamesContext = createContext<GamesContextEntry | undefined>(undefined)
 
-const GamesProvider = ({ children }: React.ProviderProps<GamesContextEntry | undefined>) => {
+const GamesProvider = ({ children }: ProviderProps<GamesContextEntry | undefined>) => {
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
   const [games, setGames] = useState<Games>([])
 

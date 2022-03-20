@@ -1,5 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
+
 import './index.css'
 import '@material-tailwind/react/tailwind.css'
 import App from './App'
@@ -9,9 +11,10 @@ import { GamesProvider } from './context/GamesContext'
 
 ReactDOM.render(
   <React.StrictMode>
+  <BrowserRouter>
     <GamesProvider value={undefined}>
       <App />
-    </GamesProvider>
+    </GamesProvider></BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')
 )

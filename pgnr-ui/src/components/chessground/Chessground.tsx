@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react'
 import Chessground from '@react-chess/chessground'
 import * as cg from 'chessground/types'
 import { Config as CgConfig } from 'chessground/config'
-import PgnTable from './PgnTable'
 
 // @ts-ignore
-import Chess from 'chess.js'
 import { ChessInstance, Square } from '../ChessJsTypes'
 
 type MoveableColor = cg.Color[]
