@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link, NavLink as ReactNavLink } from 'react-router-dom'
 // @ts-ignore
 import Navbar from '@material-tailwind/react/Navbar'
 // @ts-ignore
@@ -27,24 +28,36 @@ export default function AppNavbar() {
     <Navbar color="blueGray" navbar>
       <NavbarContainer>
         <NavbarWrapper>
-          <NavbarBrand>Menu</NavbarBrand>
+          <NavbarBrand>pgnr-ui</NavbarBrand>
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 
         <NavbarCollapse open={openMenu}>
           <Nav>
-            <NavItem active="light" ripple="light">
-              <Icon name="language" size="xl" />
-              Discover
-            </NavItem>
-            <NavLink href="#navbar" ripple="light">
-              <Icon name="account_circle" size="xl" />
-              Profile
-            </NavLink>
-            <NavItem ripple="light">
-              <Icon name="settings" size="xl" />
-              Settings
-            </NavItem>
+            <ReactNavLink to="/" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
+              <NavItem ripple="light">
+                <Icon name="language" size="xl" />
+                Game
+              </NavItem>
+            </ReactNavLink>
+            <ReactNavLink
+              to="/settings"
+              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+            >
+              <NavItem ripple="light">
+                <Icon name="settings" size="xl" />
+                Settings
+              </NavItem>
+            </ReactNavLink>
+            <ReactNavLink
+              to="/profile"
+              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+            >
+              <NavItem ripple="light">
+                <Icon name="account_circle" size="xl" />
+                Profile
+              </NavItem>
+            </ReactNavLink>
           </Nav>
         </NavbarCollapse>
       </NavbarContainer>

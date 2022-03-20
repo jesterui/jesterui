@@ -11,10 +11,11 @@ import { GamesProvider } from './context/GamesContext'
 
 ReactDOM.render(
   <React.StrictMode>
-  <BrowserRouter>
-    <GamesProvider value={undefined}>
-      <App />
-    </GamesProvider></BrowserRouter>
+    <BrowserRouter>
+      <GamesProvider value={undefined}>
+        <App />
+      </GamesProvider>
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')
 )

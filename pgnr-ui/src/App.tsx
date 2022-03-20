@@ -10,6 +10,7 @@ import PgnTable from './components/chessground/PgnTable'
 import Chess from 'chess.js'
 import { ChessInstance } from './components/ChessJsTypes'
 import * as cg from 'chessground/types'
+import { Route, Routes, Navigate } from 'react-router-dom'
 
 function BoardContainer() {
   const game = useCurrentGame()
@@ -54,7 +55,11 @@ export default function App() {
         <AppNavbar />
       </header>
       <section className="App-container">
-        <BoardContainer />
+        <Routes>
+          <Route path="/" element={<BoardContainer />} />
+          <Route path="/settings" element={<></>} />
+          <Route path="*" element={<Navigate to="/" replace={true} />} />
+        </Routes>
       </section>
       <footer className="App-footer">
         <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
