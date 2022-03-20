@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, NavLink as ReactNavLink } from 'react-router-dom'
+import { NavLink as ReactNavLink } from 'react-router-dom'
 // @ts-ignore
 import Navbar from '@material-tailwind/react/Navbar'
 // @ts-ignore
@@ -16,8 +16,6 @@ import NavbarCollapse from '@material-tailwind/react/NavbarCollapse'
 import Nav from '@material-tailwind/react/Nav'
 // @ts-ignore
 import NavItem from '@material-tailwind/react/NavItem'
-// @ts-ignore
-import NavLink from '@material-tailwind/react/NavLink'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 
@@ -49,7 +47,7 @@ export default function AppNavbar() {
                 Settings
               </NavItem>
             </ReactNavLink>
-            <ReactNavLink
+            {/*<ReactNavLink
               to="/profile"
               className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
             >
@@ -57,7 +55,7 @@ export default function AppNavbar() {
                 <Icon name="account_circle" size="xl" />
                 Profile
               </NavItem>
-            </ReactNavLink>
+            </ReactNavLink>*/}
           </Nav>
         </NavbarCollapse>
       </NavbarContainer>

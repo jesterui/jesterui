@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals'
 
 import { SettingsProvider } from './context/SettingsContext'
 import { GamesProvider } from './context/GamesContext'
+import { WebsocketProvider } from './context/WebsocketContext'
 
 declare global {
   interface AppGlobal {
@@ -26,9 +27,11 @@ ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <SettingsProvider value={undefined}>
-        <GamesProvider value={undefined}>
-          <App />
-        </GamesProvider>
+        <WebsocketProvider value={undefined}>
+          <GamesProvider value={undefined}>
+            <App />
+          </GamesProvider>
+        </WebsocketProvider>
       </SettingsProvider>
     </BrowserRouter>
   </React.StrictMode>,

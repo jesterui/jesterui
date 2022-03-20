@@ -46,7 +46,8 @@ export default function Settings() {
     const index = settings.relays.indexOf(relay, 0)
     const shouldAdd = index === -1
     if (shouldAdd) {
-      settingsDispatch({ ...settings, relays: [relay, ...settings.relays] })
+      // settingsDispatch({ ...settings, relays: [relay, ...settings.relays] })
+      settingsDispatch({ ...settings, relays: [relay] })
     } else {
       const newVal = [...settings.relays]
       newVal.splice(index, 1)
