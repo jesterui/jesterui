@@ -16,3 +16,7 @@ cg-board {
   border-radius: 4px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}

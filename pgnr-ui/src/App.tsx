@@ -1,12 +1,14 @@
 import React from 'react';
 import './App.css';
+import AppNavbar from './components/AppNavbar';
 //import Chessboard from './components/Chessboard'
-import Chessboard from './components/Chessground'
+import Chessboard from './components/chessground/Chessground'
 
 function App() {
   return (
     <div className="App">
-    <header className="App-header">
+    <header className="App-header w-full">
+      <AppNavbar />
     </header>
     <section className="App-container">
       <Chessboard />
