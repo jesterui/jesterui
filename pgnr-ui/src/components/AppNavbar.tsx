@@ -19,6 +19,8 @@ import NavItem from '@material-tailwind/react/NavItem'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 
+import { WebsocketIndicator } from '../components/WebsocketIndicator'
+
 export default function AppNavbar() {
   const [openMenu, setOpenMenu] = useState(false)
 
@@ -26,7 +28,13 @@ export default function AppNavbar() {
     <Navbar color="blueGray" navbar>
       <NavbarContainer>
         <NavbarWrapper>
-          <NavbarBrand>pgnr-ui</NavbarBrand>
+          <NavbarBrand>
+            pgnr-ui
+
+        <span className="px-1">
+          <WebsocketIndicator />
+        </span>
+            </NavbarBrand>
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 

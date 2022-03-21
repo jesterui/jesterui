@@ -3,6 +3,7 @@ import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useWebsocket } from '../context/WebsocketContext'
 import * as Nostr from '../util/nostr/identity'
 import { ActivityIndicator } from '../components/ActivityIndicator'
+import { WebsocketIndicator } from '../components/WebsocketIndicator'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
@@ -100,7 +101,7 @@ export default function Settings() {
       <div>
         Status:
         <span className="px-1">
-          <ActivityIndicator isOn={websocket?.readyState === WebSocket.OPEN} />
+          <WebsocketIndicator />
         </span>
         <span className="font-mono">{readyStatePhrase(websocket?.readyState)}</span>
       </div>

@@ -6,15 +6,20 @@
   display: inline-flex;
 }
 
-.activity-indicator-off {
-  background-color: #bbbbbb;
-}
 
 .activity-indicator-on {
   animation-name: activity-indicator-pulse;
   animation-duration: 3s;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in;
+}
+
+.activity-indicator-off {
+  background-color: #bbbbbb;
+}
+
+.activity-indicator-error {
+  background-color: rgb(174, 39, 39);
 }
 
 @keyframes activity-indicator-pulse {
@@ -26,5 +31,17 @@
   }
   100% {
     background-color: rgba(39, 174, 96, 0.2);
+  }
+}
+
+@keyframes activity-indicator-error-pulse {
+  0% {
+    background-color: rgba(174, 39, 39, 0.2);
+  }
+  50% {
+    background-color: rgb(174, 39, 39);
+  }
+  100% {
+    background-color: rgba(174, 39, 39, 0.2);
   }
 }
