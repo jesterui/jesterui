@@ -5,7 +5,7 @@ const WEBSOCKET_RECONNECT_DELAY_STEP = 1_000
 const WEBSOCKET_RECONNECT_MAX_DELAY = 10_000
 
 // minimum amount of time in milliseconds the connection must stay open to be considered "healthy"
-const WEBSOCKET_CONNECTION_HEALTHY_DURATION = 1_000
+const WEBSOCKET_CONNECTION_HEALTHY_DURATION = 3_000
 
 // webservers will close a websocket connection on inactivity (e.g nginx default is 60s)
 // specify the time in milliseconds at least one 'keepalive' message is sent
@@ -60,11 +60,13 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
   const [retryCounter, setRetryCounter] = useState(0)
 
   useEffect(() => {
-    setHost(settings.relays[0] || null)
-  }, [settings, setHost])
+    const host = settings.relays[0] || null
+    setHost(host)
+  }, [settings])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
+
     const openWebsocketIfPossible = (url: string | null) => {
       if (!url) {
         console.debug('[Websocket] No connection attempt will be made.')
@@ -88,6 +90,9 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
           console.debug('[Websocket] Websocket already connected to the correct host', websocket.url)
         } else {
           console.debug('[Websocket] Switching hosts.. closing socket to', websocket.url, '...')
+
+          setConnectionErrorCount(0)
+          setRetryCounter(0)
           websocket.addEventListener('close', () => openWebsocketIfPossible(host), {
             once: true,
             signal: abortCtrl.signal,
@@ -98,7 +103,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     }
 
     return () => abortCtrl.abort()
-  }, [retryCounter, websocket, host, setWebsocket])
+  }, [retryCounter, websocket, host, setWebsocket, setConnectionErrorCount])
 
   useEffect(() => {
     if (websocket) {
@@ -112,23 +117,24 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
   useEffect(() => {
     if (!websocket) return
 
+    const abortCtrl = new AbortController()
+
     const onStateChange = () => setWebsocketState(websocket.readyState)
 
-    websocket.addEventListener('open', onStateChange)
-    websocket.addEventListener('close', onStateChange)
+    websocket.addEventListener('open', onStateChange, { once: true, signal: abortCtrl.signal })
+    websocket.addEventListener('close', onStateChange, { once: true, signal: abortCtrl.signal })
 
-    return () => {
-      websocket && websocket.removeEventListener('close', onStateChange)
-      websocket && websocket.removeEventListener('open', onStateChange)
-    }
+    return () => abortCtrl.abort()
   }, [websocket])
 
   useEffect(() => {
+    console.debug(`[Websocket] Connection is ${isWebsocketHealthy ? 'healthy' : 'NOT healthy'}`)
     if (isWebsocketHealthy) {
       // connection must be healthy before the error counter can be reset.
       // otherwise the back-off mechanism assumes connections to be stable
       // and will always use the minimum delay between reconnect attempts.
       setConnectionErrorCount(0)
+      setRetryCounter(0)
     }
   }, [isWebsocketHealthy, setConnectionErrorCount])
 
@@ -136,17 +142,23 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
   useEffect(() => {
     if (!websocket) return
 
+    const abortCtrl = new AbortController()
+
     let assumeHealthyDelayTimer: NodeJS.Timeout
     let retryDelayTimer: NodeJS.Timeout
 
     const onOpen = (event: Event) => {
+      console.debug(
+        `[Websocket] Connection is open - starting healthy timeout (${WEBSOCKET_CONNECTION_HEALTHY_DURATION}ms)..`
+      )
       assumeHealthyDelayTimer = setTimeout(() => {
-        const stillConnectedToSameSocket = event.currentTarget === websocket
+        const stillConnectedToSameSocket = event.target === websocket
         setIsWebsocketHealthy(stillConnectedToSameSocket)
       }, WEBSOCKET_CONNECTION_HEALTHY_DURATION)
     }
 
-    const onClose = () => {
+    const onClose = (event: CloseEvent) => {
+      console.debug(`[Websocket] Connection was closed with ${event.code} - starting retry mechanism..`)
       setIsWebsocketHealthy(false)
       setConnectionErrorCount((prev) => {
         const retryDelay = connectionRetryDelayLinear(prev + 1)
@@ -158,23 +170,22 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       })
     }
 
-    websocket.addEventListener('open', onOpen)
-    websocket.addEventListener('close', onClose)
+    websocket.addEventListener('open', onOpen, { once: true, signal: abortCtrl.signal })
+    websocket.addEventListener('close', onClose, { once: true, signal: abortCtrl.signal })
 
     return () => {
       clearTimeout(assumeHealthyDelayTimer)
       clearTimeout(retryDelayTimer)
-      websocket && websocket.removeEventListener('close', onClose)
-      websocket && websocket.removeEventListener('open', onOpen)
+      abortCtrl.abort()
     }
   }, [websocket, setConnectionErrorCount])
 
   useEffect(() => {
+    if (!websocket) return
+
     const abortCtrl = new AbortController()
 
-    // The client must send the authentication token when it connects,
-    // otherwise it will not receive any notifications.
-    const initNotifications = () => {
+    const sendKeepalive = () => {
       if (!websocket) return
 
       if (websocket.readyState === WebSocket.OPEN) {
@@ -187,9 +198,9 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       }
     }
 
-    initNotifications()
+    sendKeepalive()
 
-    const keepaliveInterval = setInterval(initNotifications, WEBSOCKET_KEEPALIVE_MESSAGE_INTERVAL)
+    const keepaliveInterval = setInterval(() => sendKeepalive(), WEBSOCKET_KEEPALIVE_MESSAGE_INTERVAL)
     return () => {
       abortCtrl.abort()
       clearInterval(keepaliveInterval)

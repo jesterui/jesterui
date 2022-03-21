@@ -1,0 +1,30 @@
+.activity-indicator {
+  --size: 10px;
+  height: var(--size);
+  width: var(--size);
+  border-radius: 50%;
+  display: inline-flex;
+}
+
+.activity-indicator-off {
+  background-color: #bbbbbb;
+}
+
+.activity-indicator-on {
+  animation-name: activity-indicator-pulse;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
+@keyframes activity-indicator-pulse {
+  0% {
+    background-color: rgba(39, 174, 96, 0.2);
+  }
+  50% {
+    background-color: rgba(39, 174, 96, 1);
+  }
+  100% {
+    background-color: rgba(39, 174, 96, 0.2);
+  }
+}

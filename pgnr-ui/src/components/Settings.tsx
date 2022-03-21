@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { useWebsocket } from '../context/WebsocketContext'
 import * as Nostr from '../util/nostr/identity'
+import { ActivityIndicator } from '../components/ActivityIndicator'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
@@ -44,6 +46,7 @@ const defaultRelays = [
 export default function Settings() {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
+  const websocket = useWebsocket()
 
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)
@@ -64,9 +67,25 @@ export default function Settings() {
     settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: publicKey } })
   }
 
+  const readyStatePhrase = (readyState: number | undefined) => {
+    switch (readyState) {
+      case WebSocket.CONNECTING:
+        return 'CONNECTING'
+      case WebSocket.OPEN:
+        return 'OPEN'
+      case WebSocket.CLOSING:
+        return 'CLOSING'
+      case WebSocket.CLOSED:
+        return 'CLOSED'
+      default:
+        return 'UNKNOWN'
+    }
+  }
+
   return (
     <div className="screen-settings">
       <Heading1 color="blueGray">Settings</Heading1>
+
       <Heading2 color="blueGray">Identity</Heading2>
       <div>
         <div>
@@ -76,13 +95,28 @@ export default function Settings() {
           New
         </button>
       </div>
+
       <Heading2 color="blueGray">Relays</Heading2>
+      <div>
+        Status:
+        <span className="px-1">
+          <ActivityIndicator isOn={websocket?.readyState === WebSocket.OPEN} />
+        </span>
+        <span className="font-mono">{readyStatePhrase(websocket?.readyState)}</span>
+      </div>
       <div>
         {defaultRelays.map((relay, index) => (
           <div key={index}>
             <Checkbox
               color="blueGray"
-              text={relay}
+              text={
+                <div>
+                  <ActivityIndicator
+                    isOn={!!(websocket?.url.startsWith(relay) && websocket?.readyState === WebSocket.OPEN)}
+                  />{' '}
+                  {relay}
+                </div>
+              }
               id={relay}
               checked={settings.relays.includes(relay)}
               onChange={() => onRelayClicked(relay)}
