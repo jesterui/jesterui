@@ -93,7 +93,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
 
           setConnectionErrorCount(0)
           setRetryCounter(0)
-          websocket.addEventListener('close', () => openWebsocketIfPossible(host), {
+          websocket.addEventListener('close', () => !abortCtrl.signal.aborted && openWebsocketIfPossible(host), {
             once: true,
             signal: abortCtrl.signal,
           })
@@ -119,10 +119,10 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
 
     const abortCtrl = new AbortController()
 
-    const onStateChange = () => setWebsocketState(websocket.readyState)
+    const onStateChange = () => !abortCtrl.signal.aborted && setWebsocketState(websocket.readyState)
 
-    websocket.addEventListener('open', onStateChange, { once: true, signal: abortCtrl.signal })
-    websocket.addEventListener('close', onStateChange, { once: true, signal: abortCtrl.signal })
+    websocket.addEventListener('open', onStateChange, { signal: abortCtrl.signal })
+    websocket.addEventListener('close', onStateChange, { signal: abortCtrl.signal })
 
     return () => abortCtrl.abort()
   }, [websocket])
@@ -148,6 +148,8 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     let retryDelayTimer: NodeJS.Timeout
 
     const onOpen = (event: Event) => {
+      if (abortCtrl.signal.aborted) return
+
       console.debug(
         `[Websocket] Connection is open - starting healthy timeout (${WEBSOCKET_CONNECTION_HEALTHY_DURATION}ms)..`
       )
@@ -158,6 +160,8 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     }
 
     const onClose = (event: CloseEvent) => {
+      if (abortCtrl.signal.aborted) return
+
       console.debug(`[Websocket] Connection was closed with ${event.code} - starting retry mechanism..`)
       setIsWebsocketHealthy(false)
       setConnectionErrorCount((prev) => {
@@ -170,8 +174,8 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       })
     }
 
-    websocket.addEventListener('open', onOpen, { once: true, signal: abortCtrl.signal })
-    websocket.addEventListener('close', onClose, { once: true, signal: abortCtrl.signal })
+    websocket.addEventListener('open', onOpen, { signal: abortCtrl.signal })
+    websocket.addEventListener('close', onClose, { signal: abortCtrl.signal })
 
     return () => {
       clearTimeout(assumeHealthyDelayTimer)
@@ -191,10 +195,14 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       if (websocket.readyState === WebSocket.OPEN) {
         websocket.send('ping')
       } else if (websocket.readyState === WebSocket.CONNECTING) {
-        websocket.addEventListener('open', (e) => e.isTrusted && websocket && websocket.send('ping'), {
-          once: true,
-          signal: abortCtrl.signal,
-        })
+        websocket.addEventListener(
+          'open',
+          (e) => !abortCtrl.signal.aborted && e.isTrusted && websocket && websocket.send('ping'),
+          {
+            once: true,
+            signal: abortCtrl.signal,
+          }
+        )
       }
     }
 
