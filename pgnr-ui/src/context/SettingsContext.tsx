@@ -3,17 +3,21 @@ import React, { ProviderProps, createContext, useReducer, useEffect, useContext 
 const localStorageKey = window.APP.SETTINGS_STORE_KEY
 
 type Relay = string
+type Identity = {
+  pubkey: string
+}
 
 interface AppSettings {
   dev: boolean
   relays: Relay[]
+  identity?: Identity
 }
 
 const initialSettings: AppSettings = {
   dev: true,
   relays: [
-    'wss://relayer.fiatjaf.com', // good uptime
-    'wss://nostr.rocks', // bad uptime - TODO: remove after testing
+    // 'wss://relayer.fiatjaf.com', // good uptime
+    // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
   ],
 }
 

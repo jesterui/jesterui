@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import * as Nostr from '../util/nostr/identity'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
+// @ts-ignore
+import Heading2 from '@material-tailwind/react/Heading2'
 
-import {
-  generatePrivateKey,
+/*import {
+  // generatePrivateKey,
   relayConnect,
   relayPool,
   signEvent,
@@ -15,12 +18,12 @@ import {
   verifySignature,
   serializeEvent,
   getEventHash,
-  getPublicKey,
+  // getPublicKey,
   getBlankEvent,
   matchFilter,
   matchFilters,
   // @ts-ignore
-} from 'nostr-tools'
+} from 'nostr-tools'*/
 
 const defaultRelays = [
   'wss://nostr-pub.wellorder.net',
@@ -55,9 +58,25 @@ export default function Settings() {
     }
   }
 
+  const newIdentity = () => {
+    const privateKey = Nostr.generatePrivateKey()
+    const publicKey = Nostr.publicKey(privateKey)
+    settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: publicKey } })
+  }
+
   return (
     <div className="screen-settings">
       <Heading1 color="blueGray">Settings</Heading1>
+      <Heading2 color="blueGray">Identity</Heading2>
+      <div>
+        <div>
+          Public Key: <span className="font-mono">{settings.identity?.pubkey}</span>
+        </div>
+        <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentity}>
+          New
+        </button>
+      </div>
+      <Heading2 color="blueGray">Relays</Heading2>
       <div>
         {defaultRelays.map((relay, index) => (
           <div key={index}>
