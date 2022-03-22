@@ -43,13 +43,33 @@ interface WebsocketContextEntry {
   websocketState: number | null
 }
 
+
+
+const SendKeepAlive = ({ websocket }: {websocket: WebSocket | null}) => {
+  useEffect(() => {
+    if (!websocket) return
+
+    const abortCtrl = new AbortController()
+
+    const sendKeepalive = () => {
+      if (!websocket) return
+      !abortCtrl.signal.aborted && send(websocket, '[]', { signal: abortCtrl.signal })
+    }
+
+    sendKeepalive()
+
+    const keepaliveInterval = setInterval(() => sendKeepalive(), WEBSOCKET_KEEPALIVE_MESSAGE_INTERVAL)
+    return () => {
+      abortCtrl.abort()
+      clearInterval(keepaliveInterval)
+    }
+  }, [websocket])
+
+  return (<></>)
+}
+
 const WebsocketContext = createContext<WebsocketContextEntry | undefined>(undefined)
 
-/**
- * Provider of a websocket connection to jmwalletd.
- *
- * See Websocket docs: https://github.com/JoinMarket-Org/joinmarket-clientserver/blob/v0.9.5/docs/JSON-RPC-API-using-jmwalletd.md#websocket
- */
 const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | undefined>) => {
   const settings = useSettings()
   const [host, setHost] = useState<string | null>(null)
@@ -80,7 +100,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       console.debug('[Websocket] No connection established.. ')
       openWebsocketIfPossible(host)
     } else {
-      const isClosed = !(websocket.readyState in [WebSocket.CLOSING, WebSocket.CLOSED])
+      const isClosed = ![WebSocket.CONNECTING, WebSocket.OPEN].includes(websocket.readyState)
       if (isClosed) {
         console.debug('[Websocket] Former connection is closed..')
         openWebsocketIfPossible(host)
@@ -107,7 +127,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
 
   useEffect(() => {
     if (websocket) {
-      console.debug('[Websocket] Connected to', websocket.url)
+      console.debug('[Websocket] Connection', readyStatePhrase(websocket.readyState), 'to', websocket.url)
     } else {
       console.debug('[Websocket] Not connected')
     }
@@ -184,38 +204,10 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     }
   }, [websocket, setConnectionErrorCount])
 
-  useEffect(() => {
-    if (!websocket) return
-
-    const abortCtrl = new AbortController()
-
-    const sendKeepalive = () => {
-      if (!websocket) return
-
-      if (websocket.readyState === WebSocket.OPEN) {
-        websocket.send('ping')
-      } else if (websocket.readyState === WebSocket.CONNECTING) {
-        websocket.addEventListener(
-          'open',
-          (e) => !abortCtrl.signal.aborted && e.isTrusted && websocket && websocket.send('ping'),
-          {
-            once: true,
-            signal: abortCtrl.signal,
-          }
-        )
-      }
-    }
-
-    sendKeepalive()
-
-    const keepaliveInterval = setInterval(() => sendKeepalive(), WEBSOCKET_KEEPALIVE_MESSAGE_INTERVAL)
-    return () => {
-      abortCtrl.abort()
-      clearInterval(keepaliveInterval)
-    }
-  }, [websocket])
-
-  return <WebsocketContext.Provider value={{ websocket, websocketState }}>{children}</WebsocketContext.Provider>
+  return (<WebsocketContext.Provider value={{ websocket, websocketState }}>
+    <SendKeepAlive websocket={websocket}/>
+    <>{children}</>
+  </WebsocketContext.Provider>)
 }
 
 const useWebsocket = () => {
@@ -234,4 +226,36 @@ const useWebsocketState = () => {
   return context.websocketState
 }
 
-export { WebsocketContext, WebsocketProvider, useWebsocket, useWebsocketState }
+const send = (websocket: WebSocket, data: any, { signal }: { signal?: AbortSignal }) => {
+  const json = JSON.stringify(data)
+
+  if (websocket.readyState === WebSocket.OPEN) {
+    websocket.send(json)
+  } else if (websocket.readyState === WebSocket.CONNECTING) {
+    websocket.addEventListener(
+      'open',
+      (e) => (!signal || !signal.aborted) && e.isTrusted && websocket && websocket.send(json),
+      {
+        once: true,
+        signal,
+      }
+    )
+  }
+}
+
+const readyStatePhrase = (readyState: number | undefined) => {
+  switch (readyState) {
+    case WebSocket.CONNECTING:
+      return 'CONNECTING'
+    case WebSocket.OPEN:
+      return 'OPEN'
+    case WebSocket.CLOSING:
+      return 'CLOSING'
+    case WebSocket.CLOSED:
+      return 'CLOSED'
+    default:
+      return 'UNKNOWN'
+  }
+}
+
+export { WebsocketContext, WebsocketProvider, useWebsocket, useWebsocketState, send, readyStatePhrase }

@@ -1,16 +1,25 @@
+import * as NIP01 from './nostr/nip01'
+
 const SESSION_KEY = 'pgnr-ui'
 
-export interface SessionItem {
-  name: string
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
+
+export type SessionItem = {
+  privateKey: NIP01.Hex | null
+  [key: string]: Json
 }
 
 export const setSession = (session: SessionItem) => sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
 
+export const setSessionAttribute = (item: SessionItem) => {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...getSession(), ...item }))
+}
+
 export const getSession = (): SessionItem | null => {
   const json = sessionStorage.getItem(SESSION_KEY)
-  const { name }: any = (json && JSON.parse(json)) || {}
-  if (name) {
-    return { name }
+  const item: SessionItem | null = (json && JSON.parse(json)) || null
+  if (item) {
+    return { ...item }
   } else {
     clearSession()
     return null

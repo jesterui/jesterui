@@ -6,7 +6,6 @@
   display: inline-flex;
 }
 
-
 .activity-indicator-on {
   animation-name: activity-indicator-pulse;
   animation-duration: 3s;

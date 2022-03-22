@@ -1,16 +1,25 @@
 import React, { ProviderProps, createContext, useReducer, useEffect, useContext } from 'react'
 
+import * as NIP01 from '../util/nostr/nip01'
+
 const localStorageKey = window.APP.SETTINGS_STORE_KEY
 
+// TODO: add {read: true, write: true} to relay
 type Relay = string
 type Identity = {
   pubkey: string
+}
+
+export type Subscription = {
+  id: NIP01.SubscriptionId
+  filters: NIP01.Filter[]
 }
 
 interface AppSettings {
   dev: boolean
   relays: Relay[]
   identity?: Identity
+  subscriptions?: Subscription[]
 }
 
 const initialSettings: AppSettings = {

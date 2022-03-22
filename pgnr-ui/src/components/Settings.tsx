@@ -1,9 +1,13 @@
 import React from 'react'
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { useWebsocket } from '../context/WebsocketContext'
+import { useWebsocket, send as websocketSend, readyStatePhrase } from '../context/WebsocketContext'
 import * as Nostr from '../util/nostr/identity'
 import { ActivityIndicator } from '../components/ActivityIndicator'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
+
+import { getSession, setSessionAttribute } from '../util/session'
+import * as NIP01 from '../util/nostr/nip01'
+import * as NostrEvents from '../util/nostr/events'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
@@ -50,11 +54,13 @@ export default function Settings() {
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
 
+  const privateKeyOrNull = getSession()?.privateKey || null
+
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)
     const shouldAdd = index === -1
     if (shouldAdd) {
-      // settingsDispatch({ ...settings, relays: [relay, ...settings.relays] })
+      // TODO: For multiple release do: settingsDispatch({ ...settings, relays: [relay, ...settings.relays] })
       settingsDispatch({ ...settings, relays: [relay] })
     } else {
       const newVal = [...settings.relays]
@@ -66,22 +72,53 @@ export default function Settings() {
   const newIdentity = () => {
     const privateKey = Nostr.generatePrivateKey()
     const publicKey = Nostr.publicKey(privateKey)
-    settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: publicKey } })
+
+    setSessionAttribute({ privateKey })
+
+    settingsDispatch({
+      ...settings,
+      identity: { ...settings.identity, pubkey: publicKey },
+      subscriptions: [
+        {
+          id: 'my-sub',
+          filters: [{ authors: [publicKey] }],
+        },
+      ],
+    })
   }
 
-  const readyStatePhrase = (readyState: number | undefined) => {
-    switch (readyState) {
-      case WebSocket.CONNECTING:
-        return 'CONNECTING'
-      case WebSocket.OPEN:
-        return 'OPEN'
-      case WebSocket.CLOSING:
-        return 'CLOSING'
-      case WebSocket.CLOSED:
-        return 'CLOSED'
-      default:
-        return 'UNKNOWN'
+  const sendHelloWorld = async () => {
+    if (!websocket) {
+      console.info('Websocket not available..')
+      return
     }
+    const publicKeyOrNull = settings.identity?.pubkey || null
+    if (!publicKeyOrNull) {
+      console.info('PubKey not available..')
+      return
+    }
+
+    const privateKeyOrNull = getSession()?.privateKey || null
+    if (!privateKeyOrNull) {
+      console.info('PrivKey not available..')
+      return
+    }
+
+    const publicKey = publicKeyOrNull!
+    const privateKey = privateKeyOrNull!
+
+    const eventParts = NostrEvents.blankEvent()
+    eventParts.kind = 1 // text_note
+    eventParts.pubkey = publicKey
+    eventParts.created_at = Math.floor(Date.now() / 1000)
+    eventParts.content = 'Hello World'
+    const event = NostrEvents.constructEvent(eventParts)
+    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+    const req = NIP01.createClientEventMessage(signedEvent)
+
+    const abortCtrl = new AbortController()
+    console.debug('[Nostr] -> ', req)
+    websocketSend(websocket, req, { signal: abortCtrl.signal })
   }
 
   return (
@@ -90,24 +127,41 @@ export default function Settings() {
 
       <Heading2 color="blueGray">Identity</Heading2>
       <div>
-        <div>
+        <div className="py-1">
           Public Key: <span className="font-mono">{settings.identity?.pubkey}</span>
         </div>
-        <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentity}>
-          New
-        </button>
+        <div className="py-1">
+          Private Key: <span className="font-mono">{privateKeyOrNull}</span>
+        </div>
+
+        <div className="py-1">
+          <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentity}>
+            New
+          </button>
+        </div>
+
+        <div className="py-1">
+          <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={sendHelloWorld}>
+            Send 'Hello World'
+          </button>
+        </div>
+      </div>
+
+      <Heading2 color="blueGray">Subscriptions</Heading2>
+      <div>
+        <code>{`${JSON.stringify(settings.subscriptions)}`}</code>
       </div>
 
       <Heading2 color="blueGray">Relays</Heading2>
       <div>
-        Status: 
+        Status:
         <span className="px-1">
           <WebsocketIndicator />
         </span>
         <span className="font-mono">{readyStatePhrase(websocket?.readyState)}</span>
       </div>
       <div>
-        Host: 
+        Host:
         <span className="px-1">
           <span className="font-mono">{websocket?.url}</span>
         </span>

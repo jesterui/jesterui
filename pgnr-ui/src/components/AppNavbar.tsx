@@ -30,11 +30,10 @@ export default function AppNavbar() {
         <NavbarWrapper>
           <NavbarBrand>
             pgnr-ui
-
-        <span className="px-1">
-          <WebsocketIndicator />
-        </span>
-            </NavbarBrand>
+            <span className="px-1">
+              <WebsocketIndicator />
+            </span>
+          </NavbarBrand>
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 
