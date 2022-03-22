@@ -30,7 +30,10 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "prettier --check --no-error-on-unmatched-pattern 'src/**/*.{ts,tsx,json,css,md}'",
-    "format": "prettier --write --no-error-on-unmatched-pattern 'src/**/*.{ts,tsx,json,css,md}'"
+    "format": "prettier --write --no-error-on-unmatched-pattern 'src/**/*.{ts,tsx,json,css,md}'",
+    "regtest:clear": "docker-compose --file docker/regtest/docker-compose.yml down --volumes --remove-orphans",
+    "regtest:up": "docker-compose --file docker/regtest/docker-compose.yml up",
+    "regtest:down": "docker-compose --file docker/regtest/docker-compose.yml down"
   },
   "eslintConfig": {
     "extends": [

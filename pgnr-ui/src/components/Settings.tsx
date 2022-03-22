@@ -42,6 +42,7 @@ const defaultRelays = [
   'wss://nostr-verified.wellorder.net',
   'wss://nostr.drss.io',
   'wss://nostr.unknown.place',
+  'ws://localhost:7000',
 ]
 
 export default function Settings() {
@@ -99,13 +100,19 @@ export default function Settings() {
 
       <Heading2 color="blueGray">Relays</Heading2>
       <div>
-        Status:
+        Status: 
         <span className="px-1">
           <WebsocketIndicator />
         </span>
         <span className="font-mono">{readyStatePhrase(websocket?.readyState)}</span>
       </div>
       <div>
+        Host: 
+        <span className="px-1">
+          <span className="font-mono">{websocket?.url}</span>
+        </span>
+      </div>
+      <div className="py-2">
         {defaultRelays.map((relay, index) => (
           <div key={index}>
             <Checkbox

@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+
+  # build locally.
+  # https://github.com/scsibug/nostr-rs-relay
+  relay:
+    container_name: pgnr_regtest_relay
+    restart: unless-stopped
+    image: nostr-rs-relay:latest
+    expose:
+      - 8080
+    ports:
+      - "7000:8080"

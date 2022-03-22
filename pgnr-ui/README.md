@@ -30,13 +30,16 @@ Your app is ready to be deployed!
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
 ## Resources
+- nostr (GitHub): https://github.com/fiatjaf/nostr
+- nostr-rs-relay (GitHub): https://github.com/scsibug/nostr-rs-relay
+
 - React documentation: https://reactjs.org/
 - create-react-app: https://facebook.github.io/create-react-app/docs/getting-started
 
-- react/chessground (GitHub): https://github.com/react-chess/chessground
 - Chessground (GitHub): https://github.com/lichess-org/chessground
 - Chessground Examples (GitHub): https://github.com/lichess-org/chessground-examples
 - Chessground Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
+- react/chessground (GitHub): https://github.com/react-chess/chessground
 
 - material-tailwind (GitHub): https://github.com/creativetimofficial/material-tailwind
 
