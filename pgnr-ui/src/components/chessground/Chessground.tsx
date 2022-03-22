@@ -39,7 +39,7 @@ const StyledChessboard = ({
   const [validMoves, setValidMoves] = useState<Map<cg.Key, cg.Key[]>>(new Map())
 
   useEffect(() => {
-    console.debug('Recalculating valid moves..')
+    console.debug('[Chess] Recalculating valid moves..')
     setValidMoves(findValidMoves(game))
   }, [game])
 

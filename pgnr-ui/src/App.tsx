@@ -4,7 +4,7 @@ import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Layout from './Layout'
 
-import { useCurrentGame, useSetCurrentGame } from './context/GamesContext'
+import { useCurrentGame, useSetCurrentGame, Game } from './context/GamesContext'
 import Chessboard from './components/chessground/Chessground'
 import PgnTable from './components/chessground/PgnTable'
 
@@ -20,9 +20,41 @@ import { ChessInstance } from './components/ChessJsTypes'
 import * as cg from 'chessground/types'
 import { Route, Routes, Navigate } from 'react-router-dom'
 
-function BoardContainer() {
-  const game = useCurrentGame()
+function BoardContainer({
+  game,
+  updateGame,
+}: {
+  game: Game
+  updateGame: (fn: (game: Game | null) => Game | null) => void
+}) {
+  const updateGameCallback = (modify: (g: ChessInstance) => void) => {
+    console.debug('[Chess] onUpdateGame invoked')
+    updateGame((currentGame) => {
+      if (!currentGame) return null
+      const update = { ...currentGame.game }
+      modify(update)
+      return { ...currentGame, game: update }
+    })
+  }
+
+  return (
+    <div style={{ display: 'flex' }}>
+      <div style={{ width: 400, height: 400 }}>
+        {game && <Chessboard game={game!.game} userColor={game!.color} updateGame={updateGameCallback} />}
+      </div>
+      {game && (
+        <div className="pl-2 overflow-y-scroll">
+          <PgnTable game={game!.game} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Index() {
+  const websocket = useWebsocket()
   const setCurrentGame = useSetCurrentGame()
+  const game = useCurrentGame()
 
   useEffect(() => {
     setCurrentGame((currentGame) => {
@@ -36,40 +68,17 @@ function BoardContainer() {
     })
   }, [setCurrentGame])
 
-  const updateGame = (modify: (g: ChessInstance) => void) => {
-    console.debug('onUpdateGame invoked')
-    setCurrentGame((currentGame) => {
-      if (!currentGame) return null
-      const update = { ...currentGame.game }
-      modify(update)
-      return { ...currentGame, game: update }
-    })
-  }
+  const onGameChanged = (game: Game | null) => {}
 
-  return (
-    <div style={{ display: 'flex' }}>
-      <div style={{ width: 400, height: 400 }}>
-        {game && <Chessboard game={game!.game} userColor={game!.color} updateGame={updateGame} />}
-      </div>
-      {game && (
-        <div className="pl-2 overflow-y-scroll">
-          <PgnTable game={game!.game} />
-        </div>
-      )}
-    </div>
-  )
-}
-
-function Index() {
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      <BoardContainer />
+      {game && <BoardContainer game={game} updateGame={setCurrentGame} />}
     </div>
   )
 }
 
-function ManageSubscriptions() {
+function NostrManageSubscriptions() {
   const settings = useSettings()
   const websocket = useWebsocket()
 
@@ -125,7 +134,7 @@ function ManageSubscriptions() {
   return <></>
 }
 
-function LogIncomingNostrRelayEvents() {
+function NostrLogIncomingRelayEvents() {
   const websocket = useWebsocket()
 
   useEffect(() => {
@@ -151,8 +160,8 @@ export default function App() {
   return (
     <>
       <>
-        <ManageSubscriptions />
-        <LogIncomingNostrRelayEvents />
+        <NostrManageSubscriptions />
+        <NostrLogIncomingRelayEvents />
       </>
       <div className="App">
         <header className="App-header w-full">

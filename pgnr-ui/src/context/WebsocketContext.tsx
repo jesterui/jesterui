@@ -43,9 +43,9 @@ interface WebsocketContextEntry {
   websocketState: number | null
 }
 
+type WithWebsocket = { websocket: WebSocket | null }
 
-
-const SendKeepAlive = ({ websocket }: {websocket: WebSocket | null}) => {
+const SendKeepAlive = ({ websocket, keepAliveIntervalInMs }: { keepAliveIntervalInMs: number } & WithWebsocket) => {
   useEffect(() => {
     if (!websocket) return
 
@@ -53,19 +53,31 @@ const SendKeepAlive = ({ websocket }: {websocket: WebSocket | null}) => {
 
     const sendKeepalive = () => {
       if (!websocket) return
-      !abortCtrl.signal.aborted && send(websocket, '[]', { signal: abortCtrl.signal })
+      !abortCtrl.signal.aborted && send(websocket, 'ping', { signal: abortCtrl.signal })
     }
 
     sendKeepalive()
 
-    const keepaliveInterval = setInterval(() => sendKeepalive(), WEBSOCKET_KEEPALIVE_MESSAGE_INTERVAL)
+    const keepaliveInterval = setInterval(() => sendKeepalive(), keepAliveIntervalInMs)
     return () => {
       abortCtrl.abort()
       clearInterval(keepaliveInterval)
     }
   }, [websocket])
 
-  return (<></>)
+  return <></>
+}
+
+const LogConnectionState = ({ websocket }: WithWebsocket) => {
+  useEffect(() => {
+    if (websocket) {
+      console.info('[Websocket] Connection', readyStatePhrase(websocket.readyState), 'to', websocket.url)
+    } else {
+      console.info('[Websocket] Not connected')
+    }
+  }, [websocket])
+
+  return <></>
 }
 
 const WebsocketContext = createContext<WebsocketContextEntry | undefined>(undefined)
@@ -80,8 +92,8 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
   const [retryCounter, setRetryCounter] = useState(0)
 
   useEffect(() => {
-    const host = settings.relays[0] || null
-    setHost(host)
+    const newHost = settings.relays[0] || null
+    setHost(newHost)
   }, [settings])
 
   useEffect(() => {
@@ -89,7 +101,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
 
     const openWebsocketIfPossible = (url: string | null) => {
       if (!url) {
-        console.debug('[Websocket] No connection attempt will be made.')
+        console.debug('[Websocket] No connection attempt will be made. No host specified.')
       } else {
         console.debug('[Websocket] Trying to open connection to', url)
         setWebsocket(createWebSocket(url))
@@ -97,7 +109,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     }
 
     if (!websocket) {
-      console.debug('[Websocket] No connection established.. ')
+      console.debug('[Websocket] No connection established yet.. ')
       openWebsocketIfPossible(host)
     } else {
       const isClosed = ![WebSocket.CONNECTING, WebSocket.OPEN].includes(websocket.readyState)
@@ -118,20 +130,13 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
             signal: abortCtrl.signal,
           })
           websocket.close()
+          setWebsocket(null)
         }
       }
     }
 
     return () => abortCtrl.abort()
   }, [retryCounter, websocket, host, setWebsocket, setConnectionErrorCount])
-
-  useEffect(() => {
-    if (websocket) {
-      console.debug('[Websocket] Connection', readyStatePhrase(websocket.readyState), 'to', websocket.url)
-    } else {
-      console.debug('[Websocket] Not connected')
-    }
-  }, [websocket, settings, setWebsocket])
 
   // update websocket state based on open/close events
   useEffect(() => {
@@ -204,10 +209,13 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     }
   }, [websocket, setConnectionErrorCount])
 
-  return (<WebsocketContext.Provider value={{ websocket, websocketState }}>
-    <SendKeepAlive websocket={websocket}/>
-    <>{children}</>
-  </WebsocketContext.Provider>)
+  return (
+    <>
+      <SendKeepAlive websocket={websocket} keepAliveIntervalInMs={WEBSOCKET_KEEPALIVE_MESSAGE_INTERVAL} />
+      <LogConnectionState websocket={websocket} />
+      <WebsocketContext.Provider value={{ websocket, websocketState }}>{children}</WebsocketContext.Provider>
+    </>
+  )
 }
 
 const useWebsocket = () => {
