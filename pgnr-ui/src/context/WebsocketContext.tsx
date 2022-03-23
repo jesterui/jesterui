@@ -180,7 +180,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       )
       assumeHealthyDelayTimer = setTimeout(() => {
         const stillConnectedToSameSocket = event.target === websocket
-        setIsWebsocketHealthy(stillConnectedToSameSocket)
+        !abortCtrl.signal.aborted && setIsWebsocketHealthy(stillConnectedToSameSocket)
       }, WEBSOCKET_CONNECTION_HEALTHY_DURATION)
     }
 
@@ -193,7 +193,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
         const retryDelay = connectionRetryDelayLinear(prev + 1)
         console.log(`Retrying to connect websocket in ${retryDelay}ms`)
         retryDelayTimer = setTimeout(() => {
-          setRetryCounter((prev) => prev + 1)
+          !abortCtrl.signal.aborted && setRetryCounter((prev) => prev + 1)
         }, retryDelay)
         return prev + 1
       })
@@ -207,7 +207,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       clearTimeout(retryDelayTimer)
       abortCtrl.abort()
     }
-  }, [websocket, setConnectionErrorCount])
+  }, [websocket, setConnectionErrorCount, setIsWebsocketHealthy])
 
   return (
     <>

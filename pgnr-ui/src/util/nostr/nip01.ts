@@ -210,13 +210,12 @@ export const createClientCloseMessage = (sub: SubscriptionId): ClientCloseMessag
 // ["EVENT", <subscription_id>, <event JSON as defined above>], used to send events requested by clients.
 // ["NOTICE", <message>], used to send human-readable error messages or other things to clients.
 
-enum RelayEventType {
+export enum RelayEventType {
   EVENT = 'EVENT',
   NOTICE = 'NOTICE',
 }
 
-type RelayEventMessage = [RelayEventType.EVENT, SubscriptionId, Event]
+export type RelayEventMessage = [RelayEventType.EVENT, SubscriptionId, Event]
+export type RelayNoticeMessage = [RelayEventType.NOTICE, string]
 
-export type RelayMessage = string
-
-export type RelayNoticeMessage = [RelayEventType.NOTICE, RelayMessage]
+export type RelayMessage = RelayEventMessage | RelayNoticeMessage

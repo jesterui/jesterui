@@ -22,7 +22,7 @@ const GamesContext = createContext<GamesContextEntry | undefined>(undefined)
 
 const GamesProvider = ({ children }: ProviderProps<GamesContextEntry | undefined>) => {
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
-  const [games, setGames] = useState<Games>([])
+  const [games] = useState<Games>([])
 
   return <GamesContext.Provider value={{ currentGame, setCurrentGame, games }}>{children}</GamesContext.Provider>
 }

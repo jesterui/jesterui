@@ -10,6 +10,7 @@ import PgnTable from './components/chessground/PgnTable'
 
 import { useSettings, Subscription } from './context/SettingsContext'
 import { useWebsocket, send as websocketSend } from './context/WebsocketContext'
+import { useNostrEvents } from './context/NostrEventsContext'
 import * as NIP01 from './util/nostr/nip01'
 import * as NostrEvents from './util/nostr/events'
 import { getSession } from './util/session'
@@ -46,6 +47,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 
 function Index() {
   const websocket = useWebsocket()
+  const nostrEvents = useNostrEvents()
   const setCurrentGame = useSetCurrentGame()
   const game = useCurrentGame()
   const settings = useSettings()
@@ -62,10 +64,6 @@ function Index() {
   }
 
   const sendGameStateViaNostr = async (game: ChessInstance) => {
-    if (!websocket) {
-      console.info('Websocket not available..')
-      return
-    }
     if (!publicKeyOrNull) {
       console.info('PubKey not available..')
       return
@@ -85,12 +83,29 @@ function Index() {
     eventParts.content = game.fen()
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    const req = NIP01.createClientEventMessage(signedEvent)
+    nostrEvents.emit('EVENT', signedEvent)
+  }
+
+  /*useEffect(() => {
+    if (!websocket) return
 
     const abortCtrl = new AbortController()
-    console.debug('[Nostr] -> ', req)
-    websocketSend(websocket, req, { signal: abortCtrl.signal })
-  }
+
+    websocket.addEventListener(
+      'message',
+      ({ data: json }) => {
+        const data = JSON.parse(json)
+        if (!Array.isArray(data)) return
+        if (!data[0]) return
+        // ["EVENT","my-sub",{"id":"53ac913428bf1d5c80a55ba83f5432d1601892ba1b7dea6337c46d3d7cbbc82b","pubkey":"9999b801204877c7c73b9f0cbbbc026ac570c7953095179ba2d2aba633775f6a","created_at":1647994904,"kind":1,"tags":[],"content":"rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2","sig":"984b5b7c943165f70bef05a745fa6627659fbeff6fec91b108960c37ef5a24e8211ce99cca99c9ac407798458a3b82036c03f92af4c6b0e9fbe0b583b0e2ebf8"}]
+
+        console.info(`[Nostr] <- ${json}`)
+      },
+      { signal: abortCtrl.signal }
+    )
+
+    return () => abortCtrl.abort()
+  }, [websocket])*/
 
   useEffect(() => {
     setCurrentGame((currentGame) => {
