@@ -9,8 +9,7 @@ import Chessboard from './components/chessground/Chessground'
 import PgnTable from './components/chessground/PgnTable'
 
 import { useSettings, Subscription } from './context/SettingsContext'
-import { useWebsocket, send as websocketSend } from './context/WebsocketContext'
-import { useNostrEvents } from './context/NostrEventsContext'
+import { useOutgoingNostrEvents, useIncomingNostrEvents } from './context/NostrEventsContext'
 import * as NIP01 from './util/nostr/nip01'
 import * as NostrEvents from './util/nostr/events'
 import { getSession } from './util/session'
@@ -46,8 +45,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 }
 
 function Index() {
-  const websocket = useWebsocket()
-  const nostrEvents = useNostrEvents()
+  const outgoingNostr = useOutgoingNostrEvents()
   const setCurrentGame = useSetCurrentGame()
   const game = useCurrentGame()
   const settings = useSettings()
@@ -83,7 +81,7 @@ function Index() {
     eventParts.content = game.fen()
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    nostrEvents.emit('EVENT', signedEvent)
+    outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
   }
 
   /*useEffect(() => {
@@ -129,47 +127,37 @@ function Index() {
 
 function NostrManageSubscriptions() {
   const settings = useSettings()
-  const websocket = useWebsocket()
+  const outgoingNostr = useOutgoingNostrEvents()
 
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [closeSubscriptions, setCloseSubscriptions] = useState<Subscription[]>([])
 
   useEffect(() => {
-    if (!websocket) return
     if (closeSubscriptions.length === 0) return
 
     const abortCtrl = new AbortController()
 
     closeSubscriptions.forEach((sub) => {
-      const req: NIP01.ClientCloseMessage = NIP01.createClientCloseMessage(sub.id)
-      console.debug('[Nostr] -> CLOSE', sub.id)
-      websocketSend(websocket, req, { signal: abortCtrl.signal })
+      outgoingNostr.emit('CLOSE', NIP01.createClientCloseMessage(sub.id))
     })
 
     setCloseSubscriptions([])
     return () => abortCtrl.abort()
-  }, [websocket, closeSubscriptions])
+  }, [outgoingNostr, closeSubscriptions])
 
   useEffect(() => {
-    if (!websocket) return
     if (subscriptions.length === 0) return
 
     const abortCtrl = new AbortController()
 
     subscriptions.forEach((sub) => {
-      const req: NIP01.ClientReqMessage = NIP01.createClientReqMessage(sub.id, sub.filters)
-      console.debug('[Nostr] -> REQ', sub.id, sub.filters)
-      websocketSend(websocket, req, { signal: abortCtrl.signal })
+      outgoingNostr.emit('REQ', NIP01.createClientReqMessage(sub.id, sub.filters))
     })
 
     return () => abortCtrl.abort()
-  }, [websocket, subscriptions])
-
-  useEffect(() => {}, [websocket])
+  }, [outgoingNostr, subscriptions])
 
   useEffect(() => {
-    if (!websocket) return
-
     const resubscribe = true // TODO: only for changed subscriptions..
 
     if (resubscribe) {
@@ -178,29 +166,45 @@ function NostrManageSubscriptions() {
         return settings.subscriptions || []
       })
     }
-  }, [websocket, settings])
+  }, [settings])
 
   return <></>
 }
 
 function NostrLogIncomingRelayEvents() {
-  const websocket = useWebsocket()
+  const incomingNostr = useIncomingNostrEvents()
 
   useEffect(() => {
-    if (!websocket) return
-
     const abortCtrl = new AbortController()
+    incomingNostr.on(
+      NIP01.RelayEventType.EVENT,
+      (event: CustomEvent<NIP01.RelayMessage>) => {
+        if (event.type !== NIP01.RelayEventType.EVENT) return
+        const req = event.detail as NIP01.RelayEventMessage
 
-    websocket.addEventListener(
-      'message',
-      ({ data: json }) => {
-        console.info(`[Nostr] <- ${json}`)
+        console.info(`[Nostr] LOGGING INCOMING EVENT`, req)
       },
       { signal: abortCtrl.signal }
     )
 
     return () => abortCtrl.abort()
-  }, [websocket])
+  }, [incomingNostr])
+
+  useEffect(() => {
+    const abortCtrl = new AbortController()
+    incomingNostr.on(
+      NIP01.RelayEventType.NOTICE,
+      (event: CustomEvent<NIP01.RelayMessage>) => {
+        if (event.type !== NIP01.RelayEventType.NOTICE) return
+        const req = event.detail as NIP01.RelayNoticeMessage
+
+        console.info(`[Nostr] LOGGING INCOMING NOTICE`, req)
+      },
+      { signal: abortCtrl.signal }
+    )
+
+    return () => abortCtrl.abort()
+  }, [incomingNostr])
 
   return <></>
 }

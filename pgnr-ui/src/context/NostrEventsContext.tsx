@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ProviderProps, useEffect } from 'react'
+import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -28,10 +28,12 @@ export class EventBus<DetailType = any> {
 }
 
 interface NostrEventsEntry {
-  events: EventBus
+  incoming: EventBus<NIP01.RelayMessage>
+  outgoing: EventBus<NIP01.ClientMessage>
 }
 
-const EVENT_BUS = new EventBus<NIP01.Event>('nostr-event-bus')
+const INCOMING_EVENT_BUS = new EventBus<NIP01.RelayMessage>('nostr-incoming-events')
+const OUTGOING_EVENT_BUS = new EventBus<NIP01.ClientMessage>('nostr-outgoing-events')
 
 const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
 
@@ -44,18 +46,46 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     const abortCtrl = new AbortController()
 
     // Publish from internal event bus to relay via websocket
-    EVENT_BUS.on(
-      'EVENT',
-      ({ detail: signedEvent }) => {
+    OUTGOING_EVENT_BUS.on(
+      NIP01.ClientEventType.EVENT,
+      (event: CustomEvent<NIP01.ClientMessage>) => {
         if (!websocket) return
+        if (event.type !== NIP01.ClientEventType.EVENT) return
+        const req = event.detail as NIP01.ClientEventMessage
 
+        const signedEvent = req[1]
         const isValidEvent = NostrEvents.validateEvent(signedEvent)
         if (!isValidEvent) {
           console.warn('[Nostr] Invalid outgoing event from internal event bus - wont emit to relay')
           return
         }
 
-        const req = NIP01.createClientEventMessage(signedEvent)
+        console.debug('[Nostr] -> ', req)
+        !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
+      },
+      { signal: abortCtrl.signal }
+    )
+
+    OUTGOING_EVENT_BUS.on(
+      NIP01.ClientEventType.REQ,
+      (event: CustomEvent<NIP01.ClientMessage>) => {
+        if (!websocket) return
+        if (event.type !== NIP01.ClientEventType.REQ) return
+        const req = event.detail as NIP01.ClientReqMessage
+
+        console.debug('[Nostr] -> ', req)
+        !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
+      },
+      { signal: abortCtrl.signal }
+    )
+
+    OUTGOING_EVENT_BUS.on(
+      NIP01.ClientEventType.CLOSE,
+      (event: CustomEvent<NIP01.ClientMessage>) => {
+        if (!websocket) return
+        if (event.type !== NIP01.ClientEventType.CLOSE) return
+        const req = event.detail as NIP01.ClientCloseMessage
+
         console.debug('[Nostr] -> ', req)
         !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
       },
@@ -79,7 +109,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
         }
 
         console.debug('[Nostr] <- ', data)
-        !abortCtrl.signal.aborted && EVENT_BUS.emit('EVENT', event)
+        !abortCtrl.signal.aborted && INCOMING_EVENT_BUS.emit('EVENT', data)
       },
       { signal: abortCtrl.signal }
     )
@@ -87,16 +117,33 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     return () => abortCtrl.abort()
   }, [websocket])
 
-  return <NostrEventsContext.Provider value={{ events: EVENT_BUS }}>{children}</NostrEventsContext.Provider>
+  return (
+    <NostrEventsContext.Provider
+      value={{
+        incoming: INCOMING_EVENT_BUS,
+        outgoing: OUTGOING_EVENT_BUS,
+      }}
+    >
+      {children}
+    </NostrEventsContext.Provider>
+  )
 }
 
-const useNostrEvents = () => {
+const useIncomingNostrEvents = () => {
   const context = useContext(NostrEventsContext)
   if (context === undefined) {
-    throw new Error('useNostrEvents must be used within a GamesProvider')
+    throw new Error('useIncomingNostrEvents must be used within a GamesProvider')
   }
 
-  return context.events
+  return context.incoming
+}
+const useOutgoingNostrEvents = () => {
+  const context = useContext(NostrEventsContext)
+  if (context === undefined) {
+    throw new Error('useOutgoingNostrEvents must be used within a GamesProvider')
+  }
+
+  return context.outgoing
 }
 
-export { NostrEventsContext, NostrEventsProvider, useNostrEvents }
+export { NostrEventsContext, NostrEventsProvider, useIncomingNostrEvents, useOutgoingNostrEvents }

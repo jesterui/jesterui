@@ -185,15 +185,10 @@ export type SubscriptionId = string
 //["REQ", <subscription_id>, <filters JSON>...], used to request events and subscribe to new updates.
 //["CLOSE", <subscription_id>], used to stop previous subscriptions.
 
-enum ClientEventType {
+export enum ClientEventType {
   EVENT = 'EVENT',
   REQ = 'REQ',
   CLOSE = 'CLOSE',
-}
-
-export type ClientEventMessage = [ClientEventType.EVENT, Event]
-export const createClientEventMessage = (event: Event): ClientEventMessage => {
-  return [ClientEventType.EVENT, event]
 }
 
 export type ClientReqMessage = [ClientEventType.REQ, SubscriptionId, ...Filter[]]
@@ -201,10 +196,16 @@ export const createClientReqMessage = (sub: SubscriptionId, filters: Filter[]): 
   return [ClientEventType.REQ, sub, ...filters]
 }
 
+export type ClientEventMessage = [ClientEventType.EVENT, Event]
+export const createClientEventMessage = (event: Event): ClientEventMessage => {
+  return [ClientEventType.EVENT, event]
+}
 export type ClientCloseMessage = [ClientEventType.CLOSE, SubscriptionId]
 export const createClientCloseMessage = (sub: SubscriptionId): ClientCloseMessage => {
   return [ClientEventType.CLOSE, sub]
 }
+
+export type ClientMessage = ClientReqMessage | ClientEventMessage | ClientCloseMessage
 
 // RELAY TO CLIENT
 // ["EVENT", <subscription_id>, <event JSON as defined above>], used to send events requested by clients.
