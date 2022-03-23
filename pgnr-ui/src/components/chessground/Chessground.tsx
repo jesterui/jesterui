@@ -70,13 +70,13 @@ const StyledChessboard = ({
 export default function Chessboard({
   game,
   userColor,
-  updateGame,
+  onAfterMoveFinished,
 }: {
   game: ChessInstance
   userColor: MoveableColor
-} & { updateGame: (fn: (g: ChessInstance) => void) => void }) {
+} & { onAfterMoveFinished: (fn: (g: ChessInstance) => void) => void }) {
   const onAfter = (orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => {
-    updateGame((g: ChessInstance) => {
+    onAfterMoveFinished((g: ChessInstance) => {
       g.move({
         from: orig as Square,
         to: dest as Square,

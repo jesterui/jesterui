@@ -63,7 +63,7 @@ const SendKeepAlive = ({ websocket, keepAliveIntervalInMs }: { keepAliveInterval
       abortCtrl.abort()
       clearInterval(keepaliveInterval)
     }
-  }, [websocket])
+  }, [websocket, keepAliveIntervalInMs])
 
   return <></>
 }

@@ -54,6 +54,7 @@ export default function Settings() {
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
 
+  const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const onRelayClicked = (relay: string) => {
@@ -92,13 +93,10 @@ export default function Settings() {
       console.info('Websocket not available..')
       return
     }
-    const publicKeyOrNull = settings.identity?.pubkey || null
     if (!publicKeyOrNull) {
       console.info('PubKey not available..')
       return
     }
-
-    const privateKeyOrNull = getSession()?.privateKey || null
     if (!privateKeyOrNull) {
       console.info('PrivKey not available..')
       return

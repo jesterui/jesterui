@@ -11,6 +11,8 @@ import PgnTable from './components/chessground/PgnTable'
 import { useSettings, Subscription } from './context/SettingsContext'
 import { useWebsocket, send as websocketSend } from './context/WebsocketContext'
 import * as NIP01 from './util/nostr/nip01'
+import * as NostrEvents from './util/nostr/events'
+import { getSession } from './util/session'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -20,27 +22,18 @@ import { ChessInstance } from './components/ChessJsTypes'
 import * as cg from 'chessground/types'
 import { Route, Routes, Navigate } from 'react-router-dom'
 
-function BoardContainer({
-  game,
-  updateGame,
-}: {
-  game: Game
-  updateGame: (fn: (game: Game | null) => Game | null) => void
-}) {
+function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
   const updateGameCallback = (modify: (g: ChessInstance) => void) => {
-    console.debug('[Chess] onUpdateGame invoked')
-    updateGame((currentGame) => {
-      if (!currentGame) return null
-      const update = { ...currentGame.game }
-      modify(update)
-      return { ...currentGame, game: update }
-    })
+    console.debug('[Chess] updateGameCallback invoked')
+    const copyOfGame = { ...game.game }
+    modify(copyOfGame)
+    onGameChanged(copyOfGame)
   }
 
   return (
     <div style={{ display: 'flex' }}>
       <div style={{ width: 400, height: 400 }}>
-        {game && <Chessboard game={game!.game} userColor={game!.color} updateGame={updateGameCallback} />}
+        {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
       </div>
       {game && (
         <div className="pl-2 overflow-y-scroll">
@@ -55,6 +48,49 @@ function Index() {
   const websocket = useWebsocket()
   const setCurrentGame = useSetCurrentGame()
   const game = useCurrentGame()
+  const settings = useSettings()
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
+  const privateKeyOrNull = getSession()?.privateKey || null
+
+  const onGameChanged = (game: ChessInstance) => {
+    setCurrentGame((currentGame) => {
+      if (!currentGame) return null
+      return { ...currentGame, game }
+    })
+    sendGameStateViaNostr(game)
+  }
+
+  const sendGameStateViaNostr = async (game: ChessInstance) => {
+    if (!websocket) {
+      console.info('Websocket not available..')
+      return
+    }
+    if (!publicKeyOrNull) {
+      console.info('PubKey not available..')
+      return
+    }
+    if (!privateKeyOrNull) {
+      console.info('PrivKey not available..')
+      return
+    }
+
+    const publicKey = publicKeyOrNull!
+    const privateKey = privateKeyOrNull!
+
+    const eventParts = NostrEvents.blankEvent()
+    eventParts.kind = 1 // text_note
+    eventParts.pubkey = publicKey
+    eventParts.created_at = Math.floor(Date.now() / 1000)
+    eventParts.content = game.fen()
+    const event = NostrEvents.constructEvent(eventParts)
+    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+    const req = NIP01.createClientEventMessage(signedEvent)
+
+    const abortCtrl = new AbortController()
+    console.debug('[Nostr] -> ', req)
+    websocketSend(websocket, req, { signal: abortCtrl.signal })
+  }
 
   useEffect(() => {
     setCurrentGame((currentGame) => {
@@ -68,12 +104,10 @@ function Index() {
     })
   }, [setCurrentGame])
 
-  const onGameChanged = (game: Game | null) => {}
-
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      {game && <BoardContainer game={game} updateGame={setCurrentGame} />}
+      {game && <BoardContainer game={game} onGameChanged={onGameChanged} />}
     </div>
   )
 }
