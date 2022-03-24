@@ -66,7 +66,7 @@ sequenceDiagram
 ```
 
 
-### Game started
+### Game received
 ```mermaid
 sequenceDiagram
     User->>Relay:  ["REQ","my-sub",<game_start_filter>]
@@ -77,4 +77,22 @@ sequenceDiagram
 
 Always expect multiple games to be started. Client can choose one their own which one to follow.
 
-### 
+### Game selected
+
+If you have selected a game, the subscription must be updated to
+A subscription to game start events
+```json
+["REQ","my-sub",{"#e": ["<selected_game_id>"]}]
+```
+
+```
+selected_game_filter := ["REQ","my-sub",{"#e": ["<selected_game_id>"]}]
+```
+
+```mermaid
+sequenceDiagram
+    User->>Relay:  ["REQ","my-sub",<selected_game_filter>]
+    Relay-->>User: No events
+```
+
+From now on, the client will receive game move updates.

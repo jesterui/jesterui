@@ -29,7 +29,5 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
 }
 
 export const isStartGameEvent = (event: NIP01.Event): boolean => {
-  return event.content === '' &&
-    event.kind === 1 &&
-    arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
+  return event.content === '' && event.kind === 1 && arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
 }

@@ -5,6 +5,7 @@ import './App.css'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Index from './components/Index'
+import GamesOverview from './components/GamesOverview'
 import Layout from './Layout'
 
 import { useSettings, Subscription } from './context/SettingsContext'
@@ -125,6 +126,7 @@ export default function App() {
           <Routes>
             <Route element={<Layout variant={null} />}>
               <Route path="/" element={<Index />} />
+              <Route path="/games" element={<GamesOverview />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />
             </Route>

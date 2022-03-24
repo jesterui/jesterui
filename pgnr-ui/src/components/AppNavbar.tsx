@@ -46,6 +46,15 @@ export default function AppNavbar() {
               </NavItem>
             </ReactNavLink>
             <ReactNavLink
+              to="/games"
+              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+            >
+              <NavItem ripple="light">
+                <Icon name="games" size="xl" />
+                Games
+              </NavItem>
+            </ReactNavLink>
+            <ReactNavLink
               to="/settings"
               className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
             >

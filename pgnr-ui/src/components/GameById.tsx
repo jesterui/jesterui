@@ -44,7 +44,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
   )
 }
 
-export default function Index() {
+export default function GameById() {
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const currentGame = useCurrentGame()
