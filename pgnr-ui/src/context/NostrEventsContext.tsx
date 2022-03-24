@@ -37,6 +37,55 @@ export class EventBus<DetailType = any> {
 interface NostrEventsEntry {
   incoming: EventBus<NIP01.RelayMessage> | null
   outgoing: EventBus<NIP01.ClientMessage> | null
+  incomingBuffer: NostrEventBuffer
+}
+interface NostrEventDictionary {
+  [id: NIP01.Sha256]: NIP01.Event
+}
+
+interface NostrEventBufferState {
+  latest: NIP01.Event | null
+  order: NIP01.Sha256[]
+  events: NostrEventDictionary
+}
+
+interface NostrEventBuffer {
+  state(): NostrEventBufferState
+  add(event: NIP01.Event): NostrEventBuffer
+}
+
+// TODO: add a maximum amount of events -> forget "older" events
+class NostrEventBufferImpl implements NostrEventBuffer {
+  private _state: NostrEventBufferState = {
+    latest: null,
+    order: [],
+    events: {},
+  }
+
+  constructor(copy?: NostrEventBufferState) {
+    if (copy) {
+      this._state = copy
+    }
+  }
+
+  state(): NostrEventBufferState {
+    return { ...this._state }
+  }
+
+  add(event: NIP01.Event): NostrEventBuffer {
+    if (!event) throw new Error('Event cannot be added')
+
+    const eventExists = !!this._state.events[event.id]
+    if (eventExists) {
+      return this
+    } else {
+      return new NostrEventBufferImpl({
+        latest: { ...event },
+        order: [event.id, ...this._state.order],
+        events: { ...this._state.events, [event.id]: event },
+      })
+    }
+  }
 }
 
 const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
@@ -55,6 +104,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
   const websocket = useWebsocket()
   const [incoming, setIncoming] = useState<EventBus<NIP01.RelayMessage> | null>(null)
   const [outgoing, setOutgoing] = useState<EventBus<NIP01.ClientMessage> | null>(null)
+  const [incomingBuffer, setIncomingBuffer] = useState<NostrEventBuffer>(new NostrEventBufferImpl())
 
   useEffect(() => {
     if (!websocket) {
@@ -86,7 +136,10 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
           }
 
           console.debug('[Nostr] <- ', data)
-          !abortCtrl.signal.aborted && newEventBus.emit(NIP01.RelayEventType.EVENT, data)
+          if (!abortCtrl.signal.aborted) {
+            setIncomingBuffer((current) => current.add(nostrEvent))
+            newEventBus.emit(NIP01.RelayEventType.EVENT, data)
+          }
         },
         { signal: abortCtrl.signal }
       )
@@ -175,7 +228,9 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     }
   }, [websocket])
 
-  return <NostrEventsContext.Provider value={{ incoming, outgoing }}>{children}</NostrEventsContext.Provider>
+  return (
+    <NostrEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>{children}</NostrEventsContext.Provider>
+  )
 }
 
 const useIncomingNostrEvents = () => {
@@ -186,6 +241,16 @@ const useIncomingNostrEvents = () => {
 
   return context.incoming
 }
+
+const useIncomingNostrEventsBuffer = () => {
+  const context = useContext(NostrEventsContext)
+  if (context === undefined) {
+    throw new Error('useIncomingNostrEventsBuffer must be used within a GamesProvider')
+  }
+
+  return context.incomingBuffer
+}
+
 const useOutgoingNostrEvents = () => {
   const context = useContext(NostrEventsContext)
   if (context === undefined) {
@@ -195,4 +260,10 @@ const useOutgoingNostrEvents = () => {
   return context.outgoing
 }
 
-export { NostrEventsContext, NostrEventsProvider, useIncomingNostrEvents, useOutgoingNostrEvents }
+export {
+  NostrEventsContext,
+  NostrEventsProvider,
+  useIncomingNostrEvents,
+  useOutgoingNostrEvents,
+  useIncomingNostrEventsBuffer,
+}

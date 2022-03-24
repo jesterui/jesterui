@@ -5,7 +5,11 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 
 import { useSettings } from '../context/SettingsContext'
-import { useOutgoingNostrEvents, useIncomingNostrEvents } from '../context/NostrEventsContext'
+import {
+  useOutgoingNostrEvents,
+  useIncomingNostrEvents,
+  useIncomingNostrEventsBuffer,
+} from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
@@ -42,13 +46,14 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 
 export default function Index() {
   const incomingNostr = useIncomingNostrEvents()
+  const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const currentGame = useCurrentGame()
   const setCurrentGame = useSetCurrentGame()
   const settings = useSettings()
 
-  const [latestIncomingEvent, setLatestIncomingEvent] = useState<NIP01.Event | null>(null)
   const [myMoveIds, setMyMoveIds] = useState<NIP01.Sha256[]>([])
+  const [currentGameEvent, setCurrentGameEvent] = useState<NIP01.Event | null>(null)
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -56,6 +61,7 @@ export default function Index() {
   const onGameChanged = async (chessboard: ChessInstance) => {
     if (!currentGame) return null
 
+    // TODO: DO NOT SET GAME HERE... SET FROM CHESSBOARD...
     setCurrentGame((currentGame) => {
       if (!currentGame) return null
       return { ...currentGame, game: chessboard }
@@ -115,46 +121,38 @@ export default function Index() {
     outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
   }
 
+  // if no game is active, search the events if a game has been started
+  // search from the newest element on and set the game to it
   useEffect(() => {
-    if (!latestIncomingEvent) return
+    // TODO: what if game is over? `currentGame.game.game_over()`
+    if (currentGame) return
 
-    console.log('IS?', latestIncomingEvent.id, AppUtils.isStartGameEvent(latestIncomingEvent))
+    const bufferState = incomingNostrBuffer.state()
 
-    if (AppUtils.isStartGameEvent(latestIncomingEvent)) {
-      setCurrentGame((currentGame) => {
-        const currentGameInProgress = currentGame !== null && !currentGame.game.game_over()
-        if (currentGameInProgress) {
-          return currentGame
-        }
+    for (const eventId of bufferState.order) {
+      const event = bufferState.events[eventId]
 
+      if (AppUtils.isStartGameEvent(event)) {
         const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
-        return {
-          id: latestIncomingEvent.id,
+        setCurrentGame((_) => ({
+          id: event.id,
           game: new Chess(),
           color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
-        }
-      })
+        }))
+
+        break
+      }
     }
-  }, [latestIncomingEvent])
+  }, [incomingNostrBuffer, currentGame])
 
   useEffect(() => {
-    if (!incomingNostr) return
-
-    const abortCtrl = new AbortController()
-    incomingNostr.on(
-      NIP01.RelayEventType.EVENT,
-      (event: CustomEvent<NIP01.RelayMessage>) => {
-        if (event.type !== NIP01.RelayEventType.EVENT) return
-        const req = event.detail as NIP01.RelayEventMessage
-
-        const data = req[2]
-        setLatestIncomingEvent(data)
-      },
-      { signal: abortCtrl.signal }
-    )
-
-    return () => abortCtrl.abort()
-  }, [incomingNostr])
+    if (!currentGame) {
+      setCurrentGameEvent(null)
+    } else {
+      const bufferState = incomingNostrBuffer.state()
+      setCurrentGameEvent(bufferState.events[currentGame.id])
+    }
+  }, [currentGame])
 
   return (
     <div className="screen-index">
@@ -165,6 +163,12 @@ export default function Index() {
         </button>
       )}
       {currentGame && <BoardContainer game={currentGame} onGameChanged={onGameChanged} />}
+      {currentGameEvent && (
+        <div>
+          <pre>{JSON.stringify(currentGameEvent, null, 2)}</pre>
+        </div>
+      )}
+      {!currentGameEvent && <div>No game?</div>}
     </div>
   )
 }
