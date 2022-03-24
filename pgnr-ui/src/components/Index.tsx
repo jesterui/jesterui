@@ -5,7 +5,7 @@ import { useCurrentGame, useSetCurrentGame } from '../context/GamesContext'
 import BoardById from './GameById'
 import CreateGameButton from './CreateGameButton'
 
-import { useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { useIncomingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
 
@@ -17,11 +17,10 @@ import * as cg from 'chessground/types'
 
 export default function Index() {
   const navigate = useNavigate()
+  const incomingNostr = useIncomingNostrEvents()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const currentGame = useCurrentGame()
   const setCurrentGame = useSetCurrentGame()
-
-  const [currentGameEvent, setCurrentGameEvent] = useState<NIP01.Event | null>(null)
 
   // if no game is active, search the events if a game has been started
   // search from the newest element on and set the game to it
@@ -47,14 +46,6 @@ export default function Index() {
     }
   }, [incomingNostrBuffer, currentGame])
 
-  useEffect(() => {
-    if (!currentGame) {
-      setCurrentGameEvent(null)
-    } else {
-      const bufferState = incomingNostrBuffer.state()
-      setCurrentGameEvent(bufferState.events[currentGame.id])
-    }
-  }, [currentGame])
 
   const onGameCreated = (gameId: NIP01.Sha256) => {
     navigate(`/game:/${gameId}`)
@@ -63,13 +54,16 @@ export default function Index() {
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
-      {currentGame && <BoardById gameId={currentGame.id} />}
-      {currentGameEvent && (
-        <div>
-          <pre>{JSON.stringify(currentGameEvent, null, 2)}</pre>
-        </div>
-      )}
+      {!incomingNostr ? (
+        <>
+          <div>No connection to nostr</div>
+        </>
+      ) : (<>
+        {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
+        {currentGame && <BoardById gameId={currentGame.id} />}
+      </>)}
+
+      
     </div>
   )
 }

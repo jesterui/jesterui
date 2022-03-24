@@ -28,6 +28,10 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
   return NostrEvents.constructEvent(eventParts)
 }
 
-export const isStartGameEvent = (event: NIP01.Event): boolean => {
-  return event.content === '' && event.kind === 1 && arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
+export const isStartGameEvent = (event?: NIP01.Event): boolean => {
+  return !!event && event.content === '' && event.kind === 1 && arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
 }
+
+
+export const gameDisplayNameShort = (gameId: NIP01.Sha256, length = 5) => gameId.substring(0, length)
+export const gameDisplayName = (gameId: NIP01.Sha256, length = 8) => gameId.substring(0, length)

@@ -149,7 +149,10 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       setCurrentGameEvent(null)
     } else {
       const bufferState = incomingNostrBuffer.state()
-      setCurrentGameEvent(bufferState.events[currentGame.id])
+      const gameEvent = bufferState.events[currentGame.id]
+      if (gameEvent) {
+        setCurrentGameEvent(gameEvent)
+      }
     }
   }, [currentGame])
 
@@ -157,10 +160,29 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     return <div>Error: GameId not present</div>
   }
 
+  if (currentGame && currentGame.id !== gameId) {
+    const bufferState = incomingNostrBuffer.state()
+    const gameEvent = bufferState.events[gameId]
+
+    if (!AppUtils.isStartGameEvent(gameEvent)) {
+      return <>Game not found...</>
+    } else {
+      const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
+      setTimeout(() => {
+        setCurrentGame((_) => ({
+          id: gameEvent.id,
+          game: new Chess(),
+          color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
+        }))
+      }, 4)
+
+      return <>Loading...</>
+    }
+  }
+
   return (
     <div className="screen-index">
-      <Heading1 color="blueGray">Game</Heading1>
-      <div>{gameId}</div>
+      <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
       {!currentGame && (
         <button type="button" onClick={() => onStartGameButtonClicked()}>
           Start new game
