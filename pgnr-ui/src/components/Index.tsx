@@ -58,7 +58,7 @@ export default function Index() {
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const onGameChanged = async (chessboard: ChessInstance) => {
+  const onChessboardChanged = async (chessboard: ChessInstance) => {
     if (!currentGame) return null
 
     // TODO: DO NOT SET GAME HERE... SET FROM CHESSBOARD...
@@ -94,7 +94,7 @@ export default function Index() {
     eventParts.tags = [['e', currentGame.id]]
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
+    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
     setMyMoveIds((current) => [...current, signedEvent.id])
   }
@@ -118,7 +118,7 @@ export default function Index() {
 
     const event = AppUtils.constructStartGameEvent(publicKey)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
+    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
   }
 
   // if no game is active, search the events if a game has been started
@@ -162,7 +162,7 @@ export default function Index() {
           Start new game
         </button>
       )}
-      {currentGame && <BoardContainer game={currentGame} onGameChanged={onGameChanged} />}
+      {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
       {currentGameEvent && (
         <div>
           <pre>{JSON.stringify(currentGameEvent, null, 2)}</pre>

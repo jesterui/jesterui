@@ -44,3 +44,5 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 - material-tailwind (GitHub): https://github.com/creativetimofficial/material-tailwind
 
 - react-chessboard (GitHub): https://github.com/Clariity/react-chessboard
+
+- mermaid: https://mermaid-js.github.io/mermaid/#/sequenceDiagram
