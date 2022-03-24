@@ -13,6 +13,8 @@ import { useOutgoingNostrEvents, useIncomingNostrEvents } from './context/NostrE
 import * as NIP01 from './util/nostr/nip01'
 import * as NostrEvents from './util/nostr/events'
 import { getSession } from './util/session'
+import * as AppUtils from './util/pgnrui'
+
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -105,7 +107,7 @@ function Index() {
     return () => abortCtrl.abort()
   }, [websocket])*/
 
-  useEffect(() => {
+  /*useEffect(() => {
     setCurrentGame((currentGame) => {
       if (currentGame) return currentGame
 
@@ -115,11 +117,31 @@ function Index() {
         color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
       }
     })
-  }, [setCurrentGame])
+  }, [setCurrentGame])*/
+
+  const onStartGameButtonClicked = async () => {
+    if (!publicKeyOrNull) {
+      console.info('PubKey not available..')
+      return
+    }
+    if (!privateKeyOrNull) {
+      console.info('PrivKey not available..')
+      return
+    }
+
+    const publicKey = publicKeyOrNull!
+    const privateKey = privateKeyOrNull!
+
+
+    const event = AppUtils.constructStartGameEvent(publicKey)
+    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+    outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
+  }
 
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
+      {!game && <button type="button" onClick={() => onStartGameButtonClicked()}>Start new game</button>}
       {game && <BoardContainer game={game} onGameChanged={onGameChanged} />}
     </div>
   )
@@ -161,9 +183,14 @@ function NostrManageSubscriptions() {
     const resubscribe = true // TODO: only for changed subscriptions..
 
     if (resubscribe) {
-      setSubscriptions((val) => {
-        setCloseSubscriptions(val)
-        return settings.subscriptions || []
+      setSubscriptions((currentSubs) => {
+        const newSubs = settings.subscriptions || []
+        const newSubsIds = newSubs.map(s => s.id)
+        const closeSubs = currentSubs.filter(val => !newSubsIds.includes(val.id))
+
+        setCloseSubscriptions(closeSubs)
+        
+        return newSubs
       })
     }
   }, [settings])

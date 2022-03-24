@@ -8,6 +8,7 @@ import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
+import * as AppUtils from '../util/pgnrui'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
@@ -76,14 +77,21 @@ export default function Settings() {
 
     setSessionAttribute({ privateKey })
 
+    const filterForOwnEvents: NIP01.Filter = { 
+      authors: [publicKey] 
+    }
+
     settingsDispatch({
       ...settings,
       identity: { ...settings.identity, pubkey: publicKey },
       subscriptions: [
         {
           id: 'my-sub',
-          filters: [{ authors: [publicKey] }],
-        },
+          filters: [
+            filterForOwnEvents,
+            AppUtils.PGNRUI_START_GAME_FILTER
+          ],
+        }
       ],
     })
   }
@@ -147,7 +155,7 @@ export default function Settings() {
 
       <Heading2 color="blueGray">Subscriptions</Heading2>
       <div>
-        <code>{`${JSON.stringify(settings.subscriptions)}`}</code>
+        <pre>{`${JSON.stringify(settings.subscriptions, null, 2)}`}</pre>
       </div>
 
       <Heading2 color="blueGray">Relays</Heading2>
