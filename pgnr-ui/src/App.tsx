@@ -47,10 +47,13 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 }
 
 function Index() {
+  const incomingNostr = useIncomingNostrEvents()
   const outgoingNostr = useOutgoingNostrEvents()
   const setCurrentGame = useSetCurrentGame()
   const game = useCurrentGame()
   const settings = useSettings()
+
+  const [latestEvent, setLatestEvent] = useState<NIP01.Event | null>(null)
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -144,6 +147,45 @@ function Index() {
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
   }
+
+  useEffect(() => {
+    if (!latestEvent) return
+
+    const isGameStartEvent = latestEvent.tags.filter((t) => t[0] === 'e' && t[1] === AppUtils.PGNRUI_START_GAME_E_REF)
+    if (isGameStartEvent) {
+      setCurrentGame((currentGame) => {
+        const currentGameInProgress = currentGame !== null && !currentGame.game.game_over()
+        if (currentGameInProgress) {
+          return currentGame
+        }
+
+        const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
+        return {
+          game: new Chess(),
+          color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
+        }
+      })
+    }
+  }, [latestEvent])
+
+  useEffect(() => {
+    if (!incomingNostr) return
+
+    const abortCtrl = new AbortController()
+    incomingNostr.on(
+      NIP01.RelayEventType.EVENT,
+      (event: CustomEvent<NIP01.RelayMessage>) => {
+        if (event.type !== NIP01.RelayEventType.EVENT) return
+        const req = event.detail as NIP01.RelayEventMessage
+
+        const data = req[2]
+        setLatestEvent(data)
+      },
+      { signal: abortCtrl.signal }
+    )
+
+    return () => abortCtrl.abort()
+  }, [incomingNostr])
 
   return (
     <div className="screen-index">
