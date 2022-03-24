@@ -113,6 +113,15 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       return
     }
 
+    // TODO: save the current buffer by host connection
+    // currently, we just forget the whole buffer - which is safe, but uncool..
+    // it would be great to be handle websocket disconnects while still being able to
+    // view received events..
+    // currently, setting to new buffer ensures that no games are displayed
+    // that have been received, but are not available on the newly connected relay
+    // e.g. what if a disconnect is only a few milliseconds?
+    setIncomingBuffer(new NostrEventBufferImpl())
+
     const abortCtrl = new AbortController()
 
     setIncoming((_) => {
