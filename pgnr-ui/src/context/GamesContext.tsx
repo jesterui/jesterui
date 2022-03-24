@@ -3,10 +3,12 @@ import React, { createContext, useState, useContext, ProviderProps } from 'react
 // @ts-ignore
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
+import { Sha256 } from '../util/nostr/nip01'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
 export type Game = {
+  id: Sha256
   game: ChessInstance
   color: MovebleColor
 }

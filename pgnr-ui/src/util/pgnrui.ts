@@ -2,6 +2,7 @@ import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex as toHex } from '@noble/hashes/utils'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
+import { arrayEquals } from './utils'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const PGNRUI_START_GAME_E_REF = toHex(sha256(FEN_START_POSITION))
@@ -25,4 +26,15 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
     pubkey,
   } as NIP01.EventParts
   return NostrEvents.constructEvent(eventParts)
+}
+
+export const isStartGameEvent = (event: NIP01.Event): boolean => {
+  /*
+  return event.tags
+  .filter((t) => t.length === 2)
+  .filter((t) => t[0] === 'e')
+  .filter((t) => t[1] === PGNRUI_START_GAME_E_REF)
+  .length === 0
+  */
+  return arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
 }

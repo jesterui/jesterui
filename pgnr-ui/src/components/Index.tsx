@@ -43,24 +43,27 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 export default function Index() {
   const incomingNostr = useIncomingNostrEvents()
   const outgoingNostr = useOutgoingNostrEvents()
+  const currentGame = useCurrentGame()
   const setCurrentGame = useSetCurrentGame()
-  const game = useCurrentGame()
   const settings = useSettings()
 
-  const [latestEvent, setLatestEvent] = useState<NIP01.Event | null>(null)
+  const [latestIncomingEvent, setLatestIncomingEvent] = useState<NIP01.Event | null>(null)
+  const [myMoveIds, setMyMoveIds] = useState<NIP01.Sha256[]>([])
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const onGameChanged = (game: ChessInstance) => {
+  const onGameChanged = async (chessboard: ChessInstance) => {
+    if (!currentGame) return null
+
     setCurrentGame((currentGame) => {
       if (!currentGame) return null
-      return { ...currentGame, game }
+      return { ...currentGame, game: chessboard }
     })
-    sendGameStateViaNostr(game)
+    await sendGameStateViaNostr(currentGame, chessboard)
   }
 
-  const sendGameStateViaNostr = async (game: ChessInstance) => {
+  const sendGameStateViaNostr = async (currentGame: Game, chessboard: ChessInstance) => {
     if (!outgoingNostr) {
       console.info('Nostr EventBus not ready..')
       return
@@ -81,10 +84,13 @@ export default function Index() {
     eventParts.kind = 1 // text_note
     eventParts.pubkey = publicKey
     eventParts.created_at = Math.floor(Date.now() / 1000)
-    eventParts.content = game.fen()
+    eventParts.content = chessboard.fen()
+    eventParts.tags = [['e', currentGame.id]]
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
+
+    setMyMoveIds((current) => [...current, signedEvent.id])
   }
 
   const onStartGameButtonClicked = async () => {
@@ -110,10 +116,11 @@ export default function Index() {
   }
 
   useEffect(() => {
-    if (!latestEvent) return
+    if (!latestIncomingEvent) return
 
-    const isGameStartEvent = latestEvent.tags.filter((t) => t[0] === 'e' && t[1] === AppUtils.PGNRUI_START_GAME_E_REF)
-    if (isGameStartEvent) {
+    console.log('IS?', latestIncomingEvent.id, AppUtils.isStartGameEvent(latestIncomingEvent))
+
+    if (AppUtils.isStartGameEvent(latestIncomingEvent)) {
       setCurrentGame((currentGame) => {
         const currentGameInProgress = currentGame !== null && !currentGame.game.game_over()
         if (currentGameInProgress) {
@@ -122,12 +129,13 @@ export default function Index() {
 
         const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
         return {
+          id: latestIncomingEvent.id,
           game: new Chess(),
           color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
         }
       })
     }
-  }, [latestEvent])
+  }, [latestIncomingEvent])
 
   useEffect(() => {
     if (!incomingNostr) return
@@ -140,7 +148,7 @@ export default function Index() {
         const req = event.detail as NIP01.RelayEventMessage
 
         const data = req[2]
-        setLatestEvent(data)
+        setLatestIncomingEvent(data)
       },
       { signal: abortCtrl.signal }
     )
@@ -151,12 +159,12 @@ export default function Index() {
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      {!game && (
+      {!currentGame && (
         <button type="button" onClick={() => onStartGameButtonClicked()}>
           Start new game
         </button>
       )}
-      {game && <BoardContainer game={game} onGameChanged={onGameChanged} />}
+      {currentGame && <BoardContainer game={currentGame} onGameChanged={onGameChanged} />}
     </div>
   )
 }

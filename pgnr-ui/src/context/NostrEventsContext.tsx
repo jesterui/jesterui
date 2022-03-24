@@ -70,21 +70,23 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       // Publish from relay over websocket to internal event bus
       websocket.addEventListener(
         'message',
-        ({ data: json }) => {
-          const data = JSON.parse(json) as NIP01.RelayMessage
+        (event) => {
+          //event.stopPropagation()
+
+          const data = JSON.parse(event.data) as NIP01.RelayMessage
           if (!Array.isArray(data) || data.length !== 3) return
           if (data[0] !== NIP01.RelayEventType.EVENT) return
 
-          const event = data[2] as NIP01.Event
+          const nostrEvent = data[2] as NIP01.Event
 
-          const isValidEvent = NostrEvents.validateEvent(event)
+          const isValidEvent = NostrEvents.validateEvent(nostrEvent)
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
             return
           }
 
           console.debug('[Nostr] <- ', data)
-          !abortCtrl.signal.aborted && newEventBus.emit('EVENT', data)
+          !abortCtrl.signal.aborted && newEventBus.emit(NIP01.RelayEventType.EVENT, data)
         },
         { signal: abortCtrl.signal }
       )
@@ -97,6 +99,8 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
         (event: CustomEvent<NIP01.ClientMessage>) => {
+          //event.stopPropagation()
+
           if (!websocket) {
             console.warn('Websocket not ready yet')
             return
@@ -120,10 +124,13 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       newEventBus.on(
         NIP01.ClientEventType.REQ,
         (event: CustomEvent<NIP01.ClientMessage>) => {
+          //event.stopPropagation()
+
           if (!websocket) {
             console.warn('Websocket not ready yet')
             return
           }
+
           if (event.type !== NIP01.ClientEventType.REQ) return
           const req = event.detail as NIP01.ClientReqMessage
 
@@ -136,6 +143,8 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       newEventBus.on(
         NIP01.ClientEventType.CLOSE,
         (event: CustomEvent<NIP01.ClientMessage>) => {
+          //event.stopPropagation()
+
           if (!websocket) {
             console.warn('Websocket not ready yet')
             return

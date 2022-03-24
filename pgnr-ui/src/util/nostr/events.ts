@@ -22,12 +22,7 @@ export const constructEvent = (eventInConstruction: NIP01.EventInConstruction): 
     id: createEventHash(parts),
     ...parts,
   }
-  const valid = validateEvent(unsignedEvent)
-  if (!valid) {
-    throw new Error('Event is not valid')
-  }
-
-  return unsignedEvent
+  return validateEventOrThrow(unsignedEvent)
 }
 
 const signableEventData = (evt: NIP01.EventParts): NIP01.SignableEventData => {
