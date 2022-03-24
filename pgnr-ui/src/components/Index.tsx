@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { useCurrentGame, useSetCurrentGame, Game } from '../context/GamesContext'
+import { useCurrentGame, useSetCurrentGame } from '../context/GamesContext'
 import BoardById from './GameById'
+import CreateGameButton from './CreateGameButton'
 
-import { useSettings } from '../context/SettingsContext'
-import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
-import * as NostrEvents from '../util/nostr/events'
-import { getSession } from '../util/session'
 import * as AppUtils from '../util/pgnrui'
 
 // @ts-ignore
@@ -17,38 +16,12 @@ import Chess from 'chess.js'
 import * as cg from 'chessground/types'
 
 export default function Index() {
+  const navigate = useNavigate()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
-  const outgoingNostr = useOutgoingNostrEvents()
   const currentGame = useCurrentGame()
   const setCurrentGame = useSetCurrentGame()
-  const settings = useSettings()
 
   const [currentGameEvent, setCurrentGameEvent] = useState<NIP01.Event | null>(null)
-
-  const publicKeyOrNull = settings.identity?.pubkey || null
-  const privateKeyOrNull = getSession()?.privateKey || null
-
-  const onStartGameButtonClicked = async () => {
-    if (!outgoingNostr) {
-      console.info('Nostr EventBus not ready..')
-      return
-    }
-    if (!publicKeyOrNull) {
-      console.info('PubKey not available..')
-      return
-    }
-    if (!privateKeyOrNull) {
-      console.info('PrivKey not available..')
-      return
-    }
-
-    const publicKey = publicKeyOrNull!
-    const privateKey = privateKeyOrNull!
-
-    const event = AppUtils.constructStartGameEvent(publicKey)
-    const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-  }
 
   // if no game is active, search the events if a game has been started
   // search from the newest element on and set the game to it
@@ -83,14 +56,14 @@ export default function Index() {
     }
   }, [currentGame])
 
+  const onGameCreated = (gameId: NIP01.Sha256) => {
+    navigate(`/game:/${gameId}`)
+  }
+
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      {
-        <button type="button" onClick={() => onStartGameButtonClicked()}>
-          Start new game
-        </button>
-      }
+      {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
       {currentGame && <BoardById gameId={currentGame.id} />}
       {currentGameEvent && (
         <div>

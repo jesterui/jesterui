@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-import { useCurrentGame, useSetCurrentGame, Game } from '../context/GamesContext'
-import Chessboard from '../components/chessground/Chessground'
-import PgnTable from '../components/chessground/PgnTable'
+import CreateGameButton from './CreateGameButton'
 
 import { useSettings } from '../context/SettingsContext'
-import {
-  useOutgoingNostrEvents,
-  useIncomingNostrEvents,
-  useIncomingNostrEventsBuffer,
-} from '../context/NostrEventsContext'
+import { useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
@@ -20,6 +14,7 @@ import * as AppUtils from '../util/pgnrui'
 import Heading1 from '@material-tailwind/react/Heading1'
 
 export default function GamesOverview() {
+  const navigate = useNavigate()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const settings = useSettings()
 
@@ -39,9 +34,15 @@ export default function GamesOverview() {
     setGames(orderedGameStartedEvents)
   }, [incomingNostrBuffer])
 
+  const onGameCreated = (gameId: NIP01.Sha256) => {
+    navigate(`/game:/${gameId}`)
+  }
+
   return (
     <div className="screen-games-overview">
       <Heading1 color="blueGray">Games</Heading1>
+      <CreateGameButton onGameCreated={onGameCreated} />
+      {games.length === 0 && <div>No Games available</div>}
       {games.map((it) => {
         return (
           <div>
