@@ -14,7 +14,7 @@ import * as NIP01 from './util/nostr/nip01'
 import * as NostrEvents from './util/nostr/events'
 import { getSession } from './util/session'
 import * as AppUtils from './util/pgnrui'
-
+import { arrayEquals } from './util/utils'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -64,6 +64,10 @@ function Index() {
   }
 
   const sendGameStateViaNostr = async (game: ChessInstance) => {
+    if (!outgoingNostr) {
+      console.info('Nostr EventBus not ready..')
+      return
+    }
     if (!publicKeyOrNull) {
       console.info('PubKey not available..')
       return
@@ -120,6 +124,10 @@ function Index() {
   }, [setCurrentGame])*/
 
   const onStartGameButtonClicked = async () => {
+    if (!outgoingNostr) {
+      console.info('Nostr EventBus not ready..')
+      return
+    }
     if (!publicKeyOrNull) {
       console.info('PubKey not available..')
       return
@@ -132,7 +140,6 @@ function Index() {
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
 
-
     const event = AppUtils.constructStartGameEvent(publicKey)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit('EVENT', NIP01.createClientEventMessage(signedEvent))
@@ -141,7 +148,11 @@ function Index() {
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      {!game && <button type="button" onClick={() => onStartGameButtonClicked()}>Start new game</button>}
+      {!game && (
+        <button type="button" onClick={() => onStartGameButtonClicked()}>
+          Start new game
+        </button>
+      )}
       {game && <BoardContainer game={game} onGameChanged={onGameChanged} />}
     </div>
   )
@@ -155,6 +166,7 @@ function NostrManageSubscriptions() {
   const [closeSubscriptions, setCloseSubscriptions] = useState<Subscription[]>([])
 
   useEffect(() => {
+    if (!outgoingNostr) return
     if (closeSubscriptions.length === 0) return
 
     const abortCtrl = new AbortController()
@@ -165,9 +177,10 @@ function NostrManageSubscriptions() {
 
     setCloseSubscriptions([])
     return () => abortCtrl.abort()
-  }, [outgoingNostr, closeSubscriptions])
+  }, [closeSubscriptions, outgoingNostr])
 
   useEffect(() => {
+    if (!outgoingNostr) return
     if (subscriptions.length === 0) return
 
     const abortCtrl = new AbortController()
@@ -179,21 +192,24 @@ function NostrManageSubscriptions() {
     return () => abortCtrl.abort()
   }, [outgoingNostr, subscriptions])
 
+  // initialize subscriptons based on settings
   useEffect(() => {
-    const resubscribe = true // TODO: only for changed subscriptions..
+    const subscriptionsFromSettings = settings.subscriptions || []
+    const resubscribe = !arrayEquals(subscriptions, subscriptionsFromSettings)
 
     if (resubscribe) {
+      console.log('[Nostr] Will resubscribe..', subscriptionsFromSettings)
       setSubscriptions((currentSubs) => {
-        const newSubs = settings.subscriptions || []
-        const newSubsIds = newSubs.map(s => s.id)
-        const closeSubs = currentSubs.filter(val => !newSubsIds.includes(val.id))
+        const newSubs = [...subscriptionsFromSettings]
+        const newSubsIds = newSubs.map((s) => s.id)
+        const closeSubs = currentSubs.filter((val) => !newSubsIds.includes(val.id))
 
         setCloseSubscriptions(closeSubs)
-        
+
         return newSubs
       })
     }
-  }, [settings])
+  }, [subscriptions, settings])
 
   return <></>
 }
@@ -202,6 +218,8 @@ function NostrLogIncomingRelayEvents() {
   const incomingNostr = useIncomingNostrEvents()
 
   useEffect(() => {
+    if (!incomingNostr) return
+
     const abortCtrl = new AbortController()
     incomingNostr.on(
       NIP01.RelayEventType.EVENT,
@@ -218,6 +236,8 @@ function NostrLogIncomingRelayEvents() {
   }, [incomingNostr])
 
   useEffect(() => {
+    if (!incomingNostr) return
+
     const abortCtrl = new AbortController()
     incomingNostr.on(
       NIP01.RelayEventType.NOTICE,

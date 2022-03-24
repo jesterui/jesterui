@@ -77,8 +77,8 @@ export default function Settings() {
 
     setSessionAttribute({ privateKey })
 
-    const filterForOwnEvents: NIP01.Filter = { 
-      authors: [publicKey] 
+    const filterForOwnEvents: NIP01.Filter = {
+      authors: [publicKey],
     }
 
     settingsDispatch({
@@ -87,11 +87,8 @@ export default function Settings() {
       subscriptions: [
         {
           id: 'my-sub',
-          filters: [
-            filterForOwnEvents,
-            AppUtils.PGNRUI_START_GAME_FILTER
-          ],
-        }
+          filters: [filterForOwnEvents, AppUtils.PGNRUI_START_GAME_FILTER],
+        },
       ],
     })
   }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
+import React, { createContext, useContext, ProviderProps, useEffect, useState } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -9,7 +9,7 @@ type WithAbortSignal = {
 }
 
 export class EventBus<DetailType = any> {
-  private eventTarget: EventTarget
+  private eventTarget: Node
   constructor(description: string) {
     this.eventTarget = document.appendChild(document.createComment(description))
   }
@@ -25,108 +25,148 @@ export class EventBus<DetailType = any> {
   emit(type: string, detail?: DetailType) {
     return this.eventTarget.dispatchEvent(new CustomEvent(type, { detail }))
   }
+
+  destroy() {
+    if (document.contains(this.eventTarget)) {
+      console.debug('[Nostr] Removing event bus', this.eventTarget.nodeValue)
+      document.removeChild(this.eventTarget)
+    }
+  }
 }
 
 interface NostrEventsEntry {
-  incoming: EventBus<NIP01.RelayMessage>
-  outgoing: EventBus<NIP01.ClientMessage>
+  incoming: EventBus<NIP01.RelayMessage> | null
+  outgoing: EventBus<NIP01.ClientMessage> | null
 }
-
-const INCOMING_EVENT_BUS = new EventBus<NIP01.RelayMessage>('nostr-incoming-events')
-const OUTGOING_EVENT_BUS = new EventBus<NIP01.ClientMessage>('nostr-outgoing-events')
 
 const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
 
+const createEventTarget = <T extends NIP01.RelayMessage | NIP01.ClientMessage>(id: string) => {
+  return new EventBus<T>(id)
+}
+const createIncoming = () => {
+  return createEventTarget<NIP01.RelayMessage>('nostr-incoming-events-' + Date.now())
+}
+const createOutgoing = () => {
+  return createEventTarget<NIP01.ClientMessage>('nostr-outgoing-events-' + Date.now())
+}
+
 const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | undefined>) => {
   const websocket = useWebsocket()
+  const [incoming, setIncoming] = useState<EventBus<NIP01.RelayMessage> | null>(null)
+  const [outgoing, setOutgoing] = useState<EventBus<NIP01.ClientMessage> | null>(null)
 
   useEffect(() => {
-    if (!websocket) return
+    if (!websocket) {
+      setIncoming(null)
+      setOutgoing(null)
+      return
+    }
 
     const abortCtrl = new AbortController()
 
-    // Publish from internal event bus to relay via websocket
-    OUTGOING_EVENT_BUS.on(
-      NIP01.ClientEventType.EVENT,
-      (event: CustomEvent<NIP01.ClientMessage>) => {
-        if (!websocket) return
-        if (event.type !== NIP01.ClientEventType.EVENT) return
-        const req = event.detail as NIP01.ClientEventMessage
+    setIncoming((_) => {
+      const newEventBus = createIncoming()
+      // Publish from relay over websocket to internal event bus
+      websocket.addEventListener(
+        'message',
+        ({ data: json }) => {
+          const data = JSON.parse(json) as NIP01.RelayMessage
+          if (!Array.isArray(data) || data.length !== 3) return
+          if (data[0] !== NIP01.RelayEventType.EVENT) return
 
-        const signedEvent = req[1]
-        const isValidEvent = NostrEvents.validateEvent(signedEvent)
-        if (!isValidEvent) {
-          console.warn('[Nostr] Invalid outgoing event from internal event bus - wont emit to relay')
-          return
-        }
+          const event = data[2] as NIP01.Event
 
-        console.debug('[Nostr] -> ', req)
-        !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
-      },
-      { signal: abortCtrl.signal }
-    )
+          const isValidEvent = NostrEvents.validateEvent(event)
+          if (!isValidEvent) {
+            console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
+            return
+          }
 
-    OUTGOING_EVENT_BUS.on(
-      NIP01.ClientEventType.REQ,
-      (event: CustomEvent<NIP01.ClientMessage>) => {
-        if (!websocket) return
-        if (event.type !== NIP01.ClientEventType.REQ) return
-        const req = event.detail as NIP01.ClientReqMessage
+          console.debug('[Nostr] <- ', data)
+          !abortCtrl.signal.aborted && newEventBus.emit('EVENT', data)
+        },
+        { signal: abortCtrl.signal }
+      )
+      return newEventBus
+    })
 
-        console.debug('[Nostr] -> ', req)
-        !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
-      },
-      { signal: abortCtrl.signal }
-    )
+    setOutgoing((_) => {
+      const newEventBus = createOutgoing()
+      // Publish from internal event bus to relay via websocket
+      newEventBus.on(
+        NIP01.ClientEventType.EVENT,
+        (event: CustomEvent<NIP01.ClientMessage>) => {
+          if (!websocket) {
+            console.warn('Websocket not ready yet')
+            return
+          }
+          if (event.type !== NIP01.ClientEventType.EVENT) return
+          const req = event.detail as NIP01.ClientEventMessage
 
-    OUTGOING_EVENT_BUS.on(
-      NIP01.ClientEventType.CLOSE,
-      (event: CustomEvent<NIP01.ClientMessage>) => {
-        if (!websocket) return
-        if (event.type !== NIP01.ClientEventType.CLOSE) return
-        const req = event.detail as NIP01.ClientCloseMessage
+          const signedEvent = req[1]
+          const isValidEvent = NostrEvents.validateEvent(signedEvent)
+          if (!isValidEvent) {
+            console.warn('[Nostr] Invalid outgoing event from internal event bus - wont emit to relay')
+            return
+          }
 
-        console.debug('[Nostr] -> ', req)
-        !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
-      },
-      { signal: abortCtrl.signal }
-    )
+          console.debug('[Nostr] -> ', req)
+          !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
+        },
+        { signal: abortCtrl.signal }
+      )
 
-    // Publish from relay over websocket to internal event bus
-    websocket.addEventListener(
-      'message',
-      ({ data: json }) => {
-        const data = JSON.parse(json) as NIP01.RelayMessage
-        if (!Array.isArray(data) || data.length !== 3) return
-        if (data[0] !== NIP01.RelayEventType.EVENT) return
+      newEventBus.on(
+        NIP01.ClientEventType.REQ,
+        (event: CustomEvent<NIP01.ClientMessage>) => {
+          if (!websocket) {
+            console.warn('Websocket not ready yet')
+            return
+          }
+          if (event.type !== NIP01.ClientEventType.REQ) return
+          const req = event.detail as NIP01.ClientReqMessage
 
-        const event = data[2] as NIP01.Event
+          console.debug('[Nostr] -> ', req)
+          !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
+        },
+        { signal: abortCtrl.signal }
+      )
 
-        const isValidEvent = NostrEvents.validateEvent(event)
-        if (!isValidEvent) {
-          console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
-          return
-        }
+      newEventBus.on(
+        NIP01.ClientEventType.CLOSE,
+        (event: CustomEvent<NIP01.ClientMessage>) => {
+          if (!websocket) {
+            console.warn('Websocket not ready yet')
+            return
+          }
+          if (event.type !== NIP01.ClientEventType.CLOSE) return
+          const req = event.detail as NIP01.ClientCloseMessage
 
-        console.debug('[Nostr] <- ', data)
-        !abortCtrl.signal.aborted && INCOMING_EVENT_BUS.emit('EVENT', data)
-      },
-      { signal: abortCtrl.signal }
-    )
+          console.debug('[Nostr] -> ', req)
+          !abortCtrl.signal.aborted && websocketSend(websocket, req, { signal: abortCtrl.signal })
+        },
+        { signal: abortCtrl.signal }
+      )
 
-    return () => abortCtrl.abort()
+      return newEventBus
+    })
+
+    return () => {
+      abortCtrl.abort()
+
+      setIncoming((current) => {
+        current && current.destroy()
+        return null
+      })
+      setOutgoing((current) => {
+        current && current.destroy()
+        return null
+      })
+    }
   }, [websocket])
 
-  return (
-    <NostrEventsContext.Provider
-      value={{
-        incoming: INCOMING_EVENT_BUS,
-        outgoing: OUTGOING_EVENT_BUS,
-      }}
-    >
-      {children}
-    </NostrEventsContext.Provider>
-  )
+  return <NostrEventsContext.Provider value={{ incoming, outgoing }}>{children}</NostrEventsContext.Provider>
 }
 
 const useIncomingNostrEvents = () => {
