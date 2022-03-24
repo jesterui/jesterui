@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Route, Routes, Navigate } from 'react-router-dom'
+import { Route, Routes, Navigate, PathRouteProps } from 'react-router-dom'
 
 import './App.css'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Index from './components/Index'
 import GamesOverview from './components/GamesOverview'
+import GameById from './components/GameById'
 import Layout from './Layout'
 
 import { useSettings, Subscription } from './context/SettingsContext'
@@ -127,6 +128,7 @@ export default function App() {
             <Route element={<Layout variant={null} />}>
               <Route path="/" element={<Index />} />
               <Route path="/games" element={<GamesOverview />} />
+              <Route path="/game/:gameId" element={<GameById />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />
             </Route>

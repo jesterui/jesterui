@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useCurrentGame, useSetCurrentGame, Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
@@ -42,7 +43,11 @@ export default function GamesOverview() {
     <div className="screen-games-overview">
       <Heading1 color="blueGray">Games</Heading1>
       {games.map((it) => {
-        return <div>{it.id}</div>
+        return (
+          <div>
+            <Link to={`/game/${it.id}`}>{it.id}</Link>
+          </div>
+        )
       })}
     </div>
   )

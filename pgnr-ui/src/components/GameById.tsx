@@ -3,13 +3,10 @@ import React, { useEffect, useState } from 'react'
 import { useCurrentGame, useSetCurrentGame, Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
+import { useParams } from 'react-router-dom'
 
 import { useSettings } from '../context/SettingsContext'
-import {
-  useOutgoingNostrEvents,
-  useIncomingNostrEvents,
-  useIncomingNostrEventsBuffer,
-} from '../context/NostrEventsContext'
+import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
@@ -44,7 +41,10 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
   )
 }
 
-export default function GameById() {
+export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
+  const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
+  const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
+
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const currentGame = useCurrentGame()
@@ -153,9 +153,14 @@ export default function GameById() {
     }
   }, [currentGame])
 
+  if (!gameId) {
+    return <div>Error: GameId not present</div>
+  }
+
   return (
     <div className="screen-index">
-      <Heading1 color="blueGray">Gameboard</Heading1>
+      <Heading1 color="blueGray">Game</Heading1>
+      <div>{gameId}</div>
       {!currentGame && (
         <button type="button" onClick={() => onStartGameButtonClicked()}>
           Start new game
