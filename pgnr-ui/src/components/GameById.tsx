@@ -19,6 +19,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
+import { arrayEquals } from '../util/utils'
 
 const WAITING_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
 
@@ -62,6 +63,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   const [myMoveIds, setMyMoveIds] = useState<NIP01.Sha256[]>([])
   const [currentGameStartEvent, setCurrentGameStartEvent] = useState<NIP01.Event | null>(null)
+  const [currentGameHeadEvent, setCurrentGameHeadEvent] = useState<NIP01.Event | null>(null)
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -135,6 +137,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
   }, [gameId, currentGameStartEvent, incomingNostrBuffer])
 
+  /**  MOVE UPDATES******************** */
   useEffect(() => {
     if (!currentGameStartEvent) {
       setCurrentGame(null)
@@ -147,6 +150,25 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       }))
     }
   }, [currentGameStartEvent])
+
+  // TODO: maybe do not start the game at "game start", but iitialize with latest event?
+  useEffect(() => {
+    if (!currentGameStartEvent) return
+    if (!currentGameHeadEvent) return
+
+    // TODO: validate moves!!!
+    const fen = currentGameHeadEvent.content
+
+    setCurrentGame((current) => {
+      if (!current) return current
+
+      // TODO: do not just recreate the game.. history is lost.. do "move updates"
+      const game = new Chess(fen)
+
+      return { ...current, game }
+    })
+  }, [currentGameHeadEvent])
+  /********************** */
 
   useEffect(() => {
     if (!currentGameStartEvent) return
@@ -173,6 +195,56 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       ],
     })
   }, [currentGameStartEvent, settingsDispatch])
+
+  // initial state load
+  useEffect(() => {
+    if (!currentGameStartEvent) return
+
+    const bufferState = incomingNostrBuffer.state()
+
+    const gameStartEventId = currentGameStartEvent.id
+
+    console.log(`Start gathering events referencing game start event ${gameStartEventId}`)
+    console.log(`Analyzing ${bufferState.order.length} events ...`)
+
+    // TODO: validate all moves here..
+    const eventsReferecingStartEvent = bufferState.order
+      .map((eventId) => bufferState.events[eventId])
+      //.filter((event) => event.tags.includes(['e', gameStartEventId]))
+      .filter((event) => {
+        const matchingTags = event.tags.filter((t) => t[0] === 'e' && t.includes(gameStartEventId))
+        return matchingTags.length > 0
+      })
+
+    console.log(`Found ${eventsReferecingStartEvent.length} events referencing start event...`)
+
+    eventsReferecingStartEvent.sort((a, b) => b.created_at - a.created_at)
+
+    const currentGameEvents = [...eventsReferecingStartEvent, currentGameStartEvent]
+
+    const mostRecentEvent = currentGameEvents[0]
+    setCurrentGameHeadEvent(mostRecentEvent)
+  }, [currentGameStartEvent, incomingNostrBuffer])
+
+  /*
+  useEffect(() => {
+    if (!currentGameStartEvent) {
+      setCurrentGameHeadEvent(null)
+    } else {
+      
+      setCurrentGameHeadEvent(current => {
+        if(!current) return currentGameStartEvent
+        return current
+      })
+    }
+  }, [currentGameStartEvent])*/
+
+  // TODO: when game is loaded.. analyze just latest messages
+  useEffect(() => {
+    if (!currentGameStartEvent) return
+
+    // TODO... "if(gameInitiallyLoaded)..."
+  }, [currentGameStartEvent, incomingNostrBuffer])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
