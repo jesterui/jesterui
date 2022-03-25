@@ -46,7 +46,7 @@ export default function GamesOverview() {
           {games.length === 0 && <div>No Games available</div>}
           {games.map((it) => {
             return (
-              <div>
+              <div key={it.id}>
                 <Link to={`/game/${it.id}`}>{AppUtils.gameDisplayName(it.id)}</Link>
               </div>
             )

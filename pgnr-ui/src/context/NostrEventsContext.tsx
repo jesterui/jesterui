@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect, useState } from 'react'
+import React, { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -10,27 +10,28 @@ type WithAbortSignal = {
 
 export class EventBus<DetailType = any> {
   private eventTarget: Node
-  constructor(description: string) {
-    this.eventTarget = document.appendChild(document.createComment(description))
+  constructor(eventTarget: Node) {
+    this.eventTarget = eventTarget
   }
   on(type: string, listener: (event: CustomEvent<DetailType>) => void, { signal }: WithAbortSignal) {
-    this.eventTarget.addEventListener(type, (e) => listener(e as CustomEvent<DetailType>), { signal })
+    this.eventTarget.addEventListener(type, (e) => {
+      e.stopPropagation()
+      return listener(e as CustomEvent<DetailType>)
+    }, { signal })
   }
   once(type: string, listener: (event: CustomEvent<DetailType>) => void, { signal }: WithAbortSignal) {
-    this.eventTarget.addEventListener(type, (e) => listener(e as CustomEvent<DetailType>), { signal, once: true })
-  }
-  off(type: string, listener: (event: CustomEvent<DetailType>) => void) {
-    this.eventTarget.removeEventListener(type, (e) => listener(e as CustomEvent<DetailType>))
+    this.eventTarget.addEventListener(type, (e) => {
+      e.stopPropagation()
+      return listener(e as CustomEvent<DetailType>)
+    }, { signal, once: true })
   }
   emit(type: string, detail?: DetailType) {
-    return this.eventTarget.dispatchEvent(new CustomEvent(type, { detail }))
-  }
-
-  destroy() {
-    if (document.contains(this.eventTarget)) {
-      console.debug('[Nostr] Removing event bus', this.eventTarget.nodeValue)
-      document.removeChild(this.eventTarget)
-    }
+    return this.eventTarget.dispatchEvent(new CustomEvent(type, { 
+      bubbles: false,
+      cancelable: false,
+      composed: false,
+      detail
+     }))
   }
 }
 
@@ -91,14 +92,14 @@ class NostrEventBufferImpl implements NostrEventBuffer {
 
 const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
 
-const createEventTarget = <T extends NIP01.RelayMessage | NIP01.ClientMessage>(id: string) => {
-  return new EventBus<T>(id)
+const createEventTarget = <T extends NIP01.RelayMessage | NIP01.ClientMessage>(node: Node) => {
+  return new EventBus<T>(node)
 }
-const createIncoming = () => {
-  return createEventTarget<NIP01.RelayMessage>('nostr-incoming-events-' + Date.now())
+const createIncoming = (node: Node) => {
+  return createEventTarget<NIP01.RelayMessage>(node)
 }
-const createOutgoing = () => {
-  return createEventTarget<NIP01.ClientMessage>('nostr-outgoing-events-' + Date.now())
+const createOutgoing = (node: Node) => {
+  return createEventTarget<NIP01.ClientMessage>(node)
 }
 
 const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | undefined>) => {
@@ -106,6 +107,9 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
   const [incoming, setIncoming] = useState<EventBus<NIP01.RelayMessage> | null>(null)
   const [outgoing, setOutgoing] = useState<EventBus<NIP01.ClientMessage> | null>(null)
   const [incomingBuffer, setIncomingBuffer] = useState<NostrEventBuffer>(new NostrEventBufferImpl())
+
+  const incomingRef = useRef<HTMLDivElement>(null);
+  const outgoingRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!websocket) {
@@ -126,7 +130,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     const abortCtrl = new AbortController()
 
     setIncoming((_) => {
-      const newEventBus = createIncoming()
+      const newEventBus = createIncoming(incomingRef.current!)
       // Publish from relay over websocket to internal event bus
       websocket.addEventListener(
         'message',
@@ -157,7 +161,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     })
 
     setOutgoing((_) => {
-      const newEventBus = createOutgoing()
+      const newEventBus = createOutgoing(outgoingRef.current!)
       // Publish from internal event bus to relay via websocket
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
@@ -227,19 +231,16 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     return () => {
       abortCtrl.abort()
 
-      setIncoming((current) => {
-        current && current.destroy()
-        return null
-      })
-      setOutgoing((current) => {
-        current && current.destroy()
-        return null
-      })
+      setIncoming(null)
+      setOutgoing(null)
     }
   }, [websocket])
 
-  return (
+  return (<>
+    <div id="nostr-incoming-events" ref={incomingRef} style={{display: 'none'}}></div>
+    <div id="nostr-outgoing-events" ref={outgoingRef} style={{display: 'none'}}></div>
     <NostrEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>{children}</NostrEventsContext.Provider>
+    </>
   )
 }
 
