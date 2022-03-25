@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
-import { useCurrentGame, useSetCurrentGame, Game } from '../context/GamesContext'
+import { Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
-import { useParams } from 'react-router-dom'
 
 import { useSettings } from '../context/SettingsContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
@@ -20,7 +20,7 @@ import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
 
-const WAITING_DURATION_IN_MS = 10_000
+const WAITING_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
 
 function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
   const updateGameCallback = (modify: (g: ChessInstance) => void) => {
@@ -48,6 +48,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
   const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
 
+  const navigate = useNavigate()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
@@ -106,32 +107,11 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   }
 
   const onGameCreated = async (gameId: NIP01.Sha256) => {
-    // TODO: Subscribe to the game
+    // TODO: this is a hack so we do not need to watch for gameId changes..
+    // please, please please.. try to remove it and immediately
+    // navigate to /game/:gameId
+    navigate(`/redirect/game/${gameId}`)
   }
-
-  // if no game is active, search the events if a game has been started
-  // search from the newest element on and set the game to it
-  /*useEffect(() => {
-    // TODO: what if game is over? `currentGame.game.game_over()`
-    if (currentGame) return
-
-    const bufferState = incomingNostrBuffer.state()
-
-    for (const eventId of bufferState.order) {
-      const event = bufferState.events[eventId]
-
-      if (AppUtils.isStartGameEvent(event)) {
-        const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
-        setCurrentGame((_) => ({
-          id: event.id,
-          game: new Chess(),
-          color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
-        }))
-
-        break
-      }
-    }
-  }, [incomingNostrBuffer, currentGame]) */
 
   // when the gamId changes, or new events arrive, set
   useEffect(() => {
@@ -180,21 +160,23 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   if (!gameId) {
     return <div>Error: GameId not present</div>
   }
-
-  if (!isLoading && currentGame === null) {
-    return <>Game not found...</>
-  }
-
   if (isLoading && currentGame === null) {
     return <>Loading... (waiting for game data to arrive)</>
   }
 
+  if (!isLoading && currentGame === null) {
+    return (
+      <div>
+        <div>Game not found...</div>
+        <CreateGameButton onGameCreated={onGameCreated} />
+      </div>
+    )
+  }
+
   // TODO: Show loading indicator when `(isLoading && currentGame !== null)`
   return (
-    <div className="screen-index">
+    <div className="screen-game-by-id">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
-
-      {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
       {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
       {currentGameStartEvent && (
         <div>

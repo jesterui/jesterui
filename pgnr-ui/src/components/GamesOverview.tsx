@@ -29,7 +29,7 @@ export default function GamesOverview() {
   }, [incomingNostrBuffer])
 
   const onGameCreated = (gameId: NIP01.Sha256) => {
-    navigate(`/game:/${gameId}`)
+    navigate(`/game/${gameId}`)
   }
 
   return (

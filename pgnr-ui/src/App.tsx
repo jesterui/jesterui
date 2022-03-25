@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Route, Routes, Navigate, PathRouteProps } from 'react-router-dom'
+import { Route, Routes, Navigate, useParams, useNavigate } from 'react-router-dom'
 
 import './App.css'
 import AppNavbar from './components/AppNavbar'
@@ -12,6 +12,7 @@ import Layout from './Layout'
 import { useSettings, Subscription } from './context/SettingsContext'
 import { useOutgoingNostrEvents, useIncomingNostrEvents } from './context/NostrEventsContext'
 import * as NIP01 from './util/nostr/nip01'
+import * as AppUtils from './util/pgnrui'
 import { arrayEquals } from './util/utils'
 
 function NostrManageSubscriptions() {
@@ -112,6 +113,19 @@ function NostrLogIncomingRelayEvents() {
   return <></>
 }
 
+function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
+  const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
+  const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    navigate(`/game/${gameId}`)
+  }, [])
+
+  return <>Redirecting to {gameId && AppUtils.gameDisplayNameShort(gameId)}...</>
+}
+
 export default function App() {
   return (
     <>
@@ -129,6 +143,7 @@ export default function App() {
               <Route path="/" element={<Index />} />
               <Route path="/games" element={<GamesOverview />} />
               <Route path="/game/:gameId" element={<GameById />} />
+              <Route path="/redirect/game/:gameId" element={<RedirectToGame />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />
             </Route>
