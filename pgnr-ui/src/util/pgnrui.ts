@@ -34,5 +34,14 @@ export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   )
 }
 
+export const createGameFilter = (gameStartEvent: NIP01.Event): NIP01.Filter => {
+  if (!isStartGameEvent(gameStartEvent)) {
+    throw new Error('Filter can only be created from a GameStartEvent')
+  }
+  return {
+    '#e': [gameStartEvent.id],
+  }
+}
+
 export const gameDisplayNameShort = (gameId: NIP01.Sha256, length = 5) => gameId.substring(0, length)
 export const gameDisplayName = (gameId: NIP01.Sha256, length = 8) => gameId.substring(0, length)

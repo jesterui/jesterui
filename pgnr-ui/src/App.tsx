@@ -113,6 +113,7 @@ function NostrLogIncomingRelayEvents() {
   return <></>
 }
 
+// TODO: this whole component is a hack.. generally works, but please try to remove it
 function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
   const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)

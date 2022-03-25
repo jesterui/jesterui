@@ -17,7 +17,6 @@ import Checkbox from '@material-tailwind/react/Checkbox'
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading2 from '@material-tailwind/react/Heading2'
-import { waitFor } from '@testing-library/react'
 
 /*import {
   // generatePrivateKey,
@@ -164,6 +163,7 @@ export default function Settings() {
       authors: [publicKey],
     }
 
+    // TODO: Replace with "updateSubscriptionSettings"
     settingsDispatch({
       ...settings,
       identity: { ...settings.identity, pubkey: publicKey },

@@ -5,7 +5,7 @@ import { Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 
-import { useSettings } from '../context/SettingsContext'
+import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -52,6 +52,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
+  const settingsDispatch = useSettingsDispatch()
 
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
 
@@ -146,6 +147,32 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       }))
     }
   }, [currentGameStartEvent])
+
+  useEffect(() => {
+    if (!currentGameStartEvent) return
+    const currentGameFilter = AppUtils.createGameFilter(currentGameStartEvent)
+
+    const filterForOwnEvents: NIP01.Filter[] =
+      (publicKeyOrNull && [
+        {
+          authors: [publicKeyOrNull],
+        },
+      ]) ||
+      []
+
+    const gameFilters = [AppUtils.PGNRUI_START_GAME_FILTER, currentGameFilter]
+
+    // TODO: Replace with "updateSubscriptionSettings"
+    settingsDispatch({
+      ...settings,
+      subscriptions: [
+        {
+          id: 'my-sub',
+          filters: [...gameFilters, ...filterForOwnEvents],
+        },
+      ],
+    })
+  }, [currentGameStartEvent, settingsDispatch])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
