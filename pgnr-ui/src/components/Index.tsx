@@ -46,7 +46,6 @@ export default function Index() {
     }
   }, [incomingNostrBuffer, currentGame])
 
-
   const onGameCreated = (gameId: NIP01.Sha256) => {
     navigate(`/game:/${gameId}`)
   }
@@ -58,12 +57,12 @@ export default function Index() {
         <>
           <div>No connection to nostr</div>
         </>
-      ) : (<>
-        {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
-        {currentGame && <BoardById gameId={currentGame.id} />}
-      </>)}
-
-      
+      ) : (
+        <>
+          {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
+          {currentGame && <BoardById gameId={currentGame.id} />}
+        </>
+      )}
     </div>
   )
 }

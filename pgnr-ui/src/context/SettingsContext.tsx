@@ -3,7 +3,6 @@ import React, { ProviderProps, createContext, useReducer, useEffect, useContext 
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
 
-
 const localStorageKey = window.APP.SETTINGS_STORE_KEY
 
 // TODO: add {read: true, write: true} to relay
@@ -30,7 +29,8 @@ const initialSettings: AppSettings = {
     // 'wss://relayer.fiatjaf.com', // good uptime
     // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
   ],
-  subscriptions: [{
+  subscriptions: [
+    {
       id: 'my-sub',
       filters: [AppUtils.PGNRUI_START_GAME_FILTER],
     },

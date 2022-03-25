@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { useWebsocket, send as websocketSend, readyStatePhrase } from '../context/WebsocketContext'
 import * as Nostr from '../util/nostr/identity'
 import { ActivityIndicator } from '../components/ActivityIndicator'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
+import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
+import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
@@ -16,6 +17,7 @@ import Checkbox from '@material-tailwind/react/Checkbox'
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading2 from '@material-tailwind/react/Heading2'
+import { waitFor } from '@testing-library/react'
 
 /*import {
   // generatePrivateKey,
@@ -50,9 +52,90 @@ const defaultRelays = [
   'ws://localhost:7000',
 ]
 
+function TestNostrConnectionButton() {
+  const incomingNostrBuffer = useIncomingNostrEventsBuffer()
+  const outgoingNostr = useOutgoingNostrEvents()
+  const settings = useSettings()
+
+  const [waitForEvent, setWaitForEvent] = useState<NIP01.Event | null>(null)
+  const [statusText, setStatusText] = useState<string>('')
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
+  const privateKeyOrNull = getSession()?.privateKey || null
+
+  useEffect(() => {
+    if (statusText === '') return
+    const abortCtrl = new AbortController()
+    const timer = setTimeout(() => !abortCtrl.signal.aborted && setStatusText(''), 2000)
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [statusText])
+
+  useEffect(() => {
+    if (!waitForEvent) {
+      return
+    }
+
+    const state = incomingNostrBuffer.state()
+
+    const isWaiting = !!waitForEvent || false
+    if (!isWaiting) return
+
+    const eventFound = state.events[waitForEvent.id]
+    setStatusText(eventFound ? '200 OK' : '404 NOT FOUND')
+
+    if (eventFound) {
+      setWaitForEvent(null)
+      return
+    }
+
+    const abortCtrl = new AbortController()
+    const timer = setTimeout(() => {
+      if (abortCtrl.signal.aborted) return
+
+      setWaitForEvent(null)
+      setStatusText('')
+    }, 2000)
+
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [waitForEvent, incomingNostrBuffer])
+
+  const onButtonClicked = async () => {
+    if (!publicKeyOrNull) {
+      window.alert('PubKey not available..')
+      return
+    }
+    if (!privateKeyOrNull) {
+      window.alert('PrivKey not available..')
+      return
+    }
+
+    const publicKey = publicKeyOrNull!
+    const privateKey = privateKeyOrNull!
+
+    const event = AppUtils.constructStartGameEvent(publicKey)
+    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+
+    setWaitForEvent(signedEvent)
+
+    outgoingNostr && outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+  }
+
+  return (
+    <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={() => onButtonClicked()}>
+      {waitForEvent ? 'Testing connection...' : `Test connection ${statusText}`}
+    </button>
+  )
+}
 export default function Settings() {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
+  const outgoingNostr = useOutgoingNostrEvents()
   const websocket = useWebsocket()
 
   const publicKeyOrNull = settings.identity?.pubkey || null
@@ -71,7 +154,7 @@ export default function Settings() {
     }
   }
 
-  const newIdentity = () => {
+  const newIdentityButtonClicked = () => {
     const privateKey = Nostr.generatePrivateKey()
     const publicKey = Nostr.publicKey(privateKey)
 
@@ -93,9 +176,9 @@ export default function Settings() {
     })
   }
 
-  const sendHelloWorld = async () => {
-    if (!websocket) {
-      console.info('Websocket not available..')
+  const sendHelloWorldButtonClicked = async () => {
+    if (!outgoingNostr) {
+      window.alert('Nostr not ready..')
       return
     }
     if (!publicKeyOrNull) {
@@ -117,11 +200,7 @@ export default function Settings() {
     eventParts.content = 'Hello World'
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    const req = NIP01.createClientEventMessage(signedEvent)
-
-    const abortCtrl = new AbortController()
-    console.debug('[Nostr] -> ', req)
-    websocketSend(websocket, req, { signal: abortCtrl.signal })
+    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
   }
 
   return (
@@ -138,13 +217,17 @@ export default function Settings() {
         </div>
 
         <div className="py-1">
-          <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentity}>
+          <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentityButtonClicked}>
             New
           </button>
         </div>
 
         <div className="py-1">
-          <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={sendHelloWorld}>
+          <button
+            type="button"
+            className="bg-white bg-opacity-20 rounded px-2 py-1"
+            onClick={sendHelloWorldButtonClicked}
+          >
             Send 'Hello World'
           </button>
         </div>
@@ -168,6 +251,9 @@ export default function Settings() {
         <span className="px-1">
           <span className="font-mono">{websocket?.url}</span>
         </span>
+      </div>
+      <div className="py-1">
+        <TestNostrConnectionButton />
       </div>
       <div className="py-2">
         {defaultRelays.map((relay, index) => (

@@ -38,20 +38,21 @@ export default function GamesOverview() {
 
       {!incomingNostr ? (
         <>
-        <div>No connection to nostr</div>
+          <div>No connection to nostr</div>
         </>
-      ) : (<>
-        <CreateGameButton onGameCreated={onGameCreated} />
-        {games.length === 0 && <div>No Games available</div>}
-        {games.map((it) => {
-          return (
-            <div>
-              <Link to={`/game/${it.id}`}>{AppUtils.gameDisplayName(it.id)}</Link>
-            </div>
-          )
-        })}
-      </>)}
-      
+      ) : (
+        <>
+          <CreateGameButton onGameCreated={onGameCreated} />
+          {games.length === 0 && <div>No Games available</div>}
+          {games.map((it) => {
+            return (
+              <div>
+                <Link to={`/game/${it.id}`}>{AppUtils.gameDisplayName(it.id)}</Link>
+              </div>
+            )
+          })}
+        </>
+      )}
     </div>
   )
 }
