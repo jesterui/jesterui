@@ -19,7 +19,6 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
-import { arrayEquals } from '../util/utils'
 
 const WAITING_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
 
