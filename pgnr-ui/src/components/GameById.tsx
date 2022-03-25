@@ -278,7 +278,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
       {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
       {currentGameStartEvent && (
-        <div>
+        <div style={{ maxWidth: 600 }}>
           <pre>{JSON.stringify(currentGameStartEvent, null, 2)}</pre>
         </div>
       )}
