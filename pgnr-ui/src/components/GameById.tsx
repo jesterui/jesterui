@@ -137,7 +137,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
   }, [gameId, currentGameStartEvent, incomingNostrBuffer])
 
-  /**  MOVE UPDATES******************** */
+  /**  MOVE UPDATES******************************************************************* */
   useEffect(() => {
     if (!currentGameStartEvent) {
       setCurrentGame(null)
@@ -157,7 +157,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     if (!currentGameHeadEvent) return
 
     // TODO: validate moves!!!
-    const fen = currentGameHeadEvent.content
+    const fen = AppUtils.isStartGameEvent(currentGameHeadEvent) ?
+      AppUtils.FEN_START_POSITION : currentGameHeadEvent.content
 
     setCurrentGame((current) => {
       if (!current) return current
@@ -208,19 +209,19 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     console.log(`Analyzing ${bufferState.order.length} events ...`)
 
     // TODO: validate all moves here..
-    const eventsReferecingStartEvent = bufferState.order
+    const eventsReferencingStartEvent = bufferState.order
       .map((eventId) => bufferState.events[eventId])
-      //.filter((event) => event.tags.includes(['e', gameStartEventId]))
       .filter((event) => {
+        // verify that there is an 'e' tag referencing the start event
         const matchingTags = event.tags.filter((t) => t[0] === 'e' && t.includes(gameStartEventId))
-        return matchingTags.length > 0
+        return matchingTags.length === 1
       })
 
-    console.log(`Found ${eventsReferecingStartEvent.length} events referencing start event...`)
+    console.log(`Found ${eventsReferencingStartEvent.length} events referencing start event...`)
 
-    eventsReferecingStartEvent.sort((a, b) => b.created_at - a.created_at)
+    eventsReferencingStartEvent.sort((a, b) => b.created_at - a.created_at)
 
-    const currentGameEvents = [...eventsReferecingStartEvent, currentGameStartEvent]
+    const currentGameEvents = [...eventsReferencingStartEvent, currentGameStartEvent]
 
     const mostRecentEvent = currentGameEvents[0]
     setCurrentGameHeadEvent(mostRecentEvent)

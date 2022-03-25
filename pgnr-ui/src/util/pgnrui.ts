@@ -14,7 +14,7 @@ export const PGNRUI_START_GAME_FILTER: NIP01.Filter = {
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = 1 // text_note
-  eventParts.content = FEN_START_POSITION
+  eventParts.content = ''
   eventParts.tags = [['e', PGNRUI_START_GAME_E_REF]]
   return eventParts
 })()
@@ -31,7 +31,7 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
 export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   return (
     !!event &&
-    event.content === FEN_START_POSITION &&
+    event.content === '' &&
     event.kind === 1 &&
     arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
   )
