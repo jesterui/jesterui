@@ -11,6 +11,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
 import * as AppUtils from '../util/pgnrui'
+import CreateGameButton from './CreateGameButton'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -18,6 +19,8 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
+
+const WAITING_DURATION_IN_MS = 10_000
 
 function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
   const updateGameCallback = (modify: (g: ChessInstance) => void) => {
@@ -47,12 +50,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
-  const currentGame = useCurrentGame()
-  const setCurrentGame = useSetCurrentGame()
   const settings = useSettings()
 
+  const [currentGame, setCurrentGame] = useState<Game | null>(null)
+
+  // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
+  // in 10 seconds, or never..
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+
   const [myMoveIds, setMyMoveIds] = useState<NIP01.Sha256[]>([])
-  const [currentGameEvent, setCurrentGameEvent] = useState<NIP01.Event | null>(null)
+  const [currentGameStartEvent, setCurrentGameStartEvent] = useState<NIP01.Event | null>(null)
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -98,31 +105,13 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     setMyMoveIds((current) => [...current, signedEvent.id])
   }
 
-  const onStartGameButtonClicked = async () => {
-    if (!outgoingNostr) {
-      console.info('Nostr EventBus not ready..')
-      return
-    }
-    if (!publicKeyOrNull) {
-      console.info('PubKey not available..')
-      return
-    }
-    if (!privateKeyOrNull) {
-      console.info('PrivKey not available..')
-      return
-    }
-
-    const publicKey = publicKeyOrNull!
-    const privateKey = privateKeyOrNull!
-
-    const event = AppUtils.constructStartGameEvent(publicKey)
-    const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+  const onGameCreated = async (gameId: NIP01.Sha256) => {
+    // TODO: Subscribe to the game
   }
 
   // if no game is active, search the events if a game has been started
   // search from the newest element on and set the game to it
-  useEffect(() => {
+  /*useEffect(() => {
     // TODO: what if game is over? `currentGame.game.game_over()`
     if (currentGame) return
 
@@ -142,59 +131,77 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         break
       }
     }
-  }, [incomingNostrBuffer, currentGame])
+  }, [incomingNostrBuffer, currentGame]) */
+
+  // when the gamId changes, or new events arrive, set
+  useEffect(() => {
+    if (!gameId) {
+      setCurrentGameStartEvent(null)
+    }
+  }, [gameId])
+
+  // when the gamId changes, or new events arrive, set
+  useEffect(() => {
+    if (!gameId) return
+    if (currentGameStartEvent) return
+
+    const bufferState = incomingNostrBuffer.state()
+    const gameEvent = bufferState.events[gameId]
+    const isValidGameStartEvent = gameEvent && AppUtils.isStartGameEvent(gameEvent)
+
+    if (isValidGameStartEvent) {
+      setCurrentGameStartEvent(gameEvent)
+    }
+  }, [gameId, currentGameStartEvent, incomingNostrBuffer])
 
   useEffect(() => {
-    if (!currentGame) {
-      setCurrentGameEvent(null)
+    if (!currentGameStartEvent) {
+      setCurrentGame(null)
     } else {
-      const bufferState = incomingNostrBuffer.state()
-      const gameEvent = bufferState.events[currentGame.id]
-      if (gameEvent) {
-        setCurrentGameEvent(gameEvent)
-      }
+      const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
+      setCurrentGame((_) => ({
+        id: currentGameStartEvent.id,
+        game: new Chess(),
+        color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
+      }))
     }
-  }, [currentGame])
+  }, [currentGameStartEvent])
+
+  useEffect(() => {
+    const abortCtrl = new AbortController()
+    const timer = setTimeout(() => !abortCtrl.signal.aborted && setIsLoading(false), WAITING_DURATION_IN_MS)
+
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [])
 
   if (!gameId) {
     return <div>Error: GameId not present</div>
   }
 
-  if (currentGame && currentGame.id !== gameId) {
-    const bufferState = incomingNostrBuffer.state()
-    const gameEvent = bufferState.events[gameId]
-
-    if (!AppUtils.isStartGameEvent(gameEvent)) {
-      return <>Game not found...</>
-    } else {
-      const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
-      setTimeout(() => {
-        setCurrentGame((_) => ({
-          id: gameEvent.id,
-          game: new Chess(),
-          color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
-        }))
-      }, 4)
-
-      return <>Loading...</>
-    }
+  if (!isLoading && currentGame === null) {
+    return <>Game not found...</>
   }
 
+  if (isLoading && currentGame === null) {
+    return <>Loading... (waiting for game data to arrive)</>
+  }
+
+  // TODO: Show loading indicator when `(isLoading && currentGame !== null)`
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
-      {!currentGame && (
-        <button type="button" onClick={() => onStartGameButtonClicked()}>
-          Start new game
-        </button>
-      )}
+
+      {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
       {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
-      {currentGameEvent && (
+      {currentGameStartEvent && (
         <div>
-          <pre>{JSON.stringify(currentGameEvent, null, 2)}</pre>
+          <pre>{JSON.stringify(currentGameStartEvent, null, 2)}</pre>
         </div>
       )}
-      {!currentGameEvent && <div>No game?</div>}
+      {!currentGameStartEvent && <div>No game?</div>}
     </div>
   )
 }
