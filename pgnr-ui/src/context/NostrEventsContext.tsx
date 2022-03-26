@@ -14,24 +14,34 @@ export class EventBus<DetailType = any> {
     this.eventTarget = eventTarget
   }
   on(type: string, listener: (event: CustomEvent<DetailType>) => void, { signal }: WithAbortSignal) {
-    this.eventTarget.addEventListener(type, (e) => {
-      e.stopPropagation()
-      return listener(e as CustomEvent<DetailType>)
-    }, { signal })
+    this.eventTarget.addEventListener(
+      type,
+      (e) => {
+        e.stopPropagation()
+        return listener(e as CustomEvent<DetailType>)
+      },
+      { signal }
+    )
   }
   once(type: string, listener: (event: CustomEvent<DetailType>) => void, { signal }: WithAbortSignal) {
-    this.eventTarget.addEventListener(type, (e) => {
-      e.stopPropagation()
-      return listener(e as CustomEvent<DetailType>)
-    }, { signal, once: true })
+    this.eventTarget.addEventListener(
+      type,
+      (e) => {
+        e.stopPropagation()
+        return listener(e as CustomEvent<DetailType>)
+      },
+      { signal, once: true }
+    )
   }
   emit(type: string, detail?: DetailType) {
-    return this.eventTarget.dispatchEvent(new CustomEvent(type, { 
-      bubbles: false,
-      cancelable: false,
-      composed: false,
-      detail
-     }))
+    return this.eventTarget.dispatchEvent(
+      new CustomEvent(type, {
+        bubbles: false,
+        cancelable: false,
+        composed: false,
+        detail,
+      })
+    )
   }
 }
 
@@ -40,6 +50,7 @@ interface NostrEventsEntry {
   outgoing: EventBus<NIP01.ClientMessage> | null
   incomingBuffer: NostrEventBuffer
 }
+
 interface NostrEventDictionary {
   [id: NIP01.Sha256]: NIP01.Event
 }
@@ -47,7 +58,7 @@ interface NostrEventDictionary {
 interface NostrEventBufferState {
   latest: NIP01.Event | null
   order: NIP01.Sha256[] // this is the order in which the events arrived
-  // TODO: add a field olding ids sorted by "created_at"
+  // TODO: add a field holding ids sorted by "created_at"
   events: NostrEventDictionary
 }
 
@@ -108,8 +119,8 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
   const [outgoing, setOutgoing] = useState<EventBus<NIP01.ClientMessage> | null>(null)
   const [incomingBuffer, setIncomingBuffer] = useState<NostrEventBuffer>(new NostrEventBufferImpl())
 
-  const incomingRef = useRef<HTMLDivElement>(null);
-  const outgoingRef = useRef<HTMLDivElement>(null);
+  const incomingRef = useRef<HTMLDivElement>(null)
+  const outgoingRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!websocket) {
@@ -236,10 +247,13 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     }
   }, [websocket])
 
-  return (<>
-    <div id="nostr-incoming-events" ref={incomingRef} style={{display: 'none'}}></div>
-    <div id="nostr-outgoing-events" ref={outgoingRef} style={{display: 'none'}}></div>
-    <NostrEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>{children}</NostrEventsContext.Provider>
+  return (
+    <>
+      <div id="nostr-incoming-events" ref={incomingRef} style={{ display: 'none' }}></div>
+      <div id="nostr-outgoing-events" ref={outgoingRef} style={{ display: 'none' }}></div>
+      <NostrEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>
+        {children}
+      </NostrEventsContext.Provider>
     </>
   )
 }

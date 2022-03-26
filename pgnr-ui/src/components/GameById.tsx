@@ -11,6 +11,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
 import * as AppUtils from '../util/pgnrui'
+import { PgnruiMove, GameStart, GameMove } from '../util/pgnrui'
 import CreateGameButton from './CreateGameButton'
 
 // @ts-ignore
@@ -19,6 +20,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
+import { arrayEquals } from '../util/utils'
 
 const WAITING_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
 
@@ -35,7 +37,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
       <div style={{ width: 400, height: 400 }}>
         {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
       </div>
-      {game && (
+      {false && game && (
         <div className="pl-2 overflow-y-scroll">
           <PgnTable game={game!.game} />
         </div>
@@ -54,15 +56,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
 
+  const [humanReadableError, setHumanReadableError] = useState<string | null>(null)
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
+  const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
+  const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const [myMoveIds, setMyMoveIds] = useState<NIP01.Sha256[]>([])
-  const [currentGameStartEvent, setCurrentGameStartEvent] = useState<NIP01.Event | null>(null)
-  const [currentGameHeadEvent, setCurrentGameHeadEvent] = useState<NIP01.Event | null>(null)
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -91,6 +94,10 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       console.info('PrivKey not available..')
       return
     }
+    if (!currentGameHead || !currentGameStart) {
+      console.info('Game head not available..')
+      return
+    }
 
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
@@ -100,7 +107,11 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     eventParts.pubkey = publicKey
     eventParts.created_at = Math.floor(Date.now() / 1000)
     eventParts.content = chessboard.fen()
-    eventParts.tags = [['e', currentGame.id]]
+    eventParts.tags = [
+      ['e', currentGameStart.event().id],
+      // TODO: misusing 'p'-tag is not nice..
+      ['p', currentGameHead.event().id],
+    ]
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
@@ -118,61 +129,63 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   // when the gamId changes, or new events arrive, set
   useEffect(() => {
     if (!gameId) {
-      setCurrentGameStartEvent(null)
+      setCurrentGameStart(null)
     }
   }, [gameId])
 
   // when the gamId changes, or new events arrive, set
   useEffect(() => {
     if (!gameId) return
-    if (currentGameStartEvent) return
+    if (currentGameStart) return
 
     const bufferState = incomingNostrBuffer.state()
     const gameEvent = bufferState.events[gameId]
-    const isValidGameStartEvent = gameEvent && AppUtils.isStartGameEvent(gameEvent)
-
-    if (isValidGameStartEvent) {
-      setCurrentGameStartEvent(gameEvent)
+    if (!gameEvent) {
+      setHumanReadableError('Specified gameId does not reference an existing GameStart event')
+      return
     }
-  }, [gameId, currentGameStartEvent, incomingNostrBuffer])
+
+    if (!AppUtils.isStartGameEvent(gameEvent)) {
+      setHumanReadableError('Specified gameId does not reference a valid GameStart event')
+      return
+    }
+
+    setCurrentGameStart(new GameStart(gameEvent))
+  }, [gameId, currentGameStart, incomingNostrBuffer])
 
   /**  MOVE UPDATES******************************************************************* */
   useEffect(() => {
-    if (!currentGameStartEvent) {
+    if (!currentGameStart) {
       setCurrentGame(null)
     } else {
       const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
       setCurrentGame((_) => ({
-        id: currentGameStartEvent.id,
+        id: currentGameStart.event().id, // TODO should the game hold the hole event?
         game: new Chess(),
         color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
       }))
     }
-  }, [currentGameStartEvent])
+  }, [currentGameStart])
 
-  // TODO: maybe do not start the game at "game start", but iitialize with latest event?
+  // TODO: maybe do not start the game at "game start", but initialize with latest event?
   useEffect(() => {
-    if (!currentGameStartEvent) return
-    if (!currentGameHeadEvent) return
-
-    // TODO: validate moves!!!
-    const fen = AppUtils.isStartGameEvent(currentGameHeadEvent) ?
-      AppUtils.FEN_START_POSITION : currentGameHeadEvent.content
+    if (!currentGameStart) return
+    if (!currentGameHead) return
 
     setCurrentGame((current) => {
       if (!current) return current
 
       // TODO: do not just recreate the game.. history is lost.. do "move updates"
-      const game = new Chess(fen)
+      current.game.load(currentGameHead.fen().value())
 
-      return { ...current, game }
+      return { ...current }
     })
-  }, [currentGameHeadEvent])
+  }, [currentGameHead])
   /********************** */
 
   useEffect(() => {
-    if (!currentGameStartEvent) return
-    const currentGameFilter = AppUtils.createGameFilter(currentGameStartEvent)
+    if (!currentGameStart) return
+    const currentGameFilter = AppUtils.createGameFilter(currentGameStart)
 
     const filterForOwnEvents: NIP01.Filter[] =
       (publicKeyOrNull && [
@@ -194,57 +207,79 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         },
       ],
     })
-  }, [currentGameStartEvent, settingsDispatch])
+  }, [currentGameStart, settingsDispatch])
 
-  // initial state load
+  // initial state load TODO: Do not recreate the whole state everytime..
   useEffect(() => {
-    if (!currentGameStartEvent) return
+    if (!currentGameStart) return
 
     const bufferState = incomingNostrBuffer.state()
 
-    const gameStartEventId = currentGameStartEvent.id
+    const gameStartEventId = currentGameStart.event().id
 
     console.log(`Start gathering events referencing game start event ${gameStartEventId}`)
     console.log(`Analyzing ${bufferState.order.length} events ...`)
 
     // TODO: validate all moves here..
-    const eventsReferencingStartEvent = bufferState.order
+    const eventsBelongingToTheGame = bufferState.order
       .map((eventId) => bufferState.events[eventId])
       .filter((event) => {
         // verify that there is an 'e' tag referencing the start event
-        const matchingTags = event.tags.filter((t) => t[0] === 'e' && t.includes(gameStartEventId))
+        const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
         return matchingTags.length === 1
       })
+    eventsBelongingToTheGame.sort((a, b) => b.created_at - a.created_at)
 
-    console.log(`Found ${eventsReferencingStartEvent.length} events referencing start event...`)
+    console.log(`Found ${eventsBelongingToTheGame.length} events referencing start event...`)
 
-    eventsReferencingStartEvent.sort((a, b) => b.created_at - a.created_at)
+    const findSuccessors = (gameId: NIP01.Sha256, moveId: NIP01.Sha256): NIP01.Event[] => {
+      return eventsBelongingToTheGame.filter((event) => {
+        const eTagMatches = event.tags.filter((t) => arrayEquals(t, ['e', gameId])).length === 1
+        const pTagMatches = event.tags.filter((t) => arrayEquals(t, ['p', moveId])).length === 1
+        return eTagMatches && pTagMatches
+      })
+    }
 
-    const currentGameEvents = [...eventsReferencingStartEvent, currentGameStartEvent]
+    let moves: PgnruiMove[] = []
+    {
+      let search: PgnruiMove[] = [currentGameStart]
+      do {
+        const currentElement = search.shift() as PgnruiMove
+        const successors = findSuccessors(gameStartEventId, currentElement.event().id)
+        const children = successors.map((it) => new GameMove(it, currentElement))
+        children.forEach((it) => currentElement.addChild(it))
+        search = [...search, ...children]
+        moves = [...moves, currentElement]
+      } while (search.length > 0)
+    }
 
-    const mostRecentEvent = currentGameEvents[0]
-    setCurrentGameHeadEvent(mostRecentEvent)
-  }, [currentGameStartEvent, incomingNostrBuffer])
+    const movesWithoutChildren = moves.filter((it) => it.children().length === 0)
+    movesWithoutChildren.sort((a, b) => b.event().created_at - a.event().created_at)
+
+    console.log(`[Chess] Number of heads for current game: ${movesWithoutChildren.length}`)
+
+    setCurrentGameHead(movesWithoutChildren[0])
+  }, [currentGameStart, incomingNostrBuffer])
 
   /*
   useEffect(() => {
-    if (!currentGameStartEvent) {
-      setCurrentGameHeadEvent(null)
+    if (!currentGameStart) {
+      setCurrentGameHead(null)
     } else {
       
-      setCurrentGameHeadEvent(current => {
-        if(!current) return currentGameStartEvent
+      setCurrentGameHead(current => {
+        if(!current) return currentGameStart
         return current
       })
     }
-  }, [currentGameStartEvent])*/
+  }, [currentGameStart])*/
 
   // TODO: when game is loaded.. analyze just latest messages
   useEffect(() => {
-    if (!currentGameStartEvent) return
+    if (!currentGameStart) return
 
     // TODO... "if(gameInitiallyLoaded)..."
-  }, [currentGameStartEvent, incomingNostrBuffer])
+  }, [currentGameStart, incomingNostrBuffer])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
@@ -277,12 +312,12 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
       {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
-      {currentGameStartEvent && (
-        <div style={{ maxWidth: 600 }}>
-          <pre>{JSON.stringify(currentGameStartEvent, null, 2)}</pre>
+      {currentGameStart && (
+        <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
+          <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
         </div>
       )}
-      {!currentGameStartEvent && <div>No game?</div>}
+      {!currentGameStart && <div>No game?</div>}
     </div>
   )
 }

@@ -1,4 +1,3 @@
-
 // @ts-ignore
 import Chess from 'chess.js'
 import { ChessInstance, Move } from '../components/ChessJsTypes'
@@ -29,10 +28,10 @@ class ValidMovesImpl implements ValidMoves {
     this._source = source
 
     const validSuccessors: [Move, ValidFen][] = findValidSuccesors(this._source)
-    this._validMoves = validSuccessors.map(moveAndFen => ({
+    this._validMoves = validSuccessors.map((moveAndFen) => ({
       value: () => moveAndFen[0],
       source: () => this._source,
-      target: () => moveAndFen[1]
+      target: () => moveAndFen[1],
     }))
   }
   source() {
@@ -42,7 +41,8 @@ class ValidMovesImpl implements ValidMoves {
     return this._validMoves
   }
   contains(fen: ValidFen): boolean {
-    return this._validMoves.filter(it => it.target() === fen).length === 1
+    const validMoveFens = this._validMoves.map((it) => it.target().value())
+    return validMoveFens.includes(fen.value())
   }
 }
 
@@ -91,11 +91,11 @@ const asValidFenSuccessor = (fen: ValidFen, move: Move): ValidFen | null => {
 
 const findValidSuccesors = (fen: ValidFen): [Move, ValidFen][] => {
   return findValidMoves(fen)
-    .map(move => {
+    .map((move) => {
       const successorOrNull = asValidFenSuccessor(fen, move)
       return successorOrNull ? [move, successorOrNull] : []
     })
-    .filter(it => it.length === 2) as [Move, ValidFen][]
+    .filter((it) => it.length === 2) as [Move, ValidFen][]
 }
 
 export const toValidFen = (fen: Fen): ValidFen => {

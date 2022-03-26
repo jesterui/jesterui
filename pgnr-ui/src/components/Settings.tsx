@@ -34,9 +34,7 @@ import Heading2 from '@material-tailwind/react/Heading2'
   // @ts-ignore
 } from 'nostr-tools'*/
 
-const developmentRelays = [
-  'ws://localhost:7000',
-]
+const developmentRelays = ['ws://localhost:7000']
 
 const publicRelays = [
   'wss://nostr-pub.wellorder.net',
@@ -51,13 +49,10 @@ const publicRelays = [
   'wss://nostr-relay.untethr.me',
   'wss://nostr-verified.wellorder.net',
   'wss://nostr.drss.io',
-  'wss://nostr.unknown.place'
+  'wss://nostr.unknown.place',
 ]
 
-const defaultRelays = [
-  ...(process.env.NODE_ENV === 'development' ? developmentRelays : []),
-  ...publicRelays
-]
+const defaultRelays = [...(process.env.NODE_ENV === 'development' ? developmentRelays : []), ...publicRelays]
 
 function TestNostrConnectionButton() {
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
