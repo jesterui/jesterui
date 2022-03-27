@@ -9,8 +9,8 @@ import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { getSession } from '../util/session'
 import * as AppUtils from '../util/pgnrui'
+import { getSession } from '../util/session'
 import { PgnruiMove, GameStart, GameMove } from '../util/pgnrui'
 import CreateGameButton from './CreateGameButton'
 
@@ -21,6 +21,8 @@ import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
 import { arrayEquals } from '../util/utils'
+
+type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
 const WAITING_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
 
@@ -33,16 +35,19 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
   }
 
   return (
-    <div style={{ display: 'flex' }}>
-      <div style={{ width: 400, height: 400 }}>
-        {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
-      </div>
-      {false && game && (
-        <div className="pl-2 overflow-y-scroll">
-          <PgnTable game={game!.game} />
+    <>
+      <div>{game && `You are ${game.color.length === 0 ? 'in watch-only mode' : game.color}`}</div>
+      <div style={{ display: 'block' }}>
+        <div style={{ width: 400, height: 400 }}>
+          {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
         </div>
-      )}
-    </div>
+        {false && game && (
+          <div className="pl-2 overflow-y-scroll">
+            <PgnTable game={game!.game} />
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -64,8 +69,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
   const [isLoading, setIsLoading] = useState<boolean>(true)
-
-  const [myMoveIds, setMyMoveIds] = useState<NIP01.Sha256[]>([])
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -115,8 +118,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-
-    setMyMoveIds((current) => [...current, signedEvent.id])
   }
 
   const onGameCreated = async (gameId: NIP01.Sha256) => {
@@ -157,19 +158,32 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   useEffect(() => {
     if (!currentGameStart) {
       setCurrentGame(null)
-    } else {
-      const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
-      setCurrentGame((_) => ({
-        id: currentGameStart.event().id, // TODO should the game hold the hole event?
-        game: new Chess(),
-        color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
-      }))
+      return
     }
-  }, [currentGameStart])
+
+    /*let color: MovebleColor = []   
+    if (privateKeyOrNull == null || publicKeyOrNull == null) {
+      color = []
+    } else {
+      if (publicKeyOrNull === currentGameStart.event().pubkey) {
+        color = ['white']
+      } else {
+        color = ['black'] 
+      }
+    }
+    if (process.env.NODE_ENV === 'development') {
+      color =  ['white', 'black']
+    }*/
+
+    setCurrentGame((_) => ({
+      id: currentGameStart.event().id, // TODO should the game hold the hole event?
+      game: new Chess(),
+      color: ['white', 'black'], // TODO: currently make it possible to move both colors
+    }))
+  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
 
   // TODO: maybe do not start the game at "game start", but initialize with latest event?
   useEffect(() => {
-    if (!currentGameStart) return
     if (!currentGameHead) return
 
     setCurrentGame((current) => {
@@ -185,29 +199,73 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   useEffect(() => {
     if (!currentGameStart) return
+
     const currentGameFilter = AppUtils.createGameFilter(currentGameStart)
 
-    const filterForOwnEvents: NIP01.Filter[] =
-      (publicKeyOrNull && [
-        {
-          authors: [publicKeyOrNull],
-        },
-      ]) ||
-      []
+    const publicKeyOrNull = settings.identity?.pubkey || null
+    const filterForOwnEvents: NIP01.Filter[] = !publicKeyOrNull
+      ? []
+      : [
+          {
+            authors: [publicKeyOrNull],
+          },
+        ]
 
     const gameFilters = [AppUtils.PGNRUI_START_GAME_FILTER, currentGameFilter]
 
-    // TODO: Replace with "updateSubscriptionSettings"
-    settingsDispatch({
-      ...settings,
-      subscriptions: [
-        {
-          id: 'my-sub',
-          filters: [...gameFilters, ...filterForOwnEvents],
-        },
-      ],
-    })
-  }, [currentGameStart, settingsDispatch])
+    const newSubFilters = [...gameFilters, ...filterForOwnEvents]
+
+    const currentSubs = settings.subscriptions || []
+    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)
+
+    // this is soo stupid..
+    if (JSON.stringify([newSubFilters]) !== JSON.stringify(currentSubFilters)) {
+      // TODO: Replace with "updateSubscriptionSettings"
+      settingsDispatch({
+        ...settings,
+        subscriptions: [
+          {
+            id: 'my-sub',
+            filters: newSubFilters,
+          },
+        ],
+      })
+    }
+  }, [currentGameStart, settings, settingsDispatch])
+
+  const createMovesArray = (gameStart: GameStart, events: NIP01.Event[]): PgnruiMove[] => {
+    const findSuccessors = (gameId: NIP01.Sha256, moveId: NIP01.Sha256): NIP01.Event[] => {
+      return events.filter((event) => {
+        const eTagMatches = event.tags.filter((t) => arrayEquals(t, ['e', gameId])).length === 1
+        const pTagMatches = event.tags.filter((t) => arrayEquals(t, ['p', moveId])).length === 1
+        return eTagMatches && pTagMatches
+      })
+    }
+
+    const gameStartEventId = gameStart.event().id
+    let moves: PgnruiMove[] = []
+
+    let search: PgnruiMove[] = [gameStart]
+    do {
+      const currentElement = search.shift() as PgnruiMove
+      const successors = findSuccessors(gameStartEventId, currentElement.event().id)
+      const children = successors
+        .map((it, i) => {
+          try {
+            return new GameMove(it, currentElement)
+          } catch (err) {
+            console.error(i, err, it.content, currentElement.fen().value())
+            return null
+          }
+        })
+        .filter((it) => it !== null) as GameMove[]
+      children.forEach((it) => currentElement.addChild(it))
+      search = [...search, ...children]
+      moves = [...moves, currentElement]
+    } while (search.length > 0)
+
+    return moves
+  }
 
   // initial state load TODO: Do not recreate the whole state everytime..
   useEffect(() => {
@@ -228,30 +286,12 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
         return matchingTags.length === 1
       })
+
     eventsBelongingToTheGame.sort((a, b) => b.created_at - a.created_at)
 
     console.log(`Found ${eventsBelongingToTheGame.length} events referencing start event...`)
 
-    const findSuccessors = (gameId: NIP01.Sha256, moveId: NIP01.Sha256): NIP01.Event[] => {
-      return eventsBelongingToTheGame.filter((event) => {
-        const eTagMatches = event.tags.filter((t) => arrayEquals(t, ['e', gameId])).length === 1
-        const pTagMatches = event.tags.filter((t) => arrayEquals(t, ['p', moveId])).length === 1
-        return eTagMatches && pTagMatches
-      })
-    }
-
-    let moves: PgnruiMove[] = []
-    {
-      let search: PgnruiMove[] = [currentGameStart]
-      do {
-        const currentElement = search.shift() as PgnruiMove
-        const successors = findSuccessors(gameStartEventId, currentElement.event().id)
-        const children = successors.map((it) => new GameMove(it, currentElement))
-        children.forEach((it) => currentElement.addChild(it))
-        search = [...search, ...children]
-        moves = [...moves, currentElement]
-      } while (search.length > 0)
-    }
+    let moves = createMovesArray(currentGameStart, eventsBelongingToTheGame)
 
     const movesWithoutChildren = moves.filter((it) => it.children().length === 0)
     movesWithoutChildren.sort((a, b) => b.event().created_at - a.event().created_at)
@@ -266,7 +306,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     if (!currentGameStart) {
       setCurrentGameHead(null)
     } else {
-      
       setCurrentGameHead(current => {
         if(!current) return currentGameStart
         return current
@@ -294,6 +333,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   if (!gameId) {
     return <div>Error: GameId not present</div>
   }
+
   if (isLoading && currentGame === null) {
     return <>Loading... (waiting for game data to arrive)</>
   }
@@ -311,7 +351,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
-      {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
+      <div>{currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}</div>
       {currentGameStart && (
         <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
           <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>

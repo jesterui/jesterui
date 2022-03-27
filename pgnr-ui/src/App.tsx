@@ -122,7 +122,7 @@ function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefin
 
   useEffect(() => {
     navigate(`/game/${gameId}`)
-  }, [])
+  }, [navigate, gameId])
 
   return <>Redirecting to {gameId && AppUtils.gameDisplayNameShort(gameId)}...</>
 }

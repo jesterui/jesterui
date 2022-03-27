@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useCurrentGame, useSetCurrentGame } from '../context/GamesContext'
@@ -44,7 +44,7 @@ export default function Index() {
         break
       }
     }
-  }, [incomingNostrBuffer, currentGame])
+  }, [incomingNostrBuffer, currentGame, setCurrentGame])
 
   const onGameCreated = (gameId: NIP01.Sha256) => {
     navigate(`/game:/${gameId}`)

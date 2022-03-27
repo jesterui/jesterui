@@ -32,15 +32,17 @@ const StyledChessboard = ({
   userColor,
   config,
 }: {
-  config: CgConfig
+  config: Partial<CgConfig>
   game: ChessInstance
   userColor: MoveableColor
 }) => {
   const [validMoves, setValidMoves] = useState<Map<cg.Key, cg.Key[]>>(new Map())
 
   useEffect(() => {
-    console.debug('[Chess] Recalculating valid moves..')
-    setValidMoves(findValidMoves(game))
+    console.debug('[Chess] Recalculating valid moves.. ')
+    const newValidMoves = findValidMoves(game)
+    console.debug(`[Chess] Number of moveable pieces: ${newValidMoves.size}`)
+    setValidMoves(newValidMoves)
   }, [game])
 
   return (
