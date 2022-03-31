@@ -3,6 +3,7 @@ import { useSettings } from './SettingsContext'
 
 const WEBSOCKET_RECONNECT_DELAY_STEP = 1_000
 const WEBSOCKET_RECONNECT_MAX_DELAY = 10_000
+const WEBSOCKET_ESTABLISH_CONNECTION_MAX_DURATION = 10_000
 
 // minimum amount of time in milliseconds the connection must stay open to be considered "healthy"
 const WEBSOCKET_CONNECTION_HEALTHY_DURATION = 3_000
@@ -38,11 +39,6 @@ const createWebSocket = (target: string) => {
   return websocket
 }
 
-interface WebsocketContextEntry {
-  websocket: WebSocket | null
-  websocketState: number | null
-}
-
 const SendKeepAlive = ({ websocket }: { websocket: WebSocket | null }) => {
   useEffect(() => {
     if (!websocket) return
@@ -66,6 +62,59 @@ const SendKeepAlive = ({ websocket }: { websocket: WebSocket | null }) => {
   return <></>
 }
 
+const ForceClosePendingConnections = ({ websocket }: { websocket: WebSocket | null }) => {
+  useEffect(() => {
+    if (!websocket) return;
+
+    const abortCtrl = new AbortController()
+    const forceCloseIfStillConnectingTimer = setTimeout(() => {
+      if (abortCtrl.signal.aborted) return
+      // Problem:
+      //   Some browsers will keep connecting longer than the retry delay, and if the service
+      //   comes back up in the meantime, the connection fails nonetheless...
+      //   A retry is only attempted, when the close listener is invoked.
+      //
+      // Solution:
+      //   If the socket is still `CONNECTING` after a certain duration.. force-close it!
+      //   e.g. this happens in Firefox after >10 attempts
+      //
+      // This ensures that the maximum amount of delay between retries is
+      // `WEBSOCKET_ESTABLISH_CONNECTION_MAX_DURATION + WEBSOCKET_RECONNECT_MAX_DELAY`:
+      // - WEBSOCKET_ESTABLISH_CONNECTION_MAX_DURATION to force-close a pending connection
+      // - WEBSOCKET_RECONNECT_MAX_DELAY to attempt the retry
+      const needsForceClose = websocket.readyState === WebSocket.CONNECTING
+      console.debug(`[Websocket] Check if a force-close is needed..`, needsForceClose)
+      if (needsForceClose) {
+        websocket.close(1000, 'Force-close pending connection')
+      }
+    }, WEBSOCKET_ESTABLISH_CONNECTION_MAX_DURATION)
+
+    return () => {
+      clearTimeout(forceCloseIfStillConnectingTimer)
+      abortCtrl.abort()
+    }
+  }, [websocket])
+
+  return <></>
+}
+
+const LogConnectionReadyStateOnChange = ({ websocket }: { websocket: WebSocket | null }) => {
+  useEffect(() => {
+    if (websocket) {
+      console.debug('[Websocket] Connection', readyStatePhrase(websocket.readyState), 'to', websocket.url)
+    } else {
+      console.debug('[Websocket] Not connected')
+    }
+  }, [websocket])
+
+  return <></>
+}
+
+interface WebsocketContextEntry {
+  websocket: WebSocket | null
+  websocketState: number | null
+}
+
 const WebsocketContext = createContext<WebsocketContextEntry | undefined>(undefined)
 
 const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | undefined>) => {
@@ -74,7 +123,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
   const [websocket, setWebsocket] = useState<WebSocket | null>(null)
   const [websocketState, setWebsocketState] = useState<number | null>(null)
   const [isWebsocketHealthy, setIsWebsocketHealthy] = useState(false)
-  const setConnectionErrorCount = useState(0)[1]
+  const [connectionErrorCount, setConnectionErrorCount] = useState(0)
   const [retryCounter, setRetryCounter] = useState(0)
 
   useEffect(() => {
@@ -122,15 +171,8 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
     }
 
     return () => abortCtrl.abort()
-  }, [retryCounter, websocket, host, setWebsocket, setConnectionErrorCount])
+  }, [retryCounter, websocket, host])
 
-  useEffect(() => {
-    if (websocket) {
-      console.debug('[Websocket] Connection', readyStatePhrase(websocket.readyState), 'to', websocket.url)
-    } else {
-      console.debug('[Websocket] Not connected')
-    }
-  }, [websocket, settings, setWebsocket])
 
   // update websocket state based on open/close events
   useEffect(() => {
@@ -155,7 +197,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       setConnectionErrorCount(0)
       setRetryCounter(0)
     }
-  }, [isWebsocketHealthy, setConnectionErrorCount])
+  }, [isWebsocketHealthy])
 
   // reconnect handling in case the socket is closed
   useEffect(() => {
@@ -201,11 +243,13 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       clearTimeout(retryDelayTimer)
       abortCtrl.abort()
     }
-  }, [websocket, setConnectionErrorCount])
+  }, [websocket])
 
   return (
     <WebsocketContext.Provider value={{ websocket, websocketState }}>
       <SendKeepAlive websocket={websocket} />
+      <ForceClosePendingConnections websocket={websocket} />
+      <LogConnectionReadyStateOnChange websocket={websocket} />
       <>{children}</>
     </WebsocketContext.Provider>
   )
