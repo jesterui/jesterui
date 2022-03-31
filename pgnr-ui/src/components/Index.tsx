@@ -53,16 +53,18 @@ export default function Index() {
   return (
     <div className="screen-index">
       <Heading1 color="blueGray">Gameboard</Heading1>
-      {!incomingNostr ? (
-        <>
-          <div>No connection to nostr</div>
-        </>
-      ) : (
-        <>
-          {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
-          {currentGame && <BoardById gameId={currentGame.id} />}
-        </>
-      )}
+      <div className="flex  justify-center items-center">
+        {!incomingNostr ? (
+          <>
+            <div>No connection to nostr</div>
+          </>
+        ) : (
+          <>
+            {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
+            {currentGame && <BoardById gameId={currentGame.id} />}
+          </>
+        )}
+      </div>
     </div>
   )
 }

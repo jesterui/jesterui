@@ -72,6 +72,13 @@ export default function AppNavbar() {
                 Profile
               </NavItem>
             </ReactNavLink>*/}
+
+            <ReactNavLink to="/faq" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
+              <NavItem ripple="light">
+                <Icon name="contact_support" size="xl" />
+                FAQ
+              </NavItem>
+            </ReactNavLink>
           </Nav>
         </NavbarCollapse>
       </NavbarContainer>

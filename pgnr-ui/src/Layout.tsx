@@ -9,7 +9,7 @@ const Col = ({ variant, children }: PropsWithChildren<{ variant: Variant }>) => 
 
 const Layout = ({ variant }: { variant: Variant }) => {
   return (
-    <div className="flex container mx-auto justify-center items-center">
+    <div className="container max-w-7xl">
       <Col variant={variant}>
         <Outlet />
       </Col>

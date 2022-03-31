@@ -36,6 +36,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 - React documentation: https://reactjs.org/
 - create-react-app: https://facebook.github.io/create-react-app/docs/getting-started
 
+- chess.js (GitHub): https://github.com/jhlywa/chess.js/
 - Chessground (GitHub): https://github.com/lichess-org/chessground
 - Chessground Examples (GitHub): https://github.com/lichess-org/chessground-examples
 - Chessground Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90

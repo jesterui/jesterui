@@ -64,7 +64,7 @@ const SendKeepAlive = ({ websocket }: { websocket: WebSocket | null }) => {
 
 const ForceClosePendingConnections = ({ websocket }: { websocket: WebSocket | null }) => {
   useEffect(() => {
-    if (!websocket) return;
+    if (!websocket) return
 
     const abortCtrl = new AbortController()
     const forceCloseIfStillConnectingTimer = setTimeout(() => {
@@ -172,7 +172,6 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
 
     return () => abortCtrl.abort()
   }, [retryCounter, websocket, host])
-
 
   // update websocket state based on open/close events
   useEffect(() => {

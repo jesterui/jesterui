@@ -5,6 +5,7 @@ import './App.css'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Index from './components/Index'
+import Faq from './components/Faq'
 import GamesOverview from './components/GamesOverview'
 import GameById from './components/GameById'
 import Layout from './Layout'
@@ -146,6 +147,7 @@ export default function App() {
               <Route path="/game/:gameId" element={<GameById />} />
               <Route path="/redirect/game/:gameId" element={<RedirectToGame />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/faq" element={<Faq />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />
             </Route>
           </Routes>
