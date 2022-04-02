@@ -12,6 +12,10 @@ export const PGNRUI_START_GAME_FILTER: NIP01.Filter = {
   '#e': [PGNRUI_START_GAME_E_REF],
 }
 
+enum Kind {
+  Start = 0,
+}
+
 type GameStartEvent = NIP01.Event
 type MoveEvent = NIP01.Event
 
@@ -109,7 +113,6 @@ export class GameMove extends AbstractGameMove {
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = 1 // text_note
-  eventParts.content = ''
   eventParts.tags = [['e', PGNRUI_START_GAME_E_REF]]
   return eventParts
 })()
@@ -118,14 +121,20 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
   const eventParts = {
     ...START_GAME_EVENT_PARTS,
     created_at: Math.floor(Date.now() / 1000),
+    content: JSON.stringify({
+      version: '0',
+      kind: Kind.Start
+    }),
     pubkey,
   } as NIP01.EventParts
   return NostrEvents.constructEvent(eventParts)
 }
 
 export const isStartGameEvent = (event?: NIP01.Event): boolean => {
+  const json = (event && event.content && JSON.parse(event.content)) || null
   return (
-    !!event && event.content === '' && event.kind === 1 && arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]])
+    !!event && event.kind === 1 && arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]]) &&
+    json && json.kind === Kind.Start
   )
 }
 
