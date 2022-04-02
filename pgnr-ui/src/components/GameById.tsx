@@ -76,11 +76,15 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const onChessboardChanged = async (chessboard: ChessInstance) => {
     if (!currentGame) return null
 
-    // TODO: DO NOT SET GAME HERE... SET FROM CHESSBOARD...
-    setCurrentGame((currentGame) => {
+    // TODO: Should we additionally set the game here? 
+    // leaning towards no.. leads to waiting time before
+    // the move is made for the event via nostr to return..
+    // but better than to be in an inconsitent state...
+    /*setCurrentGame((currentGame) => {
       if (!currentGame) return null
       return { ...currentGame, game: chessboard }
-    })
+    })*/
+      console.log('WILL SEND THE EVENT VIA NOSTR...')
     await sendGameStateViaNostr(currentGame, chessboard)
   }
 
@@ -105,11 +109,20 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
 
+    const history = chessboard.history()
+    const latestMove = history && history[history.length - 1] || null
+    console.log("[]: ", latestMove)
+
     const eventParts = NostrEvents.blankEvent()
     eventParts.kind = 1 // text_note
     eventParts.pubkey = publicKey
     eventParts.created_at = Math.floor(Date.now() / 1000)
-    eventParts.content = chessboard.fen()
+    eventParts.content = JSON.stringify({
+      version: '0',
+      fen: chessboard.fen(),
+      move: latestMove,
+      history: history
+    })
     eventParts.tags = [
       ['e', currentGameStart.event().id],
       // TODO: misusing 'p'-tag is not nice..
@@ -189,10 +202,32 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     setCurrentGame((current) => {
       if (!current) return current
 
-      // TODO: do not just recreate the game.. history is lost.. do "move updates"
-      current.game.load(currentGameHead.fen().value())
+      const historyToMinimalPgn = (history: string[]): string[] => {
+        const paired = history.reduce<string[]>((result: string[], value: string, currentIndex: number, array: string[]) => {
+          if (currentIndex % 2 === 0) {
+            return [...result, array.slice(currentIndex, currentIndex + 2)] as string[]
+          }
+        return result
+        }, [])
 
-      return { ...current }
+        return paired.map((val, index) => {
+          if(val.length === 1) {
+            return `${index + 1}. ${val[0]}`
+          }
+          return `${index + 1}. ${val[0]} ${val[1]}`
+        })
+      }
+
+      // turn HISTORY INTO PGN and LOAD PGN
+      const history = historyToMinimalPgn(currentGameHead.content().history || [])
+      // TODO: does the "game" really need to change, or can you just do:
+      // current.game.load_pgn(history.join('\n'))
+      // without returning a copy?
+      const newGame = new Chess()
+      const loaded = newGame.load_pgn(history.join('\n'))
+      console.log('LOADED NEW GAME STATE FROM PGN', loaded)
+
+      return { ...current, game: newGame }
     })
   }, [currentGameHead])
   /********************** */
@@ -254,7 +289,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           try {
             return new GameMove(it, currentElement)
           } catch (err) {
-            console.error(i, err, it.content, currentElement.fen().value())
+            console.error(i, err, it.content, currentElement.content())
             return null
           }
         })
