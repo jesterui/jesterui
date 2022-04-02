@@ -5,6 +5,7 @@ import { Config as CgConfig } from 'chessground/config'
 
 // @ts-ignore
 import { ChessInstance, Square } from '../ChessJsTypes'
+import { arrayEquals } from '../../util/utils'
 
 type MoveableColor = cg.Color[]
 const moveableColorProp = (c: MoveableColor) => {
@@ -48,6 +49,7 @@ const StyledChessboard = ({
   return (
     <Chessground
       contained={true}
+      // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
       config={{
         fen: config.fen || game.fen(),
         viewOnly: userColor.length === 0,
@@ -87,16 +89,29 @@ export default function Chessboard({
     })
   }
 
+  console.log(userColor !== [])
+
   return (
     <StyledChessboard
       game={game}
       userColor={userColor}
       config={{
+        //orientation?: cg.Color; // board orientation. white | black
+        viewOnly: arrayEquals(userColor, []), // don't bind events: the user will never be able to move pieces around
         movable: {
           events: {
-            after: onAfter,
+            after: onAfter,  // called after the move has been played
           },
         },
+        events: {
+          change: () => {}, // called after the situation changes on the board
+          // called after a piece has been moved.
+          // capturedPiece is undefined or like {color: 'white'; 'role': 'queen'}
+          move: (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => {},
+          dropNewPiece: (piece: cg.Piece, key: cg.Key) => {},
+          select: (key: cg.Key) => {}, // called when a square is selected
+          insert: (elements: cg.Elements) => {}, // when the board DOM has been (re)inserted
+        }
       }}
     />
   )

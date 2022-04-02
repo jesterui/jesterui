@@ -1,5 +1,12 @@
 # pgnr-ui
 
+
+TODO:
+- [ ] Send nostr eventc `content` as chess json proto
+- [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
+
+---
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -41,6 +48,8 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 - Chessground Examples (GitHub): https://github.com/lichess-org/chessground-examples
 - Chessground Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
 - react/chessground (GitHub): https://github.com/react-chess/chessground
+
+- CTX Chess Tournament Exchange format (XML): https://github.com/fnogatz/CTX
 
 - material-tailwind (GitHub): https://github.com/creativetimofficial/material-tailwind
 
