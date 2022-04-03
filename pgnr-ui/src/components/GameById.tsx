@@ -50,6 +50,25 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
     </>
   )
 }
+// in:  ['e4', 'd5', 'exd5', 'c6', 'dxc6']
+// out: 1. e4 d5 2. exd5 c6 3. dxc6
+const historyToMinimalPgn = (history: string[]): string => {
+  const paired = history.reduce<string[]>((result: string[], value: string, currentIndex: number, array: string[]) => {
+    if (currentIndex % 2 === 0) {
+      return [...result, array.slice(currentIndex, currentIndex + 2)] as string[]
+    }
+  return result
+  }, [])
+
+  const lines = paired.map((val, index) => {
+    if(val.length === 1) {
+      return `${index + 1}. ${val[0]}`
+    }
+    return `${index + 1}. ${val[0]} ${val[1]}`
+  })
+
+  return lines.join(' ')
+}
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
@@ -174,7 +193,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       return
     }
 
-    /*let color: MovebleColor = []   
+    let color: MovebleColor = []   
     if (privateKeyOrNull == null || publicKeyOrNull == null) {
       color = []
     } else {
@@ -184,14 +203,14 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         color = ['black'] 
       }
     }
-    if (process.env.NODE_ENV === 'development') {
+    /*if (process.env.NODE_ENV === 'development') {
       color =  ['white', 'black']
     }*/
 
     setCurrentGame((_) => ({
       id: currentGameStart.event().id, // TODO should the game hold the hole event?
       game: new Chess(),
-      color: ['white', 'black'], // TODO: currently make it possible to move both colors
+      color
     }))
   }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
 
@@ -202,30 +221,14 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     setCurrentGame((current) => {
       if (!current) return current
 
-      const historyToMinimalPgn = (history: string[]): string[] => {
-        const paired = history.reduce<string[]>((result: string[], value: string, currentIndex: number, array: string[]) => {
-          if (currentIndex % 2 === 0) {
-            return [...result, array.slice(currentIndex, currentIndex + 2)] as string[]
-          }
-        return result
-        }, [])
-
-        return paired.map((val, index) => {
-          if(val.length === 1) {
-            return `${index + 1}. ${val[0]}`
-          }
-          return `${index + 1}. ${val[0]} ${val[1]}`
-        })
-      }
-
       // turn HISTORY INTO PGN and LOAD PGN
-      const history = historyToMinimalPgn(currentGameHead.content().history || [])
+      const minimalPgn = historyToMinimalPgn(currentGameHead.content().history || [])
       // TODO: does the "game" really need to change, or can you just do:
       // current.game.load_pgn(history.join('\n'))
       // without returning a copy?
       const newGame = new Chess()
-      const loaded = newGame.load_pgn(history.join('\n'))
-      console.log('LOADED NEW GAME STATE FROM PGN', loaded)
+      const loaded = newGame.load_pgn(minimalPgn)
+      console.log('LOADED NEW GAME STATE FROM PGN', loaded, minimalPgn)
 
       return { ...current, game: newGame }
     })

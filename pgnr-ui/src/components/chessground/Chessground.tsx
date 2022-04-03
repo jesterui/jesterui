@@ -46,28 +46,39 @@ const StyledChessboard = ({
     setValidMoves(newValidMoves)
   }, [game])
 
-  return (
-    <Chessground
-      contained={true}
-      // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
-      config={{
-        fen: config.fen || game.fen(),
-        viewOnly: userColor.length === 0,
-        orientation: userColor.length === 1 ? userColor[0] : 'white',
-        ...config,
-        movable: {
-          color: moveableColorProp(userColor),
-          dests: config.movable?.dests || validMoves,
-          free: false,
-          ...config.movable,
-        },
-        highlight: {
-          lastMove: true,
-          check: true,
-          ...config.highlight,
-        },
-      }}
-    />
+  useEffect(() => {
+    console.debug('[Chess] IN CHESSBOARD THINKS THE PGN IS', game.pgn())
+  }, [game])
+
+  const chessgroundConfig = {
+    fen: game.fen(),
+    turnColor: game.turn() === 'b' ? 'black' : 'white', // turn to play. white | black
+    viewOnly: userColor.length === 0, // don't bind events: the user will never be able to move pieces around
+    ...config,
+    movable: {
+      color: moveableColorProp(userColor),
+      dests: config.movable?.dests || validMoves,
+      free: false,
+      ...config.movable,
+    },
+    /*highlight: {
+      lastMove: true,
+      check: true,
+      ...config.highlight,
+    },*/
+  } as Partial<CgConfig>
+
+  console.log('CHESSGROUND CONFIG:', chessgroundConfig)
+
+  return (<>
+      <div>{game.turn()} to turn</div>
+      <div>{game.turn()} to turn</div>
+      <Chessground
+        contained={true}
+        // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
+        config={chessgroundConfig}
+      />
+    </>
   )
 }
 
@@ -89,15 +100,12 @@ export default function Chessboard({
     })
   }
 
-  console.log(userColor !== [])
-
   return (
     <StyledChessboard
       game={game}
       userColor={userColor}
       config={{
-        //orientation?: cg.Color; // board orientation. white | black
-        viewOnly: arrayEquals(userColor, []), // don't bind events: the user will never be able to move pieces around
+        orientation: userColor.length === 1 ? userColor[0] : 'white',
         movable: {
           events: {
             after: onAfter,  // called after the move has been played
