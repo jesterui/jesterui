@@ -54,6 +54,13 @@ export default function AppNavbar() {
                 Games
               </NavItem>
             </ReactNavLink>
+
+            <ReactNavLink to="/faq" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
+              <NavItem ripple="light">
+                <Icon name="contact_support" size="xl" />
+                FAQ
+              </NavItem>
+            </ReactNavLink>
             <ReactNavLink
               to="/settings"
               className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
@@ -72,13 +79,6 @@ export default function AppNavbar() {
                 Profile
               </NavItem>
             </ReactNavLink>*/}
-
-            <ReactNavLink to="/faq" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
-              <NavItem ripple="light">
-                <Icon name="contact_support" size="xl" />
-                FAQ
-              </NavItem>
-            </ReactNavLink>
           </Nav>
         </NavbarCollapse>
       </NavbarContainer>

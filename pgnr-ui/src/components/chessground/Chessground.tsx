@@ -70,9 +70,8 @@ const StyledChessboard = ({
 
   console.log('CHESSGROUND CONFIG:', chessgroundConfig)
 
-  return (<>
-      <div>{game.turn()} to turn</div>
-      <div>{game.turn()} to turn</div>
+  return (
+    <>
       <Chessground
         contained={true}
         // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
@@ -108,7 +107,7 @@ export default function Chessboard({
         orientation: userColor.length === 1 ? userColor[0] : 'white',
         movable: {
           events: {
-            after: onAfter,  // called after the move has been played
+            after: onAfter, // called after the move has been played
           },
         },
         events: {
@@ -119,7 +118,7 @@ export default function Chessboard({
           dropNewPiece: (piece: cg.Piece, key: cg.Key) => {},
           select: (key: cg.Key) => {}, // called when a square is selected
           insert: (elements: cg.Elements) => {}, // when the board DOM has been (re)inserted
-        }
+        },
       }}
     />
   )

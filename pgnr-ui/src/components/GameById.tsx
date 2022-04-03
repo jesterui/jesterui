@@ -37,6 +37,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
   return (
     <>
       <div>{game && `You are ${game.color.length === 0 ? 'in watch-only mode' : game.color}`}</div>
+      <div>{game && game.game && `${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</div>
       <div style={{ display: 'block' }}>
         <div style={{ width: 400, height: 400 }}>
           {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
@@ -57,11 +58,11 @@ const historyToMinimalPgn = (history: string[]): string => {
     if (currentIndex % 2 === 0) {
       return [...result, array.slice(currentIndex, currentIndex + 2)] as string[]
     }
-  return result
+    return result
   }, [])
 
   const lines = paired.map((val, index) => {
-    if(val.length === 1) {
+    if (val.length === 1) {
       return `${index + 1}. ${val[0]}`
     }
     return `${index + 1}. ${val[0]} ${val[1]}`
@@ -95,7 +96,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const onChessboardChanged = async (chessboard: ChessInstance) => {
     if (!currentGame) return null
 
-    // TODO: Should we additionally set the game here? 
+    // TODO: Should we additionally set the game here?
     // leaning towards no.. leads to waiting time before
     // the move is made for the event via nostr to return..
     // but better than to be in an inconsitent state...
@@ -103,7 +104,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       if (!currentGame) return null
       return { ...currentGame, game: chessboard }
     })*/
-      console.log('WILL SEND THE EVENT VIA NOSTR...')
+    console.log('WILL SEND THE EVENT VIA NOSTR...')
     await sendGameStateViaNostr(currentGame, chessboard)
   }
 
@@ -129,8 +130,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const privateKey = privateKeyOrNull!
 
     const history = chessboard.history()
-    const latestMove = history && history[history.length - 1] || null
-    console.log("[]: ", latestMove)
+    const latestMove = (history && history[history.length - 1]) || null
+    console.log('[]: ', latestMove)
 
     const eventParts = NostrEvents.blankEvent()
     eventParts.kind = 1 // text_note
@@ -140,7 +141,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       version: '0',
       fen: chessboard.fen(),
       move: latestMove,
-      history: history
+      history: history,
     })
     eventParts.tags = [
       ['e', currentGameStart.event().id],
@@ -193,14 +194,14 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       return
     }
 
-    let color: MovebleColor = []   
+    let color: MovebleColor = []
     if (privateKeyOrNull == null || publicKeyOrNull == null) {
       color = []
     } else {
       if (publicKeyOrNull === currentGameStart.event().pubkey) {
         color = ['white']
       } else {
-        color = ['black'] 
+        color = ['black']
       }
     }
     /*if (process.env.NODE_ENV === 'development') {
@@ -210,7 +211,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     setCurrentGame((_) => ({
       id: currentGameStart.event().id, // TODO should the game hold the hole event?
       game: new Chess(),
-      color
+      color,
     }))
   }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
 

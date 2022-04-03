@@ -109,9 +109,13 @@ export class GameMove extends AbstractGameMove {
     const content = JSON.parse(event.content) as PgnProtoContent
     // TODO: verify that lastMove is valid
     if (!arrayEquals(parent.content().history, content.history.slice(0, content.history.length - 1))) {
-      console.error('History does not match its parents... SHOULD THROW ERROR', parent.content().history, content.history)
+      console.error(
+        'History does not match its parents... SHOULD THROW ERROR',
+        parent.content().history,
+        content.history
+      )
     }
-    if(content.history[content.history.length - 1] !== content.move) {
+    if (content.history[content.history.length - 1] !== content.move) {
       console.error('last move does not match history.. SHOULD THROW ERROR', content.history, content.move)
     }
     this._content = content
@@ -165,8 +169,11 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
 export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   const json = (event && event.content && JSON.parse(event.content)) || null
   return (
-    !!event && event.kind === 1 && arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]]) &&
-    json && json.kind === Kind.Start && 
+    !!event &&
+    event.kind === 1 &&
+    arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]]) &&
+    json &&
+    json.kind === Kind.Start &&
     arrayEquals(json.history, [])
   )
 }
