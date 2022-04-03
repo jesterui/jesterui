@@ -5,7 +5,6 @@ import { Config as CgConfig } from 'chessground/config'
 
 // @ts-ignore
 import { ChessInstance, Square } from '../ChessJsTypes'
-import { arrayEquals } from '../../util/utils'
 
 type MoveableColor = cg.Color[]
 const moveableColorProp = (c: MoveableColor) => {
@@ -28,6 +27,15 @@ const findValidMoves = (chess: ChessInstance): Map<cg.Key, cg.Key[]> => {
   return dests
 }
 
+type CgKeyPair = [cg.Key, cg.Key]
+
+const findLastMove = (chess: ChessInstance): CgKeyPair | null => {
+  const verboseHistory = chess.history({ verbose: true })
+  const lastMoveOrNull = verboseHistory.length > 0 && verboseHistory[verboseHistory.length - 1] || null
+  const lastMovePair = (lastMoveOrNull && [lastMoveOrNull.from, lastMoveOrNull.to] as CgKeyPair) || null
+  return lastMovePair
+}
+
 const StyledChessboard = ({
   game,
   userColor,
@@ -38,6 +46,7 @@ const StyledChessboard = ({
   userColor: MoveableColor
 }) => {
   const [validMoves, setValidMoves] = useState<Map<cg.Key, cg.Key[]>>(new Map())
+  const [lastMove, setLastMove] = useState<CgKeyPair | null>(null)
 
   useEffect(() => {
     console.debug('[Chess] Recalculating valid moves.. ')
@@ -46,14 +55,19 @@ const StyledChessboard = ({
     setValidMoves(newValidMoves)
   }, [game])
 
+
   useEffect(() => {
-    console.debug('[Chess] IN CHESSBOARD THINKS THE PGN IS', game.pgn())
+    const newLastMove = findLastMove(game)
+    console.debug(`[Chess] Found last move: ${newLastMove}`)
+    setLastMove(newLastMove)
   }, [game])
 
+  // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
   const chessgroundConfig = {
     fen: game.fen(),
     turnColor: game.turn() === 'b' ? 'black' : 'white', // turn to play. white | black
     viewOnly: userColor.length === 0, // don't bind events: the user will never be able to move pieces around
+    lastMove: lastMove,
     ...config,
     movable: {
       color: moveableColorProp(userColor),
@@ -61,20 +75,17 @@ const StyledChessboard = ({
       free: false,
       ...config.movable,
     },
-    /*highlight: {
+    highlight: {
       lastMove: true,
       check: true,
       ...config.highlight,
-    },*/
+    },
   } as Partial<CgConfig>
-
-  console.log('CHESSGROUND CONFIG:', chessgroundConfig)
 
   return (
     <>
       <Chessground
         contained={true}
-        // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
         config={chessgroundConfig}
       />
     </>

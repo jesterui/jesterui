@@ -60,8 +60,8 @@ abstract class AbstractGameMove implements PgnruiMove {
     return true
   }
   isValidSuccessor(move: PgnruiMove): boolean {
-    return this.fen().validMoves().contains(move.fen())
-    // && arrayEquals(this.content.moves)
+    const fenIsValid = this.fen().validMoves().contains(move.fen())
+    return fenIsValid
   }
   isStart(): boolean {
     return this.parent() === null && this.content().fen === _validStartFen.value()
@@ -107,17 +107,15 @@ export class GameMove extends AbstractGameMove {
   constructor(event: NIP01.Event, parent: PgnruiMove) {
     super()
     const content = JSON.parse(event.content) as PgnProtoContent
-    // TODO: verify that lastMove is valid
-    if (!arrayEquals(parent.content().history, content.history.slice(0, content.history.length - 1))) {
-      console.error(
-        'History does not match its parents... SHOULD THROW ERROR',
-        parent.content().history,
-        content.history
-      )
-    }
+    
+    // TODO: verify that 'move' is really valid (can be different to given fen!)
     if (content.history[content.history.length - 1] !== content.move) {
-      console.error('last move does not match history.. SHOULD THROW ERROR', content.history, content.move)
+      throw new Error(`Invalid content: 'move' is not last entry of 'history'`)
     }
+    if (!arrayEquals(parent.content().history, content.history.slice(0, content.history.length - 1))) {
+      throw new Error('History does not match that of parent')
+    }
+
     this._content = content
 
     this._parent = parent
@@ -125,7 +123,7 @@ export class GameMove extends AbstractGameMove {
     this._fen = toValidFen(content.fen)
 
     if (!parent.isValidSuccessor(this)) {
-      throw new Error('Cannot create from fen that is not a succesor')
+      throw new Error('Cannot create from fen that is not a successor')
     }
   }
   source() {
