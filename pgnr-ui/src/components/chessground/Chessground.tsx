@@ -31,8 +31,8 @@ type CgKeyPair = [cg.Key, cg.Key]
 
 const findLastMove = (chess: ChessInstance): CgKeyPair | null => {
   const verboseHistory = chess.history({ verbose: true })
-  const lastMoveOrNull = verboseHistory.length > 0 && verboseHistory[verboseHistory.length - 1] || null
-  const lastMovePair = (lastMoveOrNull && [lastMoveOrNull.from, lastMoveOrNull.to] as CgKeyPair) || null
+  const lastMoveOrNull = (verboseHistory.length > 0 && verboseHistory[verboseHistory.length - 1]) || null
+  const lastMovePair = (lastMoveOrNull && ([lastMoveOrNull.from, lastMoveOrNull.to] as CgKeyPair)) || null
   return lastMovePair
 }
 
@@ -54,7 +54,6 @@ const StyledChessboard = ({
     console.debug(`[Chess] Number of moveable pieces: ${newValidMoves.size}`)
     setValidMoves(newValidMoves)
   }, [game])
-
 
   useEffect(() => {
     const newLastMove = findLastMove(game)
@@ -84,10 +83,7 @@ const StyledChessboard = ({
 
   return (
     <>
-      <Chessground
-        contained={true}
-        config={chessgroundConfig}
-      />
+      <Chessground contained={true} config={chessgroundConfig} />
     </>
   )
 }

@@ -20,7 +20,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
-import { arrayEquals } from '../util/utils'
+import { arrayEquals, debounce } from '../util/utils'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
@@ -50,25 +50,6 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
       </div>
     </>
   )
-}
-// in:  ['e4', 'd5', 'exd5', 'c6', 'dxc6']
-// out: 1. e4 d5 2. exd5 c6 3. dxc6
-const historyToMinimalPgn = (history: string[]): string => {
-  const paired = history.reduce<string[]>((result: string[], value: string, currentIndex: number, array: string[]) => {
-    if (currentIndex % 2 === 0) {
-      return [...result, array.slice(currentIndex, currentIndex + 2)] as string[]
-    }
-    return result
-  }, [])
-
-  const lines = paired.map((val, index) => {
-    if (val.length === 1) {
-      return `${index + 1}. ${val[0]}`
-    }
-    return `${index + 1}. ${val[0]} ${val[1]}`
-  })
-
-  return lines.join(' ')
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -222,14 +203,12 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     setCurrentGame((current) => {
       if (!current) return current
 
-      // turn HISTORY INTO PGN and LOAD PGN
-      const minimalPgn = historyToMinimalPgn(currentGameHead.content().history || [])
       // TODO: does the "game" really need to change, or can you just do:
       // current.game.load_pgn(history.join('\n'))
       // without returning a copy?
       const newGame = new Chess()
-      const loaded = newGame.load_pgn(minimalPgn)
-      console.log('LOADED NEW GAME STATE FROM PGN', loaded, minimalPgn)
+      const loaded = newGame.load_pgn(currentGameHead.pgn())
+      console.log('LOADED NEW GAME STATE FROM PGN', loaded, currentGameHead.pgn())
 
       return { ...current, game: newGame }
     })
@@ -338,25 +317,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     console.log(`[Chess] Number of heads for current game: ${movesWithoutChildren.length}`)
 
     setCurrentGameHead(movesWithoutChildren[0])
-  }, [currentGameStart, incomingNostrBuffer])
-
-  /*
-  useEffect(() => {
-    if (!currentGameStart) {
-      setCurrentGameHead(null)
-    } else {
-      setCurrentGameHead(current => {
-        if(!current) return currentGameStart
-        return current
-      })
-    }
-  }, [currentGameStart])*/
-
-  // TODO: when game is loaded.. analyze just latest messages
-  useEffect(() => {
-    if (!currentGameStart) return
-
-    // TODO... "if(gameInitiallyLoaded)..."
   }, [currentGameStart, incomingNostrBuffer])
 
   useEffect(() => {

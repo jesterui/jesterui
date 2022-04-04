@@ -3,7 +3,7 @@ import { bytesToHex as toHex } from '@noble/hashes/utils'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { arrayEquals } from './utils'
-import { ValidFen, toValidFen } from '../util/chess'
+import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const PGNRUI_START_GAME_E_REF = toHex(sha256(FEN_START_POSITION))
@@ -34,6 +34,7 @@ export interface PgnruiMove {
   addChild(child: PgnruiMove): boolean
   content(): PgnProtoContent
   fen(): ValidFen
+  pgn(): Pgn
   isValidSuccessor(move: PgnruiMove): boolean
   isStart(): boolean
 }
@@ -64,7 +65,10 @@ abstract class AbstractGameMove implements PgnruiMove {
     return fenIsValid
   }
   isStart(): boolean {
-    return this.parent() === null && this.content().fen === _validStartFen.value()
+    return this.parent() === null && this.fen() === _validStartFen && this.pgn() === ''
+  }
+  pgn(): Pgn {
+    return historyToMinimalPgn(this.content().history || [])
   }
 }
 
@@ -107,7 +111,7 @@ export class GameMove extends AbstractGameMove {
   constructor(event: NIP01.Event, parent: PgnruiMove) {
     super()
     const content = JSON.parse(event.content) as PgnProtoContent
-    
+
     // TODO: verify that 'move' is really valid (can be different to given fen!)
     if (content.history[content.history.length - 1] !== content.move) {
       throw new Error(`Invalid content: 'move' is not last entry of 'history'`)

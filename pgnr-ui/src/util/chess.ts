@@ -2,7 +2,14 @@
 import Chess from 'chess.js'
 import { ChessInstance, Move } from '../components/ChessJsTypes'
 
+// e.g. 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export type Fen = string
+
+// e.g. 'e4', 'exd5', etc.
+export type San = string
+
+// e.g. '1. e4 d5 2. exd5 c6 3. dxc6'
+export type Pgn = string
 
 export interface ValidFen {
   value(): Fen
@@ -100,4 +107,24 @@ const findValidSuccesors = (fen: ValidFen): [Move, ValidFen][] => {
 
 export const toValidFen = (fen: Fen): ValidFen => {
   return new ValidFenImpl(fen)
+}
+
+// in:  ['e4', 'd5', 'exd5', 'c6', 'dxc6']
+// out: '1. e4 d5 2. exd5 c6 3. dxc6'
+export const historyToMinimalPgn = (history: San[]): Pgn => {
+  const paired = history.reduce<San[]>((result: San[], value: San, currentIndex: number, array: San[]) => {
+    if (currentIndex % 2 === 0) {
+      return [...result, array.slice(currentIndex, currentIndex + 2)] as San[]
+    }
+    return result
+  }, [])
+
+  const lines = paired.map((val, index) => {
+    if (val.length === 1) {
+      return `${index + 1}. ${val[0]}`
+    }
+    return `${index + 1}. ${val[0]} ${val[1]}`
+  })
+
+  return lines.join(' ')
 }
