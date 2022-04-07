@@ -6,7 +6,7 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { NostrEventBufferState, useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as AppUtils from '../util/pgnrui'
@@ -250,73 +250,54 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
   }, [currentGameStart, settings, settingsDispatch])
 
-  const createMovesArray = (gameStart: GameStart, events: NIP01.Event[]): PgnruiMove[] => {
-    const findSuccessors = (gameId: NIP01.Sha256, moveId: NIP01.Sha256): NIP01.Event[] => {
-      return events.filter((event) => {
-        const gameIdRefPresent = event.tags.filter((t) => t && t[0] === 'e' && t[1] === gameId).length > 0
-        const moveIdRefPresent = event.tags.filter((t) => t && t[0] === 'e' && t[1] === moveId).length > 0
-        return gameIdRefPresent && moveIdRefPresent
-      })
-    }
 
-    const gameStartEventId = gameStart.event().id
-    let moves: PgnruiMove[] = []
+  const findSuccessor = (state: NostrEventBufferState, gameId: string, searchEventId: string) => state.order
+  .map((eventId) => state.events[eventId])
+  .filter((event) => {
+    // verify that there is an 'e' tag referencing the start event
+    //const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
+  const gameIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === searchEventId).length
+  const moveIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === searchEventId).length
+  return gameId !== searchEventId ? (gameIdRefs === 1 && moveIdRefs === 1) : (gameIdRefs === 2 && moveIdRefs === 2)
+  })
 
-    let search: PgnruiMove[] = [gameStart]
-    do {
-      const currentElement = search.shift() as PgnruiMove
-      const successors = findSuccessors(gameStartEventId, currentElement.event().id)
-      const children = successors
-        .map((it, i) => {
-          try {
-            return new GameMove(it, currentElement)
-          } catch (err) {
-            console.error(i, err, it.content, currentElement.content())
-            return null
-          }
-        })
-        .filter((it) => it !== null) as GameMove[]
-      children.forEach((it) => currentElement.addChild(it))
-      search = [...search, ...children]
-      moves = [...moves, currentElement]
-    } while (search.length > 0)
-
-    return moves
-  }
-
-  // initial state load TODO: Do not recreate the whole state everytime..
   useEffect(() => {
     if (!currentGameStart) return
 
-    const bufferState = incomingNostrBuffer.state()
+    else {
+      setCurrentGameHead((currentHead) => {
+        if (!currentHead) {
+          return currentGameStart
+        }
 
-    const gameStartEventId = currentGameStart.event().id
+        const gameStartEventId = currentGameStart.event().id
 
-    console.log(`Start gathering events referencing game start event ${gameStartEventId}`)
-    console.log(`Analyzing ${bufferState.order.length} events ...`)
+        const bufferState = incomingNostrBuffer.state()
+        const currentHeadId = currentHead.event().id
+          
+        console.log(`Start gathering events referencing current head event ${currentHeadId}`)
+        console.log(`Analyzing ${bufferState.order.length} events ...`)
+        const successors = findSuccessor(bufferState, gameStartEventId, currentHeadId)
+        if (successors.length === 0) {
+          console.log('Search for current head is over, a head without children has been found.')
+          return currentHead
+        }
 
-    // TODO: validate all moves here..
-    const eventsBelongingToTheGame = bufferState.order
-      .map((eventId) => bufferState.events[eventId])
-      .filter((event) => {
-        // verify that there is an 'e' tag referencing the start event
-        const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
-        return matchingTags.length > 0
+        successors.sort((a, b) => b.created_at - a.created_at)
+    
+        console.log(`Found ${successors.length} events referencing the current event...`)
+
+        const earliestArrivingChild = successors[successors.length - 1]
+        try {
+          return new GameMove(earliestArrivingChild, currentHead)
+        } catch (err) {
+          // this can happen anytime someone sends an event thats not a valid successor to the current head
+          console.error(err, earliestArrivingChild.content, currentHead.content())
+          return currentHead
+        }
       })
-
-    eventsBelongingToTheGame.sort((a, b) => b.created_at - a.created_at)
-
-    console.log(`Found ${eventsBelongingToTheGame.length} events referencing start event...`)
-
-    let moves = createMovesArray(currentGameStart, eventsBelongingToTheGame)
-
-    const movesWithoutChildren = moves.filter((it) => it.children().length === 0)
-    movesWithoutChildren.sort((a, b) => b.event().created_at - a.event().created_at)
-
-    console.log(`[Chess] Number of heads for current game: ${movesWithoutChildren.length}`)
-
-    setCurrentGameHead(movesWithoutChildren[0])
-  }, [currentGameStart, incomingNostrBuffer])
+    }
+  }, [currentGameStart, currentGameHead, incomingNostrBuffer])
 
   useEffect(() => {
     const abortCtrl = new AbortController()

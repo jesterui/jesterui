@@ -55,7 +55,7 @@ interface NostrEventDictionary {
   [id: NIP01.Sha256]: NIP01.Event
 }
 
-interface NostrEventBufferState {
+export interface NostrEventBufferState {
   latest: NIP01.Event | null
   order: NIP01.Sha256[] // this is the order in which the events arrived
   // TODO: add a field holding ids sorted by "created_at"
