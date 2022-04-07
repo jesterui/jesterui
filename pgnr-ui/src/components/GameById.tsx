@@ -6,7 +6,11 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { NostrEventBufferState, useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import {
+  NostrEventBufferState,
+  useOutgoingNostrEvents,
+  useIncomingNostrEventsBuffer,
+} from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as AppUtils from '../util/pgnrui'
@@ -51,6 +55,17 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
     </>
   )
 }
+
+const findSuccessor = (state: NostrEventBufferState, gameId: string, moveId: string) =>
+  (state.refs[moveId] || [])
+    .map((eventId) => state.events[eventId])
+    .filter((event) => event !== undefined)
+    .filter((event) => {
+      // verify that there is an 'e' tag referencing the start event
+      const gameIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === gameId).length
+      const moveIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === moveId).length
+      return gameId !== moveId ? gameIdRefs === 1 && moveIdRefs === 1 : gameIdRefs === 2 && moveIdRefs === 2
+    })
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
@@ -128,9 +143,20 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       ['e', currentGameStart.event().id],
       ['e', currentGameHead.event().id],
     ]
-    const event = NostrEvents.constructEvent(eventParts)
-    const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+
+    await new Promise<void>(function(resolve) {
+      setTimeout(async () => {
+        try {
+          const event = NostrEvents.constructEvent(eventParts)
+          const signedEvent = await NostrEvents.signEvent(event, privateKey)
+          outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+        } finally {
+          
+        resolve()
+
+      }
+      }, 100)
+  });
   }
 
   const onGameCreated = async (gameId: NIP01.Sha256) => {
@@ -250,20 +276,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
   }, [currentGameStart, settings, settingsDispatch])
 
-
-  const findSuccessor = (state: NostrEventBufferState, gameId: string, searchEventId: string) => state.order
-  .map((eventId) => state.events[eventId])
-  .filter((event) => {
-    // verify that there is an 'e' tag referencing the start event
-    //const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
-  const gameIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === searchEventId).length
-  const moveIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === searchEventId).length
-  return gameId !== searchEventId ? (gameIdRefs === 1 && moveIdRefs === 1) : (gameIdRefs === 2 && moveIdRefs === 2)
-  })
-
   useEffect(() => {
     if (!currentGameStart) return
-
     else {
       setCurrentGameHead((currentHead) => {
         if (!currentHead) {
@@ -274,17 +288,18 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
         const bufferState = incomingNostrBuffer.state()
         const currentHeadId = currentHead.event().id
-          
+
         console.log(`Start gathering events referencing current head event ${currentHeadId}`)
         console.log(`Analyzing ${bufferState.order.length} events ...`)
         const successors = findSuccessor(bufferState, gameStartEventId, currentHeadId)
+
         if (successors.length === 0) {
           console.log('Search for current head is over, a head without children has been found.')
           return currentHead
         }
 
         successors.sort((a, b) => b.created_at - a.created_at)
-    
+
         console.log(`Found ${successors.length} events referencing the current event...`)
 
         const earliestArrivingChild = successors[successors.length - 1]

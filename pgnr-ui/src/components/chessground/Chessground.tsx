@@ -53,9 +53,7 @@ const StyledChessboard = ({
     const newValidMoves = findValidMoves(game)
     console.debug(`[Chess] Number of moveable pieces: ${newValidMoves.size}`)
     setValidMoves(newValidMoves)
-  }, [game])
 
-  useEffect(() => {
     const newLastMove = findLastMove(game)
     console.debug(`[Chess] Found last move: ${newLastMove}`)
     setLastMove(newLastMove)
@@ -72,7 +70,7 @@ const StyledChessboard = ({
       color: moveableColorProp(userColor),
       dests: config.movable?.dests || validMoves,
       free: false,
-      ...config.movable,
+      ...config.movable
     },
     premovable: {
       enabled: false, // "premoves" are currently not supported

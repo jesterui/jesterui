@@ -54,12 +54,16 @@ interface NostrEventsEntry {
 interface NostrEventDictionary {
   [id: NIP01.Sha256]: NIP01.Event
 }
+interface NostrEventReferenceDictionary {
+  [id: NIP01.Sha256]: NIP01.Sha256[]
+}
 
 export interface NostrEventBufferState {
   latest: NIP01.Event | null
-  order: NIP01.Sha256[] // this is the order in which the events arrived
+  order: NIP01.Sha256[] // this is the order in which the events arrived - it holds event ids!
   // TODO: add a field holding ids sorted by "created_at"
   events: NostrEventDictionary
+  refs: NostrEventReferenceDictionary
 }
 
 interface NostrEventBuffer {
@@ -67,12 +71,23 @@ interface NostrEventBuffer {
   add(event: NIP01.Event): NostrEventBuffer
 }
 
+const findReferencing = (state: NostrEventBufferState, searchEventId: string) =>
+  state.order
+    .map((eventId) => state.events[eventId])
+    .filter((event) => {
+      // verify that there is an 'e' tag referencing the start event
+      //const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
+      const searchEventIdRefFound = event.tags.filter((t) => t && t[0] === 'e' && t[1] === searchEventId).length > 0
+      return searchEventIdRefFound
+    })
+
 // TODO: add a maximum amount of events -> forget "older" events
 class NostrEventBufferImpl implements NostrEventBuffer {
   private _state: NostrEventBufferState = {
     latest: null,
     order: [],
     events: {},
+    refs: {},
   }
 
   constructor(copy?: NostrEventBufferState) {
@@ -92,10 +107,23 @@ class NostrEventBufferImpl implements NostrEventBuffer {
     if (eventExists) {
       return this
     } else {
+
+
+      const newRefs = { ...this._state.refs }
+
+      const existingReferencedEvents = findReferencing(this._state, event.id)
+      newRefs[event.id] = [...new Set([...(newRefs[event.id] || []), ...existingReferencedEvents.map((e) => e.id)])]
+
+      const eventIdRefs = [...new Set(event.tags.filter((t) => t && t[0] === 'e').map((t) => t[1] as NIP01.Sha256))]
+      eventIdRefs.forEach((refId) => {
+        newRefs[refId] = [...(newRefs[refId] || []), event.id]
+      })
+
       return new NostrEventBufferImpl({
         latest: { ...event },
         order: [event.id, ...this._state.order],
         events: { ...this._state.events, [event.id]: event },
+        refs: newRefs,
       })
     }
   }
