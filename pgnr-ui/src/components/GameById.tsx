@@ -126,8 +126,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     })
     eventParts.tags = [
       ['e', currentGameStart.event().id],
-      // TODO: misusing 'p'-tag is not nice..
-      ['p', currentGameHead.event().id],
+      ['e', currentGameHead.event().id],
     ]
     const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
@@ -254,9 +253,9 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const createMovesArray = (gameStart: GameStart, events: NIP01.Event[]): PgnruiMove[] => {
     const findSuccessors = (gameId: NIP01.Sha256, moveId: NIP01.Sha256): NIP01.Event[] => {
       return events.filter((event) => {
-        const eTagMatches = event.tags.filter((t) => arrayEquals(t, ['e', gameId])).length === 1
-        const pTagMatches = event.tags.filter((t) => arrayEquals(t, ['p', moveId])).length === 1
-        return eTagMatches && pTagMatches
+        const gameIdRefPresent = event.tags.filter((t) => t && t[0] === 'e' && t[1] === gameId).length > 0
+        const moveIdRefPresent = event.tags.filter((t) => t && t[0] === 'e' && t[1] === moveId).length > 0
+        return gameIdRefPresent && moveIdRefPresent
       })
     }
 
@@ -302,7 +301,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       .filter((event) => {
         // verify that there is an 'e' tag referencing the start event
         const matchingTags = event.tags.filter((t) => t[0] === 'e' && t[1] === gameStartEventId)
-        return matchingTags.length === 1
+        return matchingTags.length > 0
       })
 
     eventsBelongingToTheGame.sort((a, b) => b.created_at - a.created_at)
