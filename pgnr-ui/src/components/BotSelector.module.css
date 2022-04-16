@@ -1,0 +1,8 @@
+.BotSelector {
+  margin: 10px;
+  display: inline-block;
+}
+
+.BotSelector label {
+  margin-right: 10px;
+}

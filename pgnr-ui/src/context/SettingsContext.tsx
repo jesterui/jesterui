@@ -21,6 +21,7 @@ interface AppSettings {
   relays: Relay[]
   identity?: Identity
   subscriptions?: Subscription[]
+  botName: string | null
 }
 
 const initialSettings: AppSettings = {
@@ -35,6 +36,7 @@ const initialSettings: AppSettings = {
       filters: [AppUtils.PGNRUI_START_GAME_FILTER],
     },
   ],
+  botName: null,
 }
 
 interface AppSettingsEntry {

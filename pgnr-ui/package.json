@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "jest-watch-typeahead": "^0.6.5",
-    "prettier": "^2.6.1"
+    "prettier": "^2.6.1",
+    "stockfish": "^14.1.0"
   }
 }

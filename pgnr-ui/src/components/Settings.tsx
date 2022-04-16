@@ -3,6 +3,7 @@ import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import * as Nostr from '../util/nostr/identity'
 import { ActivityIndicator } from '../components/ActivityIndicator'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
+import { SelectedBot, BotSelector } from '../components/BotSelector'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 
@@ -10,6 +11,7 @@ import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as AppUtils from '../util/pgnrui'
+import * as Bot from '../util/bot'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
@@ -143,6 +145,24 @@ export default function Settings() {
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
+  const [selectedBot, setSelectedBot] = useState<SelectedBot>(
+    (() => {
+      if (settings.botName && Bot.Bots[settings.botName]) {
+        return {
+          name: settings.botName,
+          move: Bot.Bots[settings.botName](),
+        }
+      }
+
+      return null
+    })()
+  )
+
+  const updateSelectedBot = (bot: SelectedBot) => {
+    setSelectedBot(selectedBot)
+    settingsDispatch({ ...settings, botName: bot?.name || null })
+  }
+
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)
     const shouldAdd = index === -1
@@ -235,6 +255,14 @@ export default function Settings() {
           </button>
         </div>
       </div>
+
+      <BotSelector
+        playerName="Your Bot"
+        availableBots={Bot.Bots}
+        selectedBot={selectedBot}
+        setSelectedBot={updateSelectedBot}
+        disabled={false}
+      />
 
       <Heading2 color="blueGray">Subscriptions</Heading2>
       <div>

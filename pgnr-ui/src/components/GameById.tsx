@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
+import { SelectedBot } from '../components/BotSelector'
+import * as Bot from '../util/bot'
 
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import {
@@ -66,6 +68,81 @@ const findSuccessor = (state: NostrEventBufferState, gameId: string, moveId: str
       const moveIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === moveId).length
       return gameId !== moveId ? gameIdRefs === 1 && moveIdRefs === 1 : gameIdRefs === 2 && moveIdRefs === 2
     })
+
+const BotMoveSuggestions = ({ game }: { game: Game }) => {
+  const settings = useSettings()
+
+  const [selectedBot, setSelectedBot] = useState<SelectedBot>(
+    (() => {
+      if (settings.botName && Bot.Bots[settings.botName]) {
+        return {
+          name: settings.botName,
+          move: Bot.Bots[settings.botName](),
+        }
+      }
+
+      return null
+    })()
+  )
+
+  const [isThinking, setIsThinking] = useState(false)
+  const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
+  const [move, setMove] = useState<Bot.ShortMove | null>(null)
+
+  useEffect(() => {
+    const currentFen = game.game.fen()
+    setThinkingFens((currentFens) => {
+      const i = currentFens.indexOf(currentFen)
+      const copy = i >= 0 ? currentFens.splice(i, 1) : currentFens
+      return [...copy, currentFen]
+    })
+  }, [game])
+
+  useEffect(() => {
+    if (!selectedBot) return
+    if (isThinking) return
+    if (thinkingFens.length === 0) return
+
+    const abortCtrl = new AbortController()
+
+    const thinkingFen = thinkingFens[thinkingFens.length - 1]
+    const timer = setTimeout(() => {
+      const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
+      if (inBetweenUpdate) return
+
+      setIsThinking(true)
+      console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
+      selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
+        console.log(`Bot ${selectedBot.name} found move ${{ from, to }}`)
+        // if(abortCtrl.signal.aborted) return
+
+        setMove({ from, to })
+
+        let copy = [...thinkingFens]
+        const i = copy.indexOf(thinkingFen)
+        // remove all thinking fens that came before this
+        if (i >= 0) {
+          copy.splice(0, i + 1)
+        }
+        setThinkingFens(copy)
+        setIsThinking(false)
+      })
+    }, 1_000)
+
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [selectedBot, thinkingFens, isThinking])
+
+  return (
+    <>
+      {selectedBot ? `${selectedBot.name}` : 'No Bot Selected'}
+      {isThinking && `Thinking (${thinkingFens.length})...`}
+      {move && JSON.stringify(move)}
+    </>
+  )
+}
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
@@ -144,19 +221,17 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       ['e', currentGameHead.event().id],
     ]
 
-    await new Promise<void>(function(resolve) {
+    await new Promise<void>(function (resolve) {
       setTimeout(async () => {
         try {
           const event = NostrEvents.constructEvent(eventParts)
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
         } finally {
-          
-        resolve()
-
-      }
+          resolve()
+        }
       }, 100)
-  });
+    })
   }
 
   const onGameCreated = async (gameId: NIP01.Sha256) => {
@@ -346,6 +421,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
       <div>{currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}</div>
+      <div>{currentGame && <BotMoveSuggestions game={currentGame} />}</div>
       {currentGameStart && (
         <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
           <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>

@@ -70,7 +70,7 @@ const StyledChessboard = ({
       color: moveableColorProp(userColor),
       dests: config.movable?.dests || validMoves,
       free: false,
-      ...config.movable
+      ...config.movable,
     },
     premovable: {
       enabled: false, // "premoves" are currently not supported

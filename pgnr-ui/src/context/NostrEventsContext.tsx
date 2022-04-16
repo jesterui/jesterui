@@ -107,8 +107,6 @@ class NostrEventBufferImpl implements NostrEventBuffer {
     if (eventExists) {
       return this
     } else {
-
-
       const newRefs = { ...this._state.refs }
 
       const existingReferencedEvents = findReferencing(this._state, event.id)

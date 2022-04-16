@@ -49,6 +49,9 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 - Chessground Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
 - react/chessground (GitHub): https://github.com/react-chess/chessground
 
+- Stockfish (GitHub): https://github.com/nmrugg/stockfish.js
+- chessbot-typescript (GitHub): https://github.com/eddmann/chessbot-typescript
+
 - CTX Chess Tournament Exchange format (XML): https://github.com/fnogatz/CTX
 
 - material-tailwind (GitHub): https://github.com/creativetimofficial/material-tailwind
