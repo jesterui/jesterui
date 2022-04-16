@@ -1,7 +1,7 @@
 //@ts-ignore
 // import * as Stockfish from 'stockfish'
 // @ts-ignore
-import Chess from 'chess.js'
+import * as Chess from 'chess.js'
 
 export type ShortMove = { from: string; to: string }
 export type Fen = string

@@ -5,6 +5,8 @@ import { Config as CgConfig } from 'chessground/config'
 
 // @ts-ignore
 import { ChessInstance, Square } from '../ChessJsTypes'
+// @ts-ignore
+import { SQUARES } from 'chess.js'
 
 type MoveableColor = cg.Color[]
 const moveableColorProp = (c: MoveableColor) => {
@@ -15,7 +17,7 @@ const moveableColorProp = (c: MoveableColor) => {
 
 const findValidMoves = (chess: ChessInstance): Map<cg.Key, cg.Key[]> => {
   const dests = new Map()
-  chess.SQUARES.forEach((square) => {
+  SQUARES.forEach((square: Square) => {
     const ms = chess.moves({ square, verbose: true })
     if (ms.length) {
       dests.set(

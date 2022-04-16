@@ -23,7 +23,7 @@ import CreateGameButton from './CreateGameButton'
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
-import Chess from 'chess.js'
+import * as Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
 import { arrayEquals, debounce } from '../util/utils'
@@ -291,7 +291,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
     setCurrentGame((_) => ({
       id: currentGameStart.event().id, // TODO should the game hold the hole event?
-      game: new Chess(),
+      game: new Chess.Chess(),
       color,
     }))
   }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
@@ -306,7 +306,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       // TODO: does the "game" really need to change, or can you just do:
       // current.game.load_pgn(history.join('\n'))
       // without returning a copy?
-      const newGame = new Chess()
+      const newGame = new Chess.Chess()
       const loaded = newGame.load_pgn(currentGameHead.pgn())
       console.log('LOADED NEW GAME STATE FROM PGN', loaded, currentGameHead.pgn())
 

@@ -1,5 +1,5 @@
 // @ts-ignore
-import Chess from 'chess.js'
+import * as Chess from 'chess.js'
 import { ChessInstance, Move } from '../components/ChessJsTypes'
 
 // e.g. 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -69,7 +69,7 @@ class ValidFenImpl implements ValidFen {
   }
 }
 
-const _chessInstance: ChessInstance = new Chess()
+const _chessInstance: ChessInstance = new Chess.Chess()
 
 const _withFen = (fen: ValidFen): ChessInstance => {
   const fenLoaded = _chessInstance.load(fen.value())

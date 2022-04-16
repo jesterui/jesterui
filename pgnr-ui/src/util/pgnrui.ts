@@ -168,8 +168,16 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
   return NostrEvents.constructEvent(eventParts)
 }
 
+const tryParseJsonObject = (val: string) => {
+  try {
+    return JSON.parse(val)
+  } catch(e) {
+    return null
+  }
+}
+ 
 export const isStartGameEvent = (event?: NIP01.Event): boolean => {
-  const json = (event && event.content && JSON.parse(event.content)) || null
+  const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   return (
     !!event &&
     event.kind === 1 &&

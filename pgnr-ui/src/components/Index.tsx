@@ -12,7 +12,7 @@ import * as AppUtils from '../util/pgnrui'
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
-import Chess from 'chess.js'
+import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
 
 export default function Index() {
@@ -37,7 +37,7 @@ export default function Index() {
         const color = ['white', 'black'][Math.floor(Math.random() * 2)] as cg.Color
         setCurrentGame((_) => ({
           id: event.id,
-          game: new Chess(),
+          game: new Chess.Chess(),
           color: ['white', 'black'] || [color], // TODO: currently make it possible to move both colors
         }))
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Chessboard as ReactChessboard } from 'react-chessboard'
 // @ts-ignore
-import Chess from 'chess.js'
+import * as Chess from 'chess.js'
 import { ChessInstance, Square, Move } from './ChessJsTypes'
 
 type OnPieceDrop = (sourceSquare: Square, targetSquare: Square) => boolean
@@ -133,7 +133,7 @@ function StyledChessboard({
 }
 
 export default function Chessboard() {
-  const [game, setGame] = useState<ChessInstance>(new Chess())
+  const [game, setGame] = useState<ChessInstance>(new Chess.Chess())
   const [latestMove, setLatestMove] = useState<Move | null>(null)
 
   function safeGameMutate(modify: (foo: ChessInstance) => void) {
