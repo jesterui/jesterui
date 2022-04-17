@@ -83,14 +83,13 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
 
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
+  const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
   const [move, setMove] = useState<Bot.ShortMove | null>(null)
 
   useEffect(() => {
     const currentFen = game.game.fen()
     setThinkingFens((currentFens) => {
-      const i = currentFens.indexOf(currentFen)
-      const copy = i >= 0 ? currentFens.splice(i, 1) : currentFens
-      return [...copy, currentFen]
+      return [...currentFens, currentFen]
     })
   }, [game])
 
@@ -99,34 +98,37 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
     if (isThinking) return
     if (thinkingFens.length === 0) return
 
-    const abortCtrl = new AbortController()
-
     const thinkingFen = thinkingFens[thinkingFens.length - 1]
+
     const timer = setTimeout(() => {
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
       setIsThinking(true)
+      setLatestThinkingFen(thinkingFen)
       console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
+      
       selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
-        console.log(`Bot ${selectedBot.name} found move ${{ from, to }}`)
-        // if(abortCtrl.signal.aborted) return
-
+        console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
+        
         setMove({ from, to })
 
-        let copy = [...thinkingFens]
-        const i = copy.indexOf(thinkingFen)
-        // remove all thinking fens that came before this
-        if (i >= 0) {
-          copy.splice(0, i + 1)
-        }
-        setThinkingFens(copy)
         setIsThinking(false)
+        setThinkingFens((currentFens) => {
+          const i = currentFens.indexOf(thinkingFen)
+          if (i < 0) {
+            return currentFens
+          }
+
+          const copy = [...currentFens]
+          // remove all thinking fens that came before this
+          copy.splice(0, i + 1)
+          return copy
+        })
       })
-    }, 1_000)
+    }, 100)
 
     return () => {
-      abortCtrl.abort()
       clearTimeout(timer)
     }
   }, [selectedBot, thinkingFens, isThinking])
@@ -134,8 +136,9 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
   return (
     <>
       {selectedBot ? `${selectedBot.name}` : 'No Bot Selected'}
-      {isThinking && `Thinking (${thinkingFens.length})...`}
-      {move && ` ${JSON.stringify(move)}`}
+      {isThinking && ` is thinking (${thinkingFens.length})...`}
+      {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
+      {/*Latest Thinking Fen: {latestThinkingFen}*/}
     </>
   )
 }
