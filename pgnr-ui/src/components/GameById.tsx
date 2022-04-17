@@ -107,10 +107,10 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
       setIsThinking(true)
       setLatestThinkingFen(thinkingFen)
       console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
-      
+
       selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
         console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
-        
+
         setMove({ from, to })
 
         setIsThinking(false)

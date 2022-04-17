@@ -9,13 +9,21 @@ import * as AppUtils from '../util/pgnrui'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
+// @ts-ignore
+import Small from '@material-tailwind/react/Small'
+
+interface GameSummary {
+  event: NIP01.Event
+  refCount: number
+  createdAt: Date
+}
 
 export default function GamesOverview() {
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
 
-  const [games, setGames] = useState<NIP01.Event[]>([])
+  const [games, setGames] = useState<GameSummary[]>([])
 
   useEffect(() => {
     const bufferState = incomingNostrBuffer.state()
@@ -24,6 +32,11 @@ export default function GamesOverview() {
     const orderedGameStartedEvents = bufferState.order
       .map((eventId) => bufferState.events[eventId])
       .filter((event) => AppUtils.isStartGameEvent(event))
+      .map((event) => ({
+        event,
+        refCount: bufferState.refs[event.id].length,
+        createdAt: new Date(event.created_at * 1000),
+      }))
 
     setGames(orderedGameStartedEvents)
   }, [incomingNostrBuffer])
@@ -46,8 +59,15 @@ export default function GamesOverview() {
           {games.length === 0 && <div>No Games available</div>}
           {games.map((it) => {
             return (
-              <div key={it.id}>
-                <Link to={`/game/${it.id}`}>{AppUtils.gameDisplayName(it.id)}</Link>
+              <div key={it.event.id}>
+                <Link to={`/game/${it.event.id}`}>
+                  <>
+                    {AppUtils.gameDisplayName(it.event.id)}
+                    <Small color="lightGreen"> with {it.refCount} events</Small>
+                    <Small color="gray"> started by {AppUtils.pubKeyDisplayName(it.event.pubkey)}</Small>
+                    <Small color="yellow"> at {it.createdAt.toLocaleString()}</Small>
+                  </>
+                </Link>
               </div>
             )
           })}

@@ -171,11 +171,11 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
 const tryParseJsonObject = (val: string) => {
   try {
     return JSON.parse(val)
-  } catch(e) {
+  } catch (e) {
     return null
   }
 }
- 
+
 export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   return (
@@ -196,3 +196,4 @@ export const createGameFilter = (gameStart: GameStart): NIP01.Filter => {
 
 export const gameDisplayNameShort = (gameId: NIP01.Sha256, length = 5) => gameId.substring(0, length)
 export const gameDisplayName = (gameId: NIP01.Sha256, length = 8) => gameId.substring(0, length)
+export const pubKeyDisplayName = (pubKey: NIP01.Sha256, length = 8) => pubKey.substring(0, length)
