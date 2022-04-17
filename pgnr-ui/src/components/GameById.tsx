@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Game } from '../context/GamesContext'
@@ -66,7 +66,7 @@ const findSuccessor = (state: NostrEventBufferState, gameId: string, moveId: str
       return gameId !== moveId ? gameIdRefs === 1 && moveIdRefs === 1 : gameIdRefs === 2 && moveIdRefs === 2
     })
 
-const BotMoveSuggestions = ({ game }: { game: Game }) => {
+const BotMoveSuggestions = ({ game }: { game: Game | null }) => {
   const settings = useSettings()
 
   const [selectedBot] = useState<SelectedBot>(
@@ -85,9 +85,11 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
   const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
   const [move, setMove] = useState<Bot.ShortMove | null>(null)
-  const [gameOver, setGameOver] = useState<boolean>(game.game.game_over())
+  const [gameOver, setGameOver] = useState<boolean>(game?.game.game_over() || false)
 
   useEffect(() => {
+    if (game === null) return
+
     if (game.game.game_over()) {
       setGameOver(true)
       return
@@ -153,7 +155,8 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
         ` is ready for the next game.`
       ) : (
         <>
-          {isThinking && ` is thinking (${thinkingFens.length})...`}
+          {!isThinking && !move && thinkingFens.length === 0 && ` is idle...`}
+          {isThinking && thinkingFens.length > 0 && ` is thinking (${thinkingFens.length})...`}
           {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
           {/*Latest Thinking Fen: {latestThinkingFen}*/}
         </>
@@ -206,6 +209,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
   const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
+  const [isSearchingHead, setIsSearchingHead] = useState(false)
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
@@ -289,7 +293,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     navigate(`/redirect/game/${gameId}`)
   }
 
-  // when the gamId changes, or new events arrive, set
   useEffect(() => {
     if (!gameId) {
       setCurrentGameStart(null)
@@ -399,12 +402,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
   }, [currentGameStart, settings, settingsDispatch])
 
-  useEffect(() => {
-    if (!currentGameStart) {
-      return
-    }
-
-    setCurrentGameHead((currentHead) => {
+  const findNewHead = useCallback(
+    (currentGameStart: AppUtils.GameStart, currentHead: AppUtils.PgnruiMove | null): AppUtils.PgnruiMove => {
       if (!currentHead) {
         return currentGameStart
       }
@@ -433,14 +432,35 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       }
 
       try {
-        return new GameMove(earliestArrivingChild, currentHead)
+        const newHead = new GameMove(earliestArrivingChild, currentHead)
+        return findNewHead(currentGameStart, newHead)
       } catch (err) {
         // this can happen anytime someone sends an event thats not a valid successor to the current head
         console.error(err, earliestArrivingChild.content, currentHead.content())
         return currentHead
       }
-    })
-  }, [currentGameStart, currentGameHead, incomingNostrBuffer])
+    },
+    [incomingNostrBuffer]
+  )
+
+  useEffect(() => {
+    if (!currentGameStart) {
+      return
+    }
+
+    const abortCtrl = new AbortController()
+    setIsSearchingHead(true)
+    const timer = setTimeout(() => {
+      if (abortCtrl.signal.aborted) return
+      setCurrentGameHead((currentHead) => findNewHead(currentGameStart, currentHead))
+      setIsSearchingHead(false)
+    }, 10)
+
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [currentGameStart, currentGameHead, findNewHead])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
@@ -471,14 +491,19 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   }
 
   // TODO: Show loading indicator when `(isLoading && currentGame !== null)`
+
+  const isInitialSearchForGameHead =
+    isSearchingHead && (currentGameHead === null || currentGameHead === currentGameStart)
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
 
       <div>{currentGame && `You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
       <div>{currentGame && <GameStateMessage game={currentGame} />}</div>
-      <div>{currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}</div>
-      <div>{currentGame && <BotMoveSuggestions game={currentGame} />}</div>
+      <div style={{ filter: isInitialSearchForGameHead ? 'grayscale()' : 'none' }}>
+        {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
+      </div>
+      <div>{currentGame && <BotMoveSuggestions game={isSearchingHead ? null : currentGame} />}</div>
       {/*currentGameStart && (
         <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
           <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
