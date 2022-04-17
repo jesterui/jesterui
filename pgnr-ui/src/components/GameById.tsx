@@ -26,7 +26,6 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import * as Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
-import { arrayEquals, debounce } from '../util/utils'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
@@ -42,8 +41,6 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 
   return (
     <>
-      <div>{game && `You are ${game.color.length === 0 ? 'in watch-only mode' : game.color}`}</div>
-      <div>{game && game.game && `${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</div>
       <div style={{ display: 'block' }}>
         <div style={{ width: 400, height: 400 }}>
           {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
@@ -72,7 +69,7 @@ const findSuccessor = (state: NostrEventBufferState, gameId: string, moveId: str
 const BotMoveSuggestions = ({ game }: { game: Game }) => {
   const settings = useSettings()
 
-  const [selectedBot, setSelectedBot] = useState<SelectedBot>(
+  const [selectedBot] = useState<SelectedBot>(
     (() => {
       if (settings.botName && Bot.Bots[settings.botName]) {
         return {
@@ -80,7 +77,6 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
           move: Bot.Bots[settings.botName](),
         }
       }
-
       return null
     })()
   )
@@ -139,7 +135,7 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
     <>
       {selectedBot ? `${selectedBot.name}` : 'No Bot Selected'}
       {isThinking && `Thinking (${thinkingFens.length})...`}
-      {move && JSON.stringify(move)}
+      {move && ` ${JSON.stringify(move)}`}
     </>
   )
 }
@@ -411,6 +407,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     return (
       <div>
         <div>Game not found...</div>
+        <div>{humanReadableError && `${humanReadableError}`}</div>
         <CreateGameButton onGameCreated={onGameCreated} />
       </div>
     )
@@ -420,13 +417,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
+
+      <div>{currentGame && `You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+      <div>{currentGame && currentGame.game && `${currentGame.game.turn() === 'b' ? 'black' : 'white'}`} to move</div>
       <div>{currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}</div>
       <div>{currentGame && <BotMoveSuggestions game={currentGame} />}</div>
-      {currentGameStart && (
+      {/*currentGameStart && (
         <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
           <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
         </div>
-      )}
+      )*/}
       {!currentGameStart && <div>No game?</div>}
     </div>
   )
