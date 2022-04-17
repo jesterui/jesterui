@@ -95,6 +95,9 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
 
     const currentFen = game.game.fen()
     setThinkingFens((currentFens) => {
+      if (currentFens[currentFens.length - 1] === currentFen) {
+        return currentFens
+      }
       return [...currentFens, currentFen]
     })
   }, [game])
@@ -140,50 +143,53 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
   }, [selectedBot, thinkingFens, isThinking])
 
   if (!selectedBot) {
-    return (<>No bot selected.</>)
+    return <>No bot selected.</>
   }
 
   return (
     <>
       {`${selectedBot.name}`}
-      {gameOver ? ` is ready for the next game.` : (<>
-        {isThinking && ` is thinking (${thinkingFens.length})...`}
-        {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
-        {/*Latest Thinking Fen: {latestThinkingFen}*/}
-      </>)}
+      {gameOver ? (
+        ` is ready for the next game.`
+      ) : (
+        <>
+          {isThinking && ` is thinking (${thinkingFens.length})...`}
+          {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
+          {/*Latest Thinking Fen: {latestThinkingFen}*/}
+        </>
+      )}
     </>
   )
 }
 
 const GameOverMessage = ({ game }: { game: Game }) => {
   if (!game.game.game_over()) {
-    return (<></>)
+    return <></>
   }
 
   if (game.game.in_stalemate()) {
-    return (<>Game over: Draw by stalemate!</>)
+    return <>Game over: Draw by stalemate!</>
   }
   if (game.game.in_threefold_repetition()) {
-    return (<>Game over: Draw by threefold repetition!</>)
+    return <>Game over: Draw by threefold repetition!</>
   }
   if (game.game.insufficient_material()) {
-    return (<>Game over: Draw by insufficient material!</>)
+    return <>Game over: Draw by insufficient material!</>
   }
 
   if (game.game.in_draw()) {
-    return (<>Game over: Draw!</>)
+    return <>Game over: Draw!</>
   }
 
-  return (<>Game over: {`${game.game.turn() === 'b' ? 'White' : 'Black'} won`}</>)
+  return <>Game over: {`${game.game.turn() === 'b' ? 'White' : 'Black'} won`}</>
 }
-
 
 const GameStateMessage = ({ game }: { game: Game }) => {
   if (game.game.game_over()) {
-    return (<GameOverMessage game={game} />)
+    return <GameOverMessage game={game} />
   }
 
-  return (<>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>)
+  return <>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {

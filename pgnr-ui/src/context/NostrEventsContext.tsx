@@ -171,7 +171,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       // Publish from relay over websocket to internal event bus
       websocket.addEventListener(
         'message',
-        (event) => {
+        async (event) => {
           //event.stopPropagation()
 
           const data = JSON.parse(event.data) as NIP01.RelayMessage
@@ -180,7 +180,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
 
           const nostrEvent = data[2] as NIP01.Event
 
-          const isValidEvent = NostrEvents.validateEvent(nostrEvent)
+          const isValidEvent = NostrEvents.validateEvent(nostrEvent) && (await NostrEvents.verifySignature(nostrEvent))
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
             return
@@ -202,7 +202,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       // Publish from internal event bus to relay via websocket
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
-        (event: CustomEvent<NIP01.ClientMessage>) => {
+        async (event: CustomEvent<NIP01.ClientMessage>) => {
           //event.stopPropagation()
 
           if (!websocket) {
@@ -213,7 +213,8 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
           const req = event.detail as NIP01.ClientEventMessage
 
           const signedEvent = req[1]
-          const isValidEvent = NostrEvents.validateEvent(signedEvent)
+          const isValidEvent =
+            NostrEvents.validateEvent(signedEvent) && (await NostrEvents.verifySignature(signedEvent))
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid outgoing event from internal event bus - wont emit to relay')
             return

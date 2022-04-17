@@ -74,6 +74,6 @@ export const createSignature = async (event: NIP01.UnsignedEvent, privKey: PrivK
   return Buffer.from(await schnorr.sign(createEventHash(event), privKey)).toString('hex')
 }
 
-export const verifySignature = (event: NIP01.Event) => {
+export const verifySignature = async (event: NIP01.Event) => {
   return schnorr.verify(event.sig, event.id, event.pubkey)
 }
