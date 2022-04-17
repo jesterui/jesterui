@@ -65,7 +65,7 @@ const StyledChessboard = ({
   const chessgroundConfig = {
     fen: game.fen(),
     turnColor: game.turn() === 'b' ? 'black' : 'white', // turn to play. white | black
-    viewOnly: userColor.length === 0, // don't bind events: the user will never be able to move pieces around
+    viewOnly: userColor.length === 0 || game.game_over(), // don't bind events: the user will never be able to move pieces around
     lastMove: lastMove,
     ...config,
     movable: {

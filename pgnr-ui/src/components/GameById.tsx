@@ -41,7 +41,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
 
   return (
     <>
-      <div style={{ display: 'block' }}>
+      <div>
         <div style={{ width: 400, height: 400 }}>
           {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
         </div>
@@ -85,8 +85,14 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
   const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
   const [move, setMove] = useState<Bot.ShortMove | null>(null)
+  const [gameOver, setGameOver] = useState<boolean>(game.game.game_over())
 
   useEffect(() => {
+    if (game.game.game_over()) {
+      setGameOver(true)
+      return
+    }
+
     const currentFen = game.game.fen()
     setThinkingFens((currentFens) => {
       return [...currentFens, currentFen]
@@ -133,14 +139,51 @@ const BotMoveSuggestions = ({ game }: { game: Game }) => {
     }
   }, [selectedBot, thinkingFens, isThinking])
 
+  if (!selectedBot) {
+    return (<>No bot selected.</>)
+  }
+
   return (
     <>
-      {selectedBot ? `${selectedBot.name}` : 'No Bot Selected'}
-      {isThinking && ` is thinking (${thinkingFens.length})...`}
-      {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
-      {/*Latest Thinking Fen: {latestThinkingFen}*/}
+      {`${selectedBot.name}`}
+      {gameOver ? ` is ready for the next game.` : (<>
+        {isThinking && ` is thinking (${thinkingFens.length})...`}
+        {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
+        {/*Latest Thinking Fen: {latestThinkingFen}*/}
+      </>)}
     </>
   )
+}
+
+const GameOverMessage = ({ game }: { game: Game }) => {
+  if (!game.game.game_over()) {
+    return (<></>)
+  }
+
+  if (game.game.in_stalemate()) {
+    return (<>Game over: Draw by stalemate!</>)
+  }
+  if (game.game.in_threefold_repetition()) {
+    return (<>Game over: Draw by threefold repetition!</>)
+  }
+  if (game.game.insufficient_material()) {
+    return (<>Game over: Draw by insufficient material!</>)
+  }
+
+  if (game.game.in_draw()) {
+    return (<>Game over: Draw!</>)
+  }
+
+  return (<>Game over: {`${game.game.turn() === 'b' ? 'White' : 'Black'} won`}</>)
+}
+
+
+const GameStateMessage = ({ game }: { game: Game }) => {
+  if (game.game.game_over()) {
+    return (<GameOverMessage game={game} />)
+  }
+
+  return (<>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>)
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -351,41 +394,46 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   }, [currentGameStart, settings, settingsDispatch])
 
   useEffect(() => {
-    if (!currentGameStart) return
-    else {
-      setCurrentGameHead((currentHead) => {
-        if (!currentHead) {
-          return currentGameStart
-        }
-
-        const gameStartEventId = currentGameStart.event().id
-
-        const bufferState = incomingNostrBuffer.state()
-        const currentHeadId = currentHead.event().id
-
-        console.log(`Start gathering events referencing current head event ${currentHeadId}`)
-        console.log(`Analyzing ${bufferState.order.length} events ...`)
-        const successors = findSuccessor(bufferState, gameStartEventId, currentHeadId)
-
-        if (successors.length === 0) {
-          console.log('Search for current head is over, a head without children has been found.')
-          return currentHead
-        }
-
-        successors.sort((a, b) => b.created_at - a.created_at)
-
-        console.log(`Found ${successors.length} events referencing the current event...`)
-
-        const earliestArrivingChild = successors[successors.length - 1]
-        try {
-          return new GameMove(earliestArrivingChild, currentHead)
-        } catch (err) {
-          // this can happen anytime someone sends an event thats not a valid successor to the current head
-          console.error(err, earliestArrivingChild.content, currentHead.content())
-          return currentHead
-        }
-      })
+    if (!currentGameStart) {
+      return
     }
+
+    setCurrentGameHead((currentHead) => {
+      if (!currentHead) {
+        return currentGameStart
+      }
+
+      const gameStartEventId = currentGameStart.event().id
+
+      const bufferState = incomingNostrBuffer.state()
+      const currentHeadId = currentHead.event().id
+
+      console.log(`Start gathering events referencing current head event ${currentHeadId}`)
+      console.log(`Analyzing ${bufferState.order.length} events ...`)
+      const successors = findSuccessor(bufferState, gameStartEventId, currentHeadId)
+
+      if (successors.length === 0) {
+        console.log('Search for current head is over, a head without children has been found.')
+        return currentHead
+      }
+
+      successors.sort((a, b) => b.created_at - a.created_at)
+
+      console.log(`Found ${successors.length} events referencing the current event...`)
+
+      const earliestArrivingChild = successors[successors.length - 1]
+      if (earliestArrivingChild.id === currentHeadId) {
+        return currentHead
+      }
+
+      try {
+        return new GameMove(earliestArrivingChild, currentHead)
+      } catch (err) {
+        // this can happen anytime someone sends an event thats not a valid successor to the current head
+        console.error(err, earliestArrivingChild.content, currentHead.content())
+        return currentHead
+      }
+    })
   }, [currentGameStart, currentGameHead, incomingNostrBuffer])
 
   useEffect(() => {
@@ -422,7 +470,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
 
       <div>{currentGame && `You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
-      <div>{currentGame && currentGame.game && `${currentGame.game.turn() === 'b' ? 'black' : 'white'}`} to move</div>
+      <div>{currentGame && <GameStateMessage game={currentGame} />}</div>
       <div>{currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}</div>
       <div>{currentGame && <BotMoveSuggestions game={currentGame} />}</div>
       {/*currentGameStart && (
