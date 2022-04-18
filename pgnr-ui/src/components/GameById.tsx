@@ -443,13 +443,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     [incomingNostrBuffer]
   )
 
+  // TODO: `findNewHead` will be updated on every incoming event
+  // can lead to a game not rendering/progressing because of "too many start events"
   useEffect(() => {
     if (!currentGameStart) {
       return
     }
 
-    const abortCtrl = new AbortController()
     setIsSearchingHead(true)
+
+    const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) return
       setCurrentGameHead((currentHead) => findNewHead(currentGameStart, currentHead))
