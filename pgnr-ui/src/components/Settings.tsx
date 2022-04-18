@@ -20,7 +20,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading2 from '@material-tailwind/react/Heading2'
 // @ts-ignore
-import Input from "@material-tailwind/react/Input";
+import Input from '@material-tailwind/react/Input'
 
 const developmentRelays = ['ws://localhost:7000']
 
@@ -132,8 +132,8 @@ function TestNostrConnectionButton() {
       setWaitForEvent(signedEvent)
 
       outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-    } catch(e) {
-      const message = e instanceof Error && e.message || e
+    } catch (e) {
+      const message = (e instanceof Error && e.message) || e
       window.alert(`Error: ${message}`)
     }
   }
@@ -170,7 +170,7 @@ const useForceRerender = () => {
     setTick((tick) => tick + 1)
   }, [tick])
   return update
-};
+}
 
 export default function Settings() {
   const forceRerender = useForceRerender()
@@ -216,23 +216,25 @@ export default function Settings() {
     forceRerender()
   }
 
-  const updatePubKey = useCallback((pubKey: PubKey) => {
-    if(pubKey === null) {
-      settingsDispatch({...settings, identity: undefined})
-    } else {
-      settingsDispatch({...settings, identity: { ...settings.identity, pubkey: pubKey }})
-    }
-  }, [settings])
+  const updatePubKey = useCallback(
+    (pubKey: PubKey) => {
+      if (pubKey === null) {
+        settingsDispatch({ ...settings, identity: undefined })
+      } else {
+        settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: pubKey } })
+      }
+    },
+    [settings]
+  )
 
   useEffect(() => {
-    validateKeyPair(publicKeyInputValue, privateKeyInputValue)
-      .then((success) => {
-        setKeyPairValid(success)
-        if(success) {
-          updatePrivKey(privateKeyInputValue)
-          updatePubKey(publicKeyInputValue)
-        }
-      })
+    validateKeyPair(publicKeyInputValue, privateKeyInputValue).then((success) => {
+      setKeyPairValid(success)
+      if (success) {
+        updatePrivKey(privateKeyInputValue)
+        updatePubKey(publicKeyInputValue)
+      }
+    })
   }, [publicKeyInputValue, privateKeyInputValue])
 
   const onRelayClicked = (relay: string) => {
@@ -278,30 +280,30 @@ export default function Settings() {
       <Heading2 color="blueGray">Identity</Heading2>
       <div>
         <div className="pb-4">
-        <div className="pb-2">
-          Public Key: <span className="font-mono">{publicKeyOrNull}</span>
-          <Input
-            type="text"
-            size="regular"
-            outline={true}
-            value={publicKeyInputValue}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setPublicKeyInputValue(e.target.value)}
-            placeholder="Public Key"
-        />
-        </div>
-        <div className="pb-2">
-          Private Key: <span className="font-mono">{privateKeyOrNull}</span>
-          <Input
-            type="text"
-            size="regular"
-            outline={true}
-            value={privateKeyInputValue}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
-            placeholder="Private Key"
-            error={keyPairValid === false ? true : undefined}
-            success={keyPairValid === true ? true : undefined}
-        />
-        </div>
+          <div className="pb-2">
+            Public Key: <span className="font-mono">{publicKeyOrNull}</span>
+            <Input
+              type="text"
+              size="regular"
+              outline={true}
+              value={publicKeyInputValue}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPublicKeyInputValue(e.target.value)}
+              placeholder="Public Key"
+            />
+          </div>
+          <div className="pb-2">
+            Private Key: <span className="font-mono">{privateKeyOrNull}</span>
+            <Input
+              type="text"
+              size="regular"
+              outline={true}
+              value={privateKeyInputValue}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
+              placeholder="Private Key"
+              error={keyPairValid === false ? true : undefined}
+              success={keyPairValid === true ? true : undefined}
+            />
+          </div>
         </div>
         <div className="py-1">
           <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentityButtonClicked}>

@@ -496,7 +496,9 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     isSearchingHead && (currentGameHead === null || currentGameHead === currentGameStart)
   return (
     <div className="screen-game-by-id">
-      <Heading1 color="blueGray">Game {AppUtils.gameDisplayName(gameId)}</Heading1>
+      <Heading1 color="blueGray">
+        Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
+      </Heading1>
 
       <div>{currentGame && `You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
       <div>{currentGame && <GameStateMessage game={currentGame} />}</div>

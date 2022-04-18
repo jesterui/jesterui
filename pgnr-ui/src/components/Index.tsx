@@ -50,20 +50,15 @@ export default function Index() {
     navigate(`/game:/${gameId}`)
   }
 
+  if (currentGame) {
+    return <BoardById gameId={currentGame.id} />
+  }
+
   return (
     <div className="screen-index">
-      <Heading1 color="blueGray">Gameboard</Heading1>
-      <div className="flex  justify-center items-center">
-        {!incomingNostr ? (
-          <>
-            <div>No connection to nostr</div>
-          </>
-        ) : (
-          <>
-            {!currentGame && <CreateGameButton onGameCreated={onGameCreated} />}
-            {currentGame && <BoardById gameId={currentGame.id} />}
-          </>
-        )}
+      {<Heading1 color="blueGray">Gameboard</Heading1>}
+      <div className="flex justify-center items-center">
+        {!incomingNostr ? <div>No connection to nostr</div> : <CreateGameButton onGameCreated={onGameCreated} />}
       </div>
     </div>
   )

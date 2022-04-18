@@ -50,9 +50,7 @@ export default function GamesOverview() {
       <Heading1 color="blueGray">Games</Heading1>
 
       {!incomingNostr ? (
-        <>
-          <div>No connection to nostr</div>
-        </>
+        <div>No connection to nostr</div>
       ) : (
         <>
           <CreateGameButton onGameCreated={onGameCreated} />
@@ -62,9 +60,12 @@ export default function GamesOverview() {
               <div key={it.event.id}>
                 <Link to={`/game/${it.event.id}`}>
                   <>
-                    {AppUtils.gameDisplayName(it.event.id)}
-                    <Small color="lightGreen"> with {it.refCount} events</Small>
-                    <Small color="gray"> started by {AppUtils.pubKeyDisplayName(it.event.pubkey)}</Small>
+                    <span className="font-mono px-2">{AppUtils.gameDisplayName(it.event.id)}</span>
+                    {it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>}
+                    <Small color="gray">
+                      {' '}
+                      started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.event.pubkey)}</span>
+                    </Small>
                     <Small color="yellow"> at {it.createdAt.toLocaleString()}</Small>
                   </>
                 </Link>
