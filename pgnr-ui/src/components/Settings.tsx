@@ -20,22 +20,6 @@ import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading2 from '@material-tailwind/react/Heading2'
 
-/*import {
-  // generatePrivateKey,
-  relayConnect,
-  relayPool,
-  signEvent,
-  validateEvent,
-  verifySignature,
-  serializeEvent,
-  getEventHash,
-  // getPublicKey,
-  getBlankEvent,
-  matchFilter,
-  matchFilters,
-  // @ts-ignore
-} from 'nostr-tools'*/
-
 const developmentRelays = ['ws://localhost:7000']
 
 const publicRelays = [
@@ -101,7 +85,7 @@ function TestNostrConnectionButton() {
 
       setWaitForEvent(null)
       setStatusText('')
-    }, 2000)
+    }, 2_000)
 
     return () => {
       abortCtrl.abort()
@@ -110,6 +94,10 @@ function TestNostrConnectionButton() {
   }, [waitForEvent, incomingNostrBuffer])
 
   const onButtonClicked = async () => {
+    if (!outgoingNostr) {
+      window.alert('Nostr not ready..')
+      return
+    }
     if (!publicKeyOrNull) {
       window.alert('PubKey not available..')
       return
@@ -122,12 +110,17 @@ function TestNostrConnectionButton() {
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
 
-    const event = AppUtils.constructStartGameEvent(publicKey)
+    const eventParts = NostrEvents.blankEvent()
+    eventParts.kind = 1 // text_note
+    eventParts.pubkey = publicKey
+    eventParts.created_at = Math.floor(Date.now() / 1000)
+    eventParts.content = 'Hello World'
+    const event = NostrEvents.constructEvent(eventParts)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
 
     setWaitForEvent(signedEvent)
 
-    outgoingNostr && outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
   }
 
   return (
@@ -136,6 +129,7 @@ function TestNostrConnectionButton() {
     </button>
   )
 }
+
 export default function Settings() {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
@@ -199,33 +193,6 @@ export default function Settings() {
     })
   }
 
-  const sendHelloWorldButtonClicked = async () => {
-    if (!outgoingNostr) {
-      window.alert('Nostr not ready..')
-      return
-    }
-    if (!publicKeyOrNull) {
-      console.info('PubKey not available..')
-      return
-    }
-    if (!privateKeyOrNull) {
-      console.info('PrivKey not available..')
-      return
-    }
-
-    const publicKey = publicKeyOrNull!
-    const privateKey = privateKeyOrNull!
-
-    const eventParts = NostrEvents.blankEvent()
-    eventParts.kind = 1 // text_note
-    eventParts.pubkey = publicKey
-    eventParts.created_at = Math.floor(Date.now() / 1000)
-    eventParts.content = 'Hello World'
-    const event = NostrEvents.constructEvent(eventParts)
-    const signedEvent = await NostrEvents.signEvent(event, privateKey)
-    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-  }
-
   return (
     <div className="screen-settings">
       <Heading1 color="blueGray">Settings</Heading1>
@@ -238,21 +205,13 @@ export default function Settings() {
         <div className="py-1">
           Private Key: <span className="font-mono">{privateKeyOrNull}</span>
         </div>
-
         <div className="py-1">
           <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentityButtonClicked}>
             New
           </button>
         </div>
-
         <div className="py-1">
-          <button
-            type="button"
-            className="bg-white bg-opacity-20 rounded px-2 py-1"
-            onClick={sendHelloWorldButtonClicked}
-          >
-            Send 'Hello World'
-          </button>
+          <TestNostrConnectionButton />
         </div>
       </div>
 
