@@ -1,12 +1,12 @@
 import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex as toHex } from '@noble/hashes/utils'
+import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { arrayEquals } from './utils'
 import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-export const PGNRUI_START_GAME_E_REF = toHex(sha256(FEN_START_POSITION))
+export const PGNRUI_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
 
 export const PGNRUI_START_GAME_FILTER: NIP01.Filter = {
   '#e': [PGNRUI_START_GAME_E_REF],
@@ -162,6 +162,7 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
       version: '0',
       kind: Kind.Start,
       history: [],
+      nonce: bytesToHex(randomBytes(4))
     }),
     pubkey,
   } as NIP01.EventParts

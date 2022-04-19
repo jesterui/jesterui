@@ -16,7 +16,7 @@ export type Subscription = {
   filters: NIP01.Filter[]
 }
 
-interface AppSettings {
+export interface AppSettings {
   dev: boolean
   relays: Relay[]
   identity?: Identity

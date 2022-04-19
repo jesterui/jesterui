@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
-import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import * as Nostr from '../util/nostr/identity'
-import { ActivityIndicator } from '../components/ActivityIndicator'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
@@ -152,16 +151,15 @@ const validateKeyPair = async (pubKey: PubKey, privKey: PrivKey): Promise<boolea
   }
 }
 
-const useForceRerender = () => {
+/*const useForceRerender = () => {
   const [tick, setTick] = useState(0)
   const update = useCallback(() => {
-    setTick((tick) => tick + 1)
+    setTick(tick + 1)
   }, [tick])
   return update
-}
+}*/
 
 export default function Settings() {
-  const forceRerender = useForceRerender()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
@@ -192,6 +190,22 @@ export default function Settings() {
   }
 
   useEffect(() => {
+    console.log('.......')
+    const filterForOwnEvents: NIP01.Filter[] = publicKeyOrNull === null ? [] : [{
+      authors: [publicKeyOrNull],
+    }]
+    // TODO: Replace with "updateSubscriptionSettings"
+    settingsDispatch({
+      subscriptions: [
+        {
+          id: 'my-sub',
+          filters: [...filterForOwnEvents, AppUtils.PGNRUI_START_GAME_FILTER],
+        },
+      ],
+    } as AppSettings)
+  }, [publicKeyOrNull, settingsDispatch])
+
+  useEffect(() => {
     setPublicKeyInputValue(publicKeyOrNull)
   }, [publicKeyOrNull])
 
@@ -199,31 +213,39 @@ export default function Settings() {
     setPrivateKeyInputValue(privateKeyOrNull)
   }, [privateKeyOrNull])
 
+  useEffect(() => {
+    setKeyPairValid(undefined)
+  }, [publicKeyInputValue, privateKeyInputValue])
+
   const updatePrivKey = (privKey: PrivKey) => {
     setSessionAttribute({ privateKey: privKey })
-    forceRerender()
+    // forceRerender()
   }
-
-  const updatePubKey = useCallback(
-    (pubKey: PubKey) => {
-      if (pubKey === null) {
-        settingsDispatch({ ...settings, identity: undefined })
-      } else {
-        settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: pubKey } })
-      }
-    },
-    [settings]
-  )
+  const updatePubKey = useCallback((pubKey: PubKey) => {
+    if (pubKey === null) {
+      settingsDispatch({ ...settings, identity: undefined })
+    } else {
+      settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: pubKey } })
+    }
+  }, [settings, settingsDispatch])
 
   useEffect(() => {
+    if (keyPairValid) return
+
+    const abortCtrl = new AbortController()
+
     validateKeyPair(publicKeyInputValue, privateKeyInputValue).then((success) => {
+      if (abortCtrl.signal.aborted) return
+
       setKeyPairValid(success)
       if (success) {
         updatePrivKey(privateKeyInputValue)
         updatePubKey(publicKeyInputValue)
       }
     })
-  }, [publicKeyInputValue, privateKeyInputValue])
+
+    return () => abortCtrl.abort()
+  }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, updatePubKey])
 
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)
@@ -242,23 +264,8 @@ export default function Settings() {
     const privateKey = Nostr.generatePrivateKey()
     const publicKey = Nostr.publicKey(privateKey)
 
-    setSessionAttribute({ privateKey })
-
-    const filterForOwnEvents: NIP01.Filter = {
-      authors: [publicKey],
-    }
-
-    // TODO: Replace with "updateSubscriptionSettings"
-    settingsDispatch({
-      ...settings,
-      identity: { ...settings.identity, pubkey: publicKey },
-      subscriptions: [
-        {
-          id: 'my-sub',
-          filters: [filterForOwnEvents, AppUtils.PGNRUI_START_GAME_FILTER],
-        },
-      ],
-    })
+    updatePrivKey(privateKey)
+    updatePubKey(publicKey)
   }
 
   return (
@@ -288,8 +295,8 @@ export default function Settings() {
               value={privateKeyInputValue}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
               placeholder="Private Key"
-              error={keyPairValid === false ? true : undefined}
-              success={keyPairValid === true ? true : undefined}
+              error={keyPairValid === false ? ' ' : undefined}
+              success={keyPairValid === true ? ' ' : undefined}
             />
           </div>
         </div>
@@ -339,14 +346,7 @@ export default function Settings() {
             <div key={index}>
               <Checkbox
                 color="blueGray"
-                text={
-                  <div>
-                    <ActivityIndicator
-                      isOn={!!(websocket?.url.startsWith(relay) && websocket?.readyState === WebSocket.OPEN)}
-                    />{' '}
-                    {relay}
-                  </div>
-                }
+                text={relay}
                 id={relay}
                 checked={settings.relays.includes(relay)}
                 onChange={() => onRelayClicked(relay)}

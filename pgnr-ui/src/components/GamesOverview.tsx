@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState, MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import CreateGameButton from './CreateGameButton'
@@ -20,6 +20,7 @@ interface GameSummary {
 }
 
 export default function GamesOverview() {
+  const createGameButtonRef = useRef<HTMLButtonElement>(null)
   const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
@@ -41,7 +42,7 @@ export default function GamesOverview() {
         .map((event) => ({
           event,
           refCount: bufferState.refs[event.id].length,
-          createdAt: new Date(event.created_at * 1000),
+          createdAt: new Date(event.created_at * 1_000),
         }))
 
       setGames(orderedGameStartedEvents)
@@ -53,8 +54,26 @@ export default function GamesOverview() {
     }
   }, [incomingNostrBuffer])
 
-  const onGameCreated = (gameId: NIP01.Sha256) => {
-    navigate(`/game/${gameId}`)
+  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
+    if (e.nativeEvent.isTrusted) {
+      navigate(`/game/${gameId}`)
+    }
+  }
+
+  const __dev_createMultipleGames = (amount: number) => {
+    if (amount <= 0) return
+
+    const chunks = 10
+
+    if (amount <= chunks) {
+      for (let i = 0; i < amount; i++) {
+        //setTimeout(() => createGameButtonRef.current?.click(), i + 1)
+        createGameButtonRef.current?.click()
+      }
+    } else {
+      __dev_createMultipleGames(chunks)
+      setTimeout(() => __dev_createMultipleGames(amount - chunks), 4)
+    }
   }
 
   return (
@@ -65,25 +84,36 @@ export default function GamesOverview() {
         <div>No connection to nostr</div>
       ) : (
         <>
-          <CreateGameButton onGameCreated={onGameCreated} />
+          <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={onGameCreated} />
+          {settings.dev && <button
+      type="button"
+      className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+      onClick={() => __dev_createMultipleGames(100)}
+    >
+      DEV: Start 100 games
+    </button>}
+
           {games.length === 0 && <div>No Games available</div>}
-          {games.map((it) => {
-            return (
-              <div key={it.event.id}>
-                <Link to={`/game/${it.event.id}`}>
-                  <>
-                    <span className="font-mono px-2">{AppUtils.gameDisplayName(it.event.id)}</span>
-                    {it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>}
-                    <Small color="gray">
-                      {' '}
-                      started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.event.pubkey)}</span>
-                    </Small>
-                    <Small color="yellow"> at {it.createdAt.toLocaleString()}</Small>
-                  </>
-                </Link>
-              </div>
-            )
-          })}
+          {games.length > 0 && <div>{games.length} games available</div>}
+          <div className="my-4">
+            {games.map((it) => {
+              return (
+                <div key={it.event.id}>
+                  <Link to={`/game/${it.event.id}`}>
+                    <>
+                      <span className="font-mono px-2">{AppUtils.gameDisplayName(it.event.id)}</span>
+                      {it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>}
+                      <Small color="gray">
+                        {' '}
+                        started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.event.pubkey)}</span>
+                      </Small>
+                      <Small color="yellow"> at {it.createdAt.toLocaleString()}</Small>
+                    </>
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
         </>
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useCurrentGame, useSetCurrentGame } from '../context/GamesContext'
@@ -60,7 +60,7 @@ export default function Index() {
     }
   }, [incomingNostrBuffer, currentGame, setCurrentGame])
 
-  const onGameCreated = (gameId: NIP01.Sha256) => {
+  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
     navigate(`/game:/${gameId}`)
   }
 

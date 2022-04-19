@@ -2,7 +2,7 @@
 
 
 TODO:
-- [ ] Send nostr eventc `content` as chess json proto
+- [ ] Send nostr events `content` as chess json proto
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
 
 ---
