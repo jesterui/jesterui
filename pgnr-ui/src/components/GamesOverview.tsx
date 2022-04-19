@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import CreateGameButton from './CreateGameButton'
 
 import { useIncomingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { useSettings } from '../context/SettingsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
 
@@ -19,6 +20,7 @@ interface GameSummary {
 }
 
 export default function GamesOverview() {
+  const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()

@@ -25,7 +25,7 @@ interface AppSettings {
 }
 
 const initialSettings: AppSettings = {
-  dev: true,
+  dev: process.env.NODE_ENV === 'development',
   relays: [
     // 'wss://relayer.fiatjaf.com', // good uptime
     // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing

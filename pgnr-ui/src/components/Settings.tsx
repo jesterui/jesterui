@@ -46,9 +46,9 @@ type PubKey = string | null
 type PrivKey = string | null
 
 function TestNostrConnectionButton() {
+  const settings = useSettings()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
-  const settings = useSettings()
 
   const [waitForEvent, setWaitForEvent] = useState<NIP01.Event | null>(null)
   const [statusText, setStatusText] = useState<string>('')
@@ -58,8 +58,15 @@ function TestNostrConnectionButton() {
 
   useEffect(() => {
     if (statusText === '') return
+    
     const abortCtrl = new AbortController()
-    const timer = setTimeout(() => !abortCtrl.signal.aborted && setStatusText(''), 2000)
+    const timer = setTimeout(() => {
+      if (abortCtrl.signal.aborted) return
+
+      setWaitForEvent(null)
+      setStatusText('')
+    }, 2000)
+
     return () => {
       abortCtrl.abort()
       clearTimeout(timer)
@@ -67,40 +74,21 @@ function TestNostrConnectionButton() {
   }, [statusText])
 
   useEffect(() => {
-    if (!waitForEvent) {
-      return
-    }
+    if (!waitForEvent) return
 
     const state = incomingNostrBuffer.state()
-
-    const isWaiting = !!waitForEvent || false
-    if (!isWaiting) return
 
     const eventFound = state.events[waitForEvent.id]
     setStatusText(eventFound ? '200 OK' : '404 NOT FOUND')
 
     if (eventFound) {
       setWaitForEvent(null)
-      return
-    }
-
-    const abortCtrl = new AbortController()
-    const timer = setTimeout(() => {
-      if (abortCtrl.signal.aborted) return
-
-      setWaitForEvent(null)
-      setStatusText('')
-    }, 2_000)
-
-    return () => {
-      abortCtrl.abort()
-      clearTimeout(timer)
     }
   }, [waitForEvent, incomingNostrBuffer])
 
   const onButtonClicked = async () => {
     if (!outgoingNostr) {
-      window.alert('Nostr not ready..')
+      window.alert('Nostr EventBus not ready..')
       return
     }
     if (!publicKeyOrNull) {
