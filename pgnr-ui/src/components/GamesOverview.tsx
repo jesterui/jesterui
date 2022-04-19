@@ -85,13 +85,15 @@ export default function GamesOverview() {
       ) : (
         <>
           <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={onGameCreated} />
-          {settings.dev && <button
-      type="button"
-      className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-      onClick={() => __dev_createMultipleGames(100)}
-    >
-      DEV: Start 100 games
-    </button>}
+          {settings.dev && (
+            <button
+              type="button"
+              className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+              onClick={() => __dev_createMultipleGames(100)}
+            >
+              DEV: Start 100 games
+            </button>
+          )}
 
           {games.length === 0 && <div>No Games available</div>}
           {games.length > 0 && <div>{games.length} games available</div>}

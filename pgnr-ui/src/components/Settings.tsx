@@ -57,7 +57,7 @@ function TestNostrConnectionButton() {
 
   useEffect(() => {
     if (statusText === '') return
-    
+
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) return
@@ -159,10 +159,9 @@ const validateKeyPair = async (pubKey: PubKey, privKey: PrivKey): Promise<boolea
   return update
 }*/
 
-export default function Settings() {
+const KeyPairForm = () => {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
-  const websocket = useWebsocket()
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -170,6 +169,116 @@ export default function Settings() {
   const [publicKeyInputValue, setPublicKeyInputValue] = useState<PubKey>(publicKeyOrNull)
   const [privateKeyInputValue, setPrivateKeyInputValue] = useState<PrivKey>(privateKeyOrNull)
   const [keyPairValid, setKeyPairValid] = useState<boolean | undefined>(undefined)
+
+  const updatePrivKey = (privKey: PrivKey) => {
+    setSessionAttribute({ privateKey: privKey })
+    // forceRerender()
+  }
+
+  const updatePubKey = useCallback(
+    (pubKey: PubKey) => {
+      if (pubKey === null) {
+        settingsDispatch({ ...settings, identity: undefined })
+      } else {
+        settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: pubKey } })
+      }
+    },
+    [settings, settingsDispatch]
+  )
+
+  useEffect(() => {
+    setPublicKeyInputValue(publicKeyOrNull || '')
+  }, [publicKeyOrNull])
+
+  useEffect(() => {
+    setPrivateKeyInputValue(privateKeyOrNull || '')
+  }, [privateKeyOrNull])
+
+  useEffect(() => {
+    setKeyPairValid(undefined)
+  }, [publicKeyInputValue, privateKeyInputValue])
+
+  useEffect(() => {
+    if (keyPairValid) return
+
+    const abortCtrl = new AbortController()
+
+    validateKeyPair(publicKeyInputValue, privateKeyInputValue).then((success) => {
+      if (abortCtrl.signal.aborted) return
+
+      setKeyPairValid(success)
+      if (success) {
+        updatePrivKey(privateKeyInputValue)
+        updatePubKey(publicKeyInputValue)
+      }
+    })
+
+    return () => abortCtrl.abort()
+  }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, updatePubKey])
+
+  const newIdentityButtonClicked = () => {
+    const privateKey = Nostr.generatePrivateKey()
+    const publicKey = Nostr.publicKey(privateKey)
+
+    updatePrivKey(privateKey)
+    updatePubKey(publicKey)
+  }
+
+  const deleteIdentityButtonClicked = () => {
+    updatePrivKey(null)
+    updatePubKey(null)
+  }
+
+  return (
+    <>
+      <div className="pb-4">
+        <div className="pb-2">
+          Public Key: <span className="font-mono">{publicKeyOrNull}</span>
+          <Input
+            type="text"
+            size="regular"
+            outline={true}
+            value={publicKeyInputValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setPublicKeyInputValue(e.target.value)}
+            placeholder="Public Key"
+          />
+        </div>
+        <div className="pb-2">
+          Private Key: <span className="font-mono">{privateKeyOrNull}</span>
+          <Input
+            type="text"
+            size="regular"
+            outline={true}
+            value={privateKeyInputValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
+            placeholder="Private Key"
+            error={keyPairValid === false ? ' ' : undefined}
+            success={keyPairValid === true ? ' ' : undefined}
+          />
+        </div>
+      </div>
+      <div className="py-1">
+        <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentityButtonClicked}>
+          New
+        </button>
+        <button
+          type="button"
+          className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+          onClick={deleteIdentityButtonClicked}
+        >
+          Forget
+        </button>
+      </div>
+    </>
+  )
+}
+
+export default function Settings() {
+  const settings = useSettings()
+  const settingsDispatch = useSettingsDispatch()
+  const websocket = useWebsocket()
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
 
   const [selectedBot, setSelectedBot] = useState<SelectedBot>(
     (() => {
@@ -190,10 +299,14 @@ export default function Settings() {
   }
 
   useEffect(() => {
-    console.log('.......')
-    const filterForOwnEvents: NIP01.Filter[] = publicKeyOrNull === null ? [] : [{
-      authors: [publicKeyOrNull],
-    }]
+    const filterForOwnEvents: NIP01.Filter[] =
+      publicKeyOrNull === null
+        ? []
+        : [
+            {
+              authors: [publicKeyOrNull],
+            },
+          ]
     // TODO: Replace with "updateSubscriptionSettings"
     settingsDispatch({
       subscriptions: [
@@ -204,48 +317,6 @@ export default function Settings() {
       ],
     } as AppSettings)
   }, [publicKeyOrNull, settingsDispatch])
-
-  useEffect(() => {
-    setPublicKeyInputValue(publicKeyOrNull)
-  }, [publicKeyOrNull])
-
-  useEffect(() => {
-    setPrivateKeyInputValue(privateKeyOrNull)
-  }, [privateKeyOrNull])
-
-  useEffect(() => {
-    setKeyPairValid(undefined)
-  }, [publicKeyInputValue, privateKeyInputValue])
-
-  const updatePrivKey = (privKey: PrivKey) => {
-    setSessionAttribute({ privateKey: privKey })
-    // forceRerender()
-  }
-  const updatePubKey = useCallback((pubKey: PubKey) => {
-    if (pubKey === null) {
-      settingsDispatch({ ...settings, identity: undefined })
-    } else {
-      settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: pubKey } })
-    }
-  }, [settings, settingsDispatch])
-
-  useEffect(() => {
-    if (keyPairValid) return
-
-    const abortCtrl = new AbortController()
-
-    validateKeyPair(publicKeyInputValue, privateKeyInputValue).then((success) => {
-      if (abortCtrl.signal.aborted) return
-
-      setKeyPairValid(success)
-      if (success) {
-        updatePrivKey(privateKeyInputValue)
-        updatePubKey(publicKeyInputValue)
-      }
-    })
-
-    return () => abortCtrl.abort()
-  }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, updatePubKey])
 
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)
@@ -260,54 +331,16 @@ export default function Settings() {
     }
   }
 
-  const newIdentityButtonClicked = () => {
-    const privateKey = Nostr.generatePrivateKey()
-    const publicKey = Nostr.publicKey(privateKey)
-
-    updatePrivKey(privateKey)
-    updatePubKey(publicKey)
-  }
-
   return (
     <div className="screen-settings pb-4">
       <Heading1 color="blueGray">Settings</Heading1>
 
       <Heading2 color="blueGray">Identity</Heading2>
       <div>
-        <div className="pb-4">
-          <div className="pb-2">
-            Public Key: <span className="font-mono">{publicKeyOrNull}</span>
-            <Input
-              type="text"
-              size="regular"
-              outline={true}
-              value={publicKeyInputValue}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setPublicKeyInputValue(e.target.value)}
-              placeholder="Public Key"
-            />
-          </div>
-          <div className="pb-2">
-            Private Key: <span className="font-mono">{privateKeyOrNull}</span>
-            <Input
-              type="text"
-              size="regular"
-              outline={true}
-              value={privateKeyInputValue}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
-              placeholder="Private Key"
-              error={keyPairValid === false ? ' ' : undefined}
-              success={keyPairValid === true ? ' ' : undefined}
-            />
-          </div>
-        </div>
-        <div className="py-1">
-          <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentityButtonClicked}>
-            New
-          </button>
-        </div>
-        <div className="py-1">
-          <TestNostrConnectionButton />
-        </div>
+        <KeyPairForm />
+      </div>
+      <div className="py-1">
+        <TestNostrConnectionButton />
       </div>
 
       <BotSelector

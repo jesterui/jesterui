@@ -162,7 +162,7 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
       version: '0',
       kind: Kind.Start,
       history: [],
-      nonce: bytesToHex(randomBytes(4))
+      nonce: bytesToHex(randomBytes(4)),
     }),
     pubkey,
   } as NIP01.EventParts
