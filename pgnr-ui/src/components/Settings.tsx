@@ -178,12 +178,12 @@ const KeyPairForm = () => {
   const updatePubKey = useCallback(
     (pubKey: PubKey) => {
       if (pubKey === null) {
-        settingsDispatch({ ...settings, identity: undefined })
+        settingsDispatch({ identity: undefined } as AppSettings)
       } else {
-        settingsDispatch({ ...settings, identity: { ...settings.identity, pubkey: pubKey } })
+        settingsDispatch({ identity: { pubkey: pubKey }} as AppSettings)
       }
     },
-    [settings, settingsDispatch]
+    [settingsDispatch]
   )
 
   useEffect(() => {
@@ -295,24 +295,33 @@ export default function Settings() {
 
   const updateSelectedBot = (bot: SelectedBot) => {
     setSelectedBot(selectedBot)
-    settingsDispatch({ ...settings, botName: bot?.name || null })
+    settingsDispatch({ botName: bot?.name || null } as AppSettings)
   }
 
   useEffect(() => {
+    const since = Math.floor(Date.now() / 1_000) - (60 * 10)
+
     const filterForOwnEvents: NIP01.Filter[] =
       publicKeyOrNull === null
         ? []
         : [
             {
               authors: [publicKeyOrNull],
+              since
             },
           ]
+
+    const filterStartEvents: NIP01.Filter = {
+      ...AppUtils.PGNRUI_START_GAME_FILTER,
+      since
+    }
+
     // TODO: Replace with "updateSubscriptionSettings"
     settingsDispatch({
       subscriptions: [
         {
           id: 'my-sub',
-          filters: [...filterForOwnEvents, AppUtils.PGNRUI_START_GAME_FILTER],
+          filters: [...filterForOwnEvents, filterStartEvents],
         },
       ],
     } as AppSettings)
@@ -323,11 +332,11 @@ export default function Settings() {
     const shouldAdd = index === -1
     if (shouldAdd) {
       // TODO: For multiple release do: settingsDispatch({ ...settings, relays: [relay, ...settings.relays] })
-      settingsDispatch({ ...settings, relays: [relay] })
+      settingsDispatch({ relays: [relay] } as AppSettings)
     } else {
       const newVal = [...settings.relays]
       newVal.splice(index, 1)
-      settingsDispatch({ ...settings, relays: newVal })
+      settingsDispatch({ relays: newVal } as AppSettings)
     }
   }
 

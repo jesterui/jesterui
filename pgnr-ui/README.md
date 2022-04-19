@@ -4,6 +4,10 @@
 TODO:
 - [ ] Send nostr events `content` as chess json proto
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
+- [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
+- [ ] use IndexedDB, e.g. with Dexie and dexie-react-hooks
+- [ ] make "multichess" option - users are either black/white and vote on moves
+- [ ] add POW if necessary
 
 ---
 

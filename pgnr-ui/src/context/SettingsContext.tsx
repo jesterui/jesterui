@@ -3,7 +3,10 @@ import React, { ProviderProps, createContext, useReducer, useEffect, useContext 
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
 
+const FILTER_TIME_IN_SECONDS = 10 * 60 // 10 minutes
 const localStorageKey = window.APP.SETTINGS_STORE_KEY
+
+const createSinceFilterValue = () => Math.floor(Date.now() / 1_000) - FILTER_TIME_IN_SECONDS
 
 // TODO: add {read: true, write: true} to relay
 type Relay = string
@@ -33,7 +36,10 @@ const initialSettings: AppSettings = {
   subscriptions: [
     {
       id: 'my-sub',
-      filters: [AppUtils.PGNRUI_START_GAME_FILTER],
+      filters: [{
+        ...AppUtils.PGNRUI_START_GAME_FILTER,
+        since: createSinceFilterValue()
+      }],
     },
   ],
   botName: null,

@@ -7,7 +7,7 @@ import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
 import * as Bot from '../util/bot'
 
-import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import {
   NostrEventBufferState,
   useOutgoingNostrEvents,
@@ -371,34 +371,24 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
     const currentGameFilter = AppUtils.createGameFilter(currentGameStart)
 
-    const publicKeyOrNull = settings.identity?.pubkey || null
-    const filterForOwnEvents: NIP01.Filter[] = !publicKeyOrNull
-      ? []
-      : [
-          {
-            authors: [publicKeyOrNull],
-          },
-        ]
-
-    const gameFilters = [AppUtils.PGNRUI_START_GAME_FILTER, currentGameFilter]
-
-    const newSubFilters = [...gameFilters, ...filterForOwnEvents]
-
     const currentSubs = settings.subscriptions || []
-    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)
+    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)[0]
 
     // this is soo stupid..
-    if (JSON.stringify([newSubFilters]) !== JSON.stringify(currentSubFilters)) {
+    const currentGameFilterJson = JSON.stringify(currentGameFilter)
+    const containsCurrentGameFilter = currentSubFilters.filter(it => JSON.stringify(it) === currentGameFilterJson).length > 0
+
+    if (!containsCurrentGameFilter) {
       // TODO: Replace with "updateSubscriptionSettings"
       settingsDispatch({
         ...settings,
         subscriptions: [
           {
             id: 'my-sub',
-            filters: newSubFilters,
+            filters: [...currentSubFilters, currentGameFilter],
           },
         ],
-      })
+      } as AppSettings)
     }
   }, [currentGameStart, settings, settingsDispatch])
 
