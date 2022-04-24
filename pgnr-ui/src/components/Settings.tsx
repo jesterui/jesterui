@@ -5,6 +5,7 @@ import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
@@ -20,6 +21,8 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading2 from '@material-tailwind/react/Heading2'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
+
+export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 
 const developmentRelays = ['ws://localhost:7000']
 
@@ -106,6 +109,7 @@ function TestNostrConnectionButton() {
       const eventParts = NostrEvents.blankEvent()
       eventParts.kind = 1 // text_note
       eventParts.pubkey = publicKey
+      eventParts.tags = [['e', TEST_MESSAGE_REF]]
       eventParts.created_at = Math.floor(Date.now() / 1000)
       eventParts.content = 'Hello World'
       const event = NostrEvents.constructEvent(eventParts)
@@ -299,29 +303,31 @@ export default function Settings() {
   }
 
   useEffect(() => {
-    const since = Math.floor(Date.now() / 1_000) - (60 * 10)
+    const nowInSeconds = Math.floor(Date.now() / 1_000)
+    //const startEventsSinceInSeconds = nowInSeconds - (60 * 10)
 
-    const filterForOwnEvents: NIP01.Filter[] =
+    const filterStartEvents: NIP01.Filter = {
+      ...AppUtils.PGNRUI_START_GAME_FILTER,
+      //since: startEventsSinceInSeconds
+    }
+
+    const filterForOwnTestEvents: NIP01.Filter[] =
       publicKeyOrNull === null
         ? []
         : [
             {
               authors: [publicKeyOrNull],
-              since
+              since: nowInSeconds,
+              '#e': [TEST_MESSAGE_REF],
             },
           ]
-
-    const filterStartEvents: NIP01.Filter = {
-      ...AppUtils.PGNRUI_START_GAME_FILTER,
-      since
-    }
 
     // TODO: Replace with "updateSubscriptionSettings"
     settingsDispatch({
       subscriptions: [
         {
           id: 'my-sub',
-          filters: [...filterForOwnEvents, filterStartEvents],
+          filters: [...filterForOwnTestEvents, filterStartEvents],
         },
       ],
     } as AppSettings)
