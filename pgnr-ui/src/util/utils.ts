@@ -36,3 +36,15 @@ export const throttle = (fn: Function, threshold = 2500, scope: unknown = undefi
     }
   }
 }
+
+export const once = <T>(fn: Function) => {
+  let calls = 0
+  let result: T | undefined = undefined
+  return ((...args: unknown[]) => {
+      if (calls === 0) {
+        result = fn.apply(null, args)
+        calls++
+      }
+      return result
+  }) as ((...args: unknown[]) => T)
+}

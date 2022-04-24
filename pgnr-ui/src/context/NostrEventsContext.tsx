@@ -3,6 +3,7 @@ import React, { createContext, useContext, ProviderProps, useEffect, useState, u
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
+import { once } from '../util/utils'
 
 type WithAbortSignal = {
   signal: AbortSignal
@@ -166,9 +167,9 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
 
     const abortCtrl = new AbortController()
 
-    setIncoming((_) => {
-      const newEventBus = createIncoming(incomingRef.current!)
-      // Publish from relay over websocket to internal event bus
+    // hack: use "once" as "StrictMode" will invoke "setState setter" twice - must be prevented otherwise events get emitted twice
+    const setupIncomingEventBus = once<EventBus<NIP01.RelayMessage>>((current: HTMLDivElement) => {
+      const newEventBus = createIncoming(current)
       websocket.addEventListener(
         'message',
         async (event) => {
@@ -197,8 +198,13 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       return newEventBus
     })
 
-    setOutgoing((_) => {
-      const newEventBus = createOutgoing(outgoingRef.current!)
+    setIncoming((_) => {
+      return setupIncomingEventBus(incomingRef.current!)
+    })
+
+    // hack: use "once" as "StrictMode" will invoke "setState setter" twice - must be prevented otherwise events get emitted twice
+    const setupOutgoingEventBus = once<EventBus<NIP01.ClientMessage>>((current: HTMLDivElement) => {
+      const newEventBus = createOutgoing(current)
       // Publish from internal event bus to relay via websocket
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
@@ -264,6 +270,10 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       )
 
       return newEventBus
+    })
+
+    setOutgoing((_) => {
+      return setupOutgoingEventBus(outgoingRef.current!)
     })
 
     return () => {
