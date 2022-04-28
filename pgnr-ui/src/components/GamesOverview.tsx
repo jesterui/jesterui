@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { db, NostrEvent } from '../util/db'
 
+import { useLiveQuery } from 'dexie-react-hooks'
 import CreateGameButton from './CreateGameButton'
 
 import { useIncomingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
@@ -13,10 +15,31 @@ import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
 
+const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1 : 5
+const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
+const MIN_UPDATE_IN_SECONDS = 60
+
+/*
 interface GameSummary {
   event: NIP01.Event
   refCount: number
   createdAt: Date
+}*/
+
+
+interface GamesFilter {
+  from: Date
+  until: Date
+}
+
+const createGamesFilter = (now: Date) => {
+  const from = new Date(now.getTime() - GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
+  const until = new Date(now.getTime() + GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
+
+  return {
+    from: from,
+    until: until
+  } as GamesFilter
 }
 
 export default function GamesOverview() {
@@ -24,12 +47,41 @@ export default function GamesOverview() {
   const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
-  const incomingNostrBuffer = useIncomingNostrEventsBuffer()
+  //const incomingNostrBuffer = useIncomingNostrEventsBuffer()
 
-  const [games, setGames] = useState<GameSummary[]>([])
+  const [filter, setFilter] = useState(createGamesFilter(new Date()))
+
+  //const [games, setGames] = useState<GameSummary[]>([])
+  const [tick, setTick] = useState<number>(Date.now())
+
+  const listOfStartGamesLiveQuery = useLiveQuery(async () => {
+      const events = (await db.nostr_events
+        .where('created_at').between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
+        .toArray())
+        .filter((event) => AppUtils.isStartGameEvent(event))
+
+      return events
+    },
+    [filter], [] as NostrEvent[]
+  )
+
+  const renderedAt = new Date()
+
+  useEffect(() => {
+    const abortCtrl = new AbortController()
+    const timer = setInterval(() => !abortCtrl.signal.aborted && setTick((_) => Date.now()), MIN_UPDATE_IN_SECONDS * 1_000)
+    return () => {
+      clearInterval(timer)
+      abortCtrl.abort()
+    }
+  }, [])
+
+  useEffect(() => {
+    setFilter(createGamesFilter(new Date()))
+  }, [tick])
 
   // TODO:  can lead to game overview not rendered because of "too many start events"
-  useEffect(() => {
+  /*useEffect(() => {
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) return
@@ -52,7 +104,7 @@ export default function GamesOverview() {
       abortCtrl.abort()
       clearTimeout(timer)
     }
-  }, [incomingNostrBuffer])
+  }, [incomingNostrBuffer])*/
 
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
     if (e.nativeEvent.isTrusted) {
@@ -67,7 +119,6 @@ export default function GamesOverview() {
 
     if (amount <= chunks) {
       for (let i = 0; i < amount; i++) {
-        //setTimeout(() => createGameButtonRef.current?.click(), i + 1)
         createGameButtonRef.current?.click()
       }
     } else {
@@ -80,6 +131,8 @@ export default function GamesOverview() {
     <div className="screen-games-overview">
       <Heading1 color="blueGray">Games</Heading1>
 
+      <div>{/*JSON.stringify(listOfStartGamesLiveQuery)*/}</div>
+
       {!incomingNostr ? (
         <div>No connection to nostr</div>
       ) : (
@@ -91,25 +144,31 @@ export default function GamesOverview() {
               className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
               onClick={() => __dev_createMultipleGames(100)}
             >
-              DEV: Start 100 games
+              DEV: Start 100 games {GAMES_FILTER_PAST_DURATION_IN_MINUTES}
             </button>
           )}
 
-          {games.length === 0 && <div>No Games available</div>}
-          {games.length > 0 && <div>{games.length} games available</div>}
+          {listOfStartGamesLiveQuery.length === 0 && <div>No Games available</div>}
+          {listOfStartGamesLiveQuery.length > 0 && (<div>
+            {listOfStartGamesLiveQuery.length} games available 
+            <Small color="yellow">at {renderedAt.toLocaleString()}</Small>
+            <Small color="gray">from {filter.from.toLocaleString()}</Small>
+            <Small color="gray">to {filter.until.toLocaleString()}</Small>
+            </div>)}
           <div className="my-4">
-            {games.map((it) => {
+            {listOfStartGamesLiveQuery.map((it) => {
               return (
-                <div key={it.event.id}>
-                  <Link to={`/game/${it.event.id}`}>
+                <div key={it.id}>
+                  <Link to={`/game/${it.id}`}>
                     <>
-                      <span className="font-mono px-2">{AppUtils.gameDisplayName(it.event.id)}</span>
-                      {it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>}
+                      <span className="font-mono px-2">{AppUtils.gameDisplayName(it.id)}</span>
+                      {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
                       <Small color="gray">
                         {' '}
-                        started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.event.pubkey)}</span>
+                        started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.pubkey)}</span>
                       </Small>
-                      <Small color="yellow"> at {it.createdAt.toLocaleString()}</Small>
+                      <Small color="yellow"> at {new Date(it.created_at * 1_000).toLocaleString()}</Small>
+                      <Small color="gray">{it.created_at * 1_000}</Small>
                     </>
                   </Link>
                 </div>
