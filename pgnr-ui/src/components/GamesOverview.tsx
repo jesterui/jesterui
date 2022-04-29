@@ -5,7 +5,7 @@ import { db, NostrEvent } from '../util/db'
 import { useLiveQuery } from 'dexie-react-hooks'
 import CreateGameButton from './CreateGameButton'
 
-import { useIncomingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
@@ -144,16 +144,15 @@ export default function GamesOverview() {
               className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
               onClick={() => __dev_createMultipleGames(100)}
             >
-              DEV: Start 100 games {GAMES_FILTER_PAST_DURATION_IN_MINUTES}
+              DEV: Start 100 games
             </button>
           )}
 
-          {listOfStartGamesLiveQuery.length === 0 && <div>No Games available</div>}
-          {listOfStartGamesLiveQuery.length > 0 && (<div>
+          {(<div>
             {listOfStartGamesLiveQuery.length} games available 
-            <Small color="yellow">at {renderedAt.toLocaleString()}</Small>
-            <Small color="gray">from {filter.from.toLocaleString()}</Small>
-            <Small color="gray">to {filter.until.toLocaleString()}</Small>
+            <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
+            <Small color="gray"> from {filter.from.toLocaleString()}</Small>
+            <Small color="gray"> to {filter.until.toLocaleString()}</Small>
             </div>)}
           <div className="my-4">
             {listOfStartGamesLiveQuery.map((it) => {

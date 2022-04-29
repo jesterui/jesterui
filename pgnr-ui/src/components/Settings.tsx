@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
-import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch, createSinceFilterValue } from '../context/SettingsContext'
 import * as Nostr from '../util/nostr/identity'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
@@ -303,12 +303,11 @@ export default function Settings() {
   }
 
   useEffect(() => {
-    const nowInSeconds = Math.floor(Date.now() / 1_000)
-    //const startEventsSinceInSeconds = nowInSeconds - (60 * 10)
+    const since = createSinceFilterValue()
 
     const filterStartEvents: NIP01.Filter = {
       ...AppUtils.PGNRUI_START_GAME_FILTER,
-      //since: startEventsSinceInSeconds
+      since: since
     }
 
     const filterForOwnTestEvents: NIP01.Filter[] =
@@ -317,20 +316,29 @@ export default function Settings() {
         : [
             {
               authors: [publicKeyOrNull],
-              since: nowInSeconds,
+              since: since,
               '#e': [TEST_MESSAGE_REF],
             },
           ]
 
-    // TODO: Replace with "updateSubscriptionSettings"
-    settingsDispatch({
-      subscriptions: [
-        {
-          id: 'my-sub',
-          filters: [...filterForOwnTestEvents, filterStartEvents],
-        },
-      ],
-    } as AppSettings)
+    const currentSubs = settings.subscriptions || []
+    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)[0]
+
+    const newFilters = [...filterForOwnTestEvents, filterStartEvents]
+    const changed = JSON.stringify(currentSubFilters) !== JSON.stringify(newFilters)
+
+    // TODO: this is so stupid..
+    if (changed) {
+      // TODO:  Replace with "updateSubscriptionSettings"
+      settingsDispatch({
+        subscriptions: [
+          {
+            id: 'my-sub',
+            filters: newFilters,
+          },
+        ],
+      } as AppSettings)
+    }
   }, [publicKeyOrNull, settingsDispatch])
 
   const onRelayClicked = (relay: string) => {
