@@ -4,7 +4,6 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
 import { once } from '../util/utils'
-import { db } from '../util/db'
 
 type WithAbortSignal = {
   signal: AbortSignal
@@ -191,11 +190,6 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
           console.debug('[Nostr] <- ', data)
           if (!abortCtrl.signal.aborted) {
             setIncomingBuffer((current) => current.add(nostrEvent))
-
-            db.nostr_events.put(nostrEvent)
-              .then((val) => console.debug('adding event', val))
-              .catch((e) => console.error('error while adding event', e))
-
             newEventBus.emit(NIP01.RelayEventType.EVENT, data)
           }
         },

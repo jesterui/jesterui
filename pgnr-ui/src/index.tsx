@@ -11,6 +11,7 @@ import { SettingsProvider } from './context/SettingsContext'
 import { GamesProvider } from './context/GamesContext'
 import { WebsocketProvider } from './context/WebsocketContext'
 import { NostrEventsProvider } from './context/NostrEventsContext'
+import { NostrStoreProvider } from './context/NostrStoreContext'
 
 declare global {
   interface AppGlobal {
@@ -30,9 +31,11 @@ ReactDOM.render(
       <SettingsProvider value={undefined}>
         <WebsocketProvider value={undefined}>
           <NostrEventsProvider value={undefined}>
-            <GamesProvider value={undefined}>
-              <App />
-            </GamesProvider>
+            <NostrStoreProvider value={undefined}>
+              <GamesProvider value={undefined}>
+                <App />
+              </GamesProvider>
+            </NostrStoreProvider>
           </NostrEventsProvider>
         </WebsocketProvider>
       </SettingsProvider>
