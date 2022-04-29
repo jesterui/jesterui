@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Route, Routes, Navigate, useParams, useNavigate } from 'react-router-dom'
 
-import './App.css'
+import NostrLogIncomingRelayEvents from './components/nostr/NostrLogIncomingRelayEvents'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Index from './components/Index'
@@ -11,10 +11,11 @@ import GameById from './components/GameById'
 import Layout from './Layout'
 
 import { useSettings, Subscription } from './context/SettingsContext'
-import { useOutgoingNostrEvents, useIncomingNostrEvents } from './context/NostrEventsContext'
+import { useOutgoingNostrEvents } from './context/NostrEventsContext'
 import * as NIP01 from './util/nostr/nip01'
 import * as AppUtils from './util/pgnrui'
 import { arrayEquals } from './util/utils'
+import './App.css'
 
 function NostrManageSubscriptions() {
   const settings = useSettings()
@@ -68,48 +69,6 @@ function NostrManageSubscriptions() {
       })
     }
   }, [subscriptions, settings])
-
-  return <></>
-}
-
-function NostrLogIncomingRelayEvents() {
-  const incomingNostr = useIncomingNostrEvents()
-
-  useEffect(() => {
-    if (!incomingNostr) return
-
-    const abortCtrl = new AbortController()
-    incomingNostr.on(
-      NIP01.RelayEventType.EVENT,
-      (event: CustomEvent<NIP01.RelayMessage>) => {
-        if (event.type !== NIP01.RelayEventType.EVENT) return
-        const req = event.detail as NIP01.RelayEventMessage
-
-        console.info(`[Nostr] LOGGING INCOMING EVENT`, req)
-      },
-      { signal: abortCtrl.signal }
-    )
-
-    return () => abortCtrl.abort()
-  }, [incomingNostr])
-
-  useEffect(() => {
-    if (!incomingNostr) return
-
-    const abortCtrl = new AbortController()
-    incomingNostr.on(
-      NIP01.RelayEventType.NOTICE,
-      (event: CustomEvent<NIP01.RelayMessage>) => {
-        if (event.type !== NIP01.RelayEventType.NOTICE) return
-        const req = event.detail as NIP01.RelayNoticeMessage
-
-        console.info(`[Nostr] LOGGING INCOMING NOTICE`, req)
-      },
-      { signal: abortCtrl.signal }
-    )
-
-    return () => abortCtrl.abort()
-  }, [incomingNostr])
 
   return <></>
 }
