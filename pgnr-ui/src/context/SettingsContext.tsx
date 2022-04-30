@@ -10,13 +10,16 @@ const localStorageKey = window.APP.SETTINGS_STORE_KEY
 export const createSinceFilterValue = () => {
   const now = new Date()
   const filterDateBase = new Date(now.getTime() - FILTER_TIME_IN_SECONDS * 1_000)
-     const filterDate = new Date(Date.UTC(
-      filterDateBase.getUTCFullYear(), 
-      filterDateBase.getUTCMonth(), 
-      filterDateBase.getUTCDate(), 
-      filterDateBase.getUTCHours(), 
-      filterDateBase.getUTCMinutes(), 
-      0))
+  const filterDate = new Date(
+    Date.UTC(
+      filterDateBase.getUTCFullYear(),
+      filterDateBase.getUTCMonth(),
+      filterDateBase.getUTCDate(),
+      filterDateBase.getUTCHours(),
+      filterDateBase.getUTCMinutes(),
+      0
+    )
+  )
   const seconds = Math.floor(filterDate.getTime() / 1_000)
   return seconds - (seconds % FILTER_TIME_IN_SECONDS)
 }
@@ -49,10 +52,12 @@ const initialSettings: AppSettings = {
   subscriptions: [
     {
       id: 'my-sub',
-      filters: [{
-        ...AppUtils.PGNRUI_START_GAME_FILTER,
-        since: createSinceFilterValue()
-      }],
+      filters: [
+        {
+          ...AppUtils.PGNRUI_START_GAME_FILTER,
+          since: createSinceFilterValue(),
+        },
+      ],
     },
   ],
   botName: null,

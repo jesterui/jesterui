@@ -184,7 +184,7 @@ const KeyPairForm = () => {
       if (pubKey === null) {
         settingsDispatch({ identity: undefined } as AppSettings)
       } else {
-        settingsDispatch({ identity: { pubkey: pubKey }} as AppSettings)
+        settingsDispatch({ identity: { pubkey: pubKey } } as AppSettings)
       }
     },
     [settingsDispatch]
@@ -307,7 +307,7 @@ export default function Settings() {
 
     const filterStartEvents: NIP01.Filter = {
       ...AppUtils.PGNRUI_START_GAME_FILTER,
-      since: since
+      since: since,
     }
 
     const filterForOwnTestEvents: NIP01.Filter[] =

@@ -26,7 +26,6 @@ interface GameSummary {
   createdAt: Date
 }*/
 
-
 interface GamesFilter {
   from: Date
   until: Date
@@ -38,7 +37,7 @@ const createGamesFilter = (now: Date) => {
 
   return {
     from: from,
-    until: until
+    until: until,
   } as GamesFilter
 }
 
@@ -54,22 +53,29 @@ export default function GamesOverview() {
   //const [games, setGames] = useState<GameSummary[]>([])
   const [tick, setTick] = useState<number>(Date.now())
 
-  const listOfStartGamesLiveQuery = useLiveQuery(async () => {
-      const events = (await db.nostr_events
-        .where('created_at').between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
-        .toArray())
-        .filter((event) => AppUtils.isStartGameEvent(event))
+  const listOfStartGamesLiveQuery = useLiveQuery(
+    async () => {
+      const events = (
+        await db.nostr_events
+          .where('created_at')
+          .between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
+          .toArray()
+      ).filter((event) => AppUtils.isStartGameEvent(event))
 
       return events
     },
-    [filter], [] as NostrEvent[]
+    [filter],
+    [] as NostrEvent[]
   )
 
   const renderedAt = new Date()
 
   useEffect(() => {
     const abortCtrl = new AbortController()
-    const timer = setInterval(() => !abortCtrl.signal.aborted && setTick((_) => Date.now()), MIN_UPDATE_IN_SECONDS * 1_000)
+    const timer = setInterval(
+      () => !abortCtrl.signal.aborted && setTick((_) => Date.now()),
+      MIN_UPDATE_IN_SECONDS * 1_000
+    )
     return () => {
       clearInterval(timer)
       abortCtrl.abort()
@@ -148,12 +154,14 @@ export default function GamesOverview() {
             </button>
           )}
 
-          {(<div>
-            {listOfStartGamesLiveQuery.length} games available 
-            <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
-            <Small color="gray"> from {filter.from.toLocaleString()}</Small>
-            <Small color="gray"> to {filter.until.toLocaleString()}</Small>
-            </div>)}
+          {
+            <div>
+              {listOfStartGamesLiveQuery.length} games available
+              <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
+              <Small color="gray"> from {filter.from.toLocaleString()}</Small>
+              <Small color="gray"> to {filter.until.toLocaleString()}</Small>
+            </div>
+          }
           <div className="my-4">
             {listOfStartGamesLiveQuery.map((it) => {
               return (

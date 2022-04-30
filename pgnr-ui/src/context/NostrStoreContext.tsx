@@ -4,8 +4,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { NostrEventRef, db } from '../util/db'
 
-interface NostrStoreEntry {
-}
+interface NostrStoreEntry {}
 
 const NostrStoreContext = createContext<NostrStoreEntry | undefined>(undefined)
 
@@ -25,13 +24,13 @@ const NostrStoreProvider = ({ children }: ProviderProps<NostrStoreEntry | undefi
         const nostrEvent: NIP01.Event = req[2]
 
         const targetEventRefs = nostrEvent.tags.filter((t) => t && t[0] === 'e').map((t) => t[1] as NIP01.EventId)
-        const nostrEventRefs: NostrEventRef = {sourceId: nostrEvent.id, targetIds: targetEventRefs}
+        const nostrEventRefs: NostrEventRef = { sourceId: nostrEvent.id, targetIds: targetEventRefs }
 
-        db.nostr_events.put(nostrEvent)
+        db.nostr_events
+          .put(nostrEvent)
           .then((val) => {
             console.debug('added event', val)
-            return db.nostr_event_refs.put(nostrEventRefs)
-              .then((val) => console.debug('added event refs', val))
+            return db.nostr_event_refs.put(nostrEventRefs).then((val) => console.debug('added event refs', val))
           })
           .catch((e) => console.error('error while adding event', e))
       },
@@ -43,14 +42,9 @@ const NostrStoreProvider = ({ children }: ProviderProps<NostrStoreEntry | undefi
 
   return (
     <>
-      <NostrStoreContext.Provider value={{}}>
-        {children}
-      </NostrStoreContext.Provider>
+      <NostrStoreContext.Provider value={{}}>{children}</NostrStoreContext.Provider>
     </>
   )
 }
 
-export {
-  NostrStoreContext,
-  NostrStoreProvider,
-}
+export { NostrStoreContext, NostrStoreProvider }

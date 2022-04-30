@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 
 import { useSettings, Subscription } from '../../context/SettingsContext'
-import { useOutgoingNostrEvents } from  '../../context/NostrEventsContext'
+import { useOutgoingNostrEvents } from '../../context/NostrEventsContext'
 import * as NIP01 from '../../util/nostr/nip01'
 import { arrayEquals } from '../../util/utils'
 
-export default 
-function NostrManageSubscriptions() {
+export default function NostrManageSubscriptions() {
   const settings = useSettings()
   const outgoingNostr = useOutgoingNostrEvents()
 
