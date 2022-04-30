@@ -46,7 +46,6 @@ export default function GamesOverview() {
   const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
-  //const incomingNostrBuffer = useIncomingNostrEventsBuffer()
 
   const [filter, setFilter] = useState(createGamesFilter(new Date()))
 
