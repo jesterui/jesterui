@@ -15,7 +15,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
 
-const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1 : 5
+const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1000 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
 const MIN_UPDATE_IN_SECONDS = 60
 

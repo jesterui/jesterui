@@ -9,6 +9,8 @@ import Index from './components/Index'
 import Faq from './components/Faq'
 import GamesOverview from './components/GamesOverview'
 import GameById from './components/GameById'
+import GameByIdFromStore from './components/GameByIdFromStore'
+
 import Layout from './Layout'
 
 import * as NIP01 from './util/nostr/nip01'
@@ -45,7 +47,7 @@ export default function App() {
             <Route element={<Layout variant={null} />}>
               <Route path="/" element={<Index />} />
               <Route path="/games" element={<GamesOverview />} />
-              <Route path="/game/:gameId" element={<GameById />} />
+              <Route path="/game/:gameId" element={<GameByIdFromStore />} />
               <Route path="/redirect/game/:gameId" element={<RedirectToGame />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/faq" element={<Faq />} />

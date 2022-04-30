@@ -6,14 +6,12 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
 import * as Bot from '../util/bot'
-import { db, NostrEventRef } from '../util/db'
+import { db, NostrEvent, NostrEventRef } from '../util/db'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import {
-  NostrEventBufferState,
   useOutgoingNostrEvents,
-  useIncomingNostrEventsBuffer,
 } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -56,17 +54,6 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
     </>
   )
 }
-
-const findSuccessor = (state: NostrEventBufferState, gameId: string, moveId: string) =>
-  (state.refs[moveId] || [])
-    .map((eventId) => state.events[eventId])
-    .filter((event) => event !== undefined)
-    .filter((event) => {
-      // verify that there is an 'e' tag referencing the start event
-      const gameIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === gameId).length
-      const moveIdRefs = event.tags.filter((t) => t && t[0] === 'e' && t[1] === moveId).length
-      return gameId !== moveId ? gameIdRefs === 1 && moveIdRefs === 1 : gameIdRefs === 2 && moveIdRefs === 2
-    })
 
 const BotMoveSuggestions = ({ game }: { game: Game | null }) => {
   const settings = useSettings()
@@ -203,7 +190,7 @@ const GameEventsDebugDiv = ({ game }: { game: Game }) => {
 )
 
   return (<>
-  <div className="my-4">
+    <div className="my-4">
         {listOfReferencingEvents.map((it) => {
           return (
             <div key={it.sourceId}>
@@ -223,25 +210,88 @@ const GameStateMessage = ({ game }: { game: Game }) => {
   return <>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>
 }
 
-export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
+const LoadingBoard = () => {
+  const loadingGame = {
+      id: 'loading_game',
+      game: new Chess.Chess(),
+      color: [],
+  } as Game
+  
+  return (
+      <div style={{ filter: 'grayscale()' }}>
+        {<BoardContainer game={loadingGame} onGameChanged={() => {}} />}
+      </div>
+  )
+}
+
+export default function GameByIdFromStore({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
   const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
 
   const navigate = useNavigate()
-  const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
 
   const [humanReadableError, setHumanReadableError] = useState<string | null>(null)
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
-  const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
-  const [isSearchingHead, setIsSearchingHead] = useState(false)
+  const [isSearchingHead, setIsSearchingHead] = useState(true)
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
   const [isLoading, setIsLoading] = useState<boolean>(true)
+
+
+  // -----------------------
+  const hasReferencingEvents = async (refId: NIP01.EventId) => {
+    return (await db.nostr_event_refs
+        .where('targetIds').equals(refId)
+        .limit(1).count()) > 0
+  }
+
+  const findReferencingEvents = async (refId: NIP01.EventId) => {
+    const eventsRefs = (await db.nostr_event_refs
+        .where('targetIds').equals(refId)
+        .toArray())
+
+    const events = (await db.nostr_events
+      .where('id').anyOf(eventsRefs.map((it) => it.sourceId))
+      .toArray())
+  
+    return events
+  }
+
+  const allGameEvents = useLiveQuery(async () => {
+    if (!gameId) return []
+
+    const events = (await findReferencingEvents(gameId))
+    return events
+  }, [gameId, currentGameHead], [] as NostrEvent[]
+  )
+
+  const currentGameStart = useLiveQuery(async () => {
+    if (!gameId) return  
+    const event = await db.nostr_events.get(gameId)
+
+    if (!event || !AppUtils.isStartGameEvent(event)) {
+      return
+    }
+
+    return new GameStart(event)
+  }, [gameId]
+  )
+
+  const newestHeads = useLiveQuery(async () => {
+    if (!currentGameHead) return []
+
+    const currentHeadId = currentGameHead.event().id
+    const events = (await findReferencingEvents(currentHeadId))
+    return events
+  }, [currentGameHead], [] as NostrEvent[]
+  )
+
+  //------------------------
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -321,41 +371,10 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     navigate(`/redirect/game/${gameId}`)
   }
 
-  useEffect(() => {
-    if (!gameId) {
-      setCurrentGameStart(null)
-    }
-  }, [gameId])
-
-  // when the gamId changes, or new events arrive, set
-  useEffect(() => {
-    if (!gameId) return
-    if (currentGameStart) return
-
-    const bufferState = incomingNostrBuffer.state()
-    const gameEvent = bufferState.events[gameId]
-    if (!gameEvent) {
-      setHumanReadableError('Specified gameId does not reference an existing GameStart event')
-      return
-    }
-
-    if (!AppUtils.isStartGameEvent(gameEvent)) {
-      setHumanReadableError('Specified gameId does not reference a valid GameStart event')
-      return
-    }
-
-    setCurrentGameStart(new GameStart(gameEvent))
-  }, [gameId, currentGameStart, incomingNostrBuffer])
-
   /**  MOVE UPDATES******************************************************************* */
-  useEffect(() => {
-    if (!currentGameStart) {
-      setCurrentGame(null)
-      return
-    }
-
+  const color = useCallback(() => {
     let color: MovebleColor = []
-    if (privateKeyOrNull == null || publicKeyOrNull == null) {
+    if (!currentGameStart || privateKeyOrNull === null || publicKeyOrNull === null) {
       color = []
     } else {
       if (publicKeyOrNull === currentGameStart.event().pubkey) {
@@ -367,17 +386,26 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     /*if (process.env.NODE_ENV === 'development') {
       color =  ['white', 'black']
     }*/
+    return color
+  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
+
+  useEffect(() => {
+    if (!currentGameStart) {
+      setCurrentGame(null)
+      return
+    }
 
     setCurrentGame((_) => ({
       id: currentGameStart.event().id, // TODO should the game hold the hole event?
       game: new Chess.Chess(),
-      color,
+      color: color(),
     }))
-  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
+  }, [currentGameStart, color])
 
   // TODO: maybe do not start the game at "game start", but initialize with latest event?
   useEffect(() => {
     if (!currentGameHead) return
+    if (isSearchingHead) return
 
     setCurrentGame((current) => {
       if (!current) return current
@@ -391,7 +419,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
       return { ...current, game: newGame }
     })
-  }, [currentGameHead])
+  }, [isSearchingHead, currentGameHead])
   /********************** */
 
   useEffect(() => {
@@ -419,21 +447,17 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       } as AppSettings)
     }
   }, [currentGameStart, settings, settingsDispatch])
-
+  
   const findNewHead = useCallback(
     (currentGameStart: AppUtils.GameStart, currentHead: AppUtils.PgnruiMove | null): AppUtils.PgnruiMove => {
       if (!currentHead) {
         return currentGameStart
       }
 
-      const gameStartEventId = currentGameStart.event().id
-
-      const bufferState = incomingNostrBuffer.state()
       const currentHeadId = currentHead.event().id
 
       console.log(`Start gathering events referencing current head event ${currentHeadId}`)
-      console.log(`Analyzing ${bufferState.order.length} events ...`)
-      const successors = findSuccessor(bufferState, gameStartEventId, currentHeadId)
+      const successors = newestHeads
 
       if (successors.length === 0) {
         console.log('Search for current head is over, a head without children has been found.')
@@ -451,35 +475,37 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
       try {
         const newHead = new GameMove(earliestArrivingChild, currentHead)
-        return findNewHead(currentGameStart, newHead)
+        return newHead
       } catch (err) {
         // this can happen anytime someone sends an event thats not a valid successor to the current head
         console.error(err, earliestArrivingChild.content, currentHead.content())
         return currentHead
       }
     },
-    [incomingNostrBuffer]
+    [newestHeads]
   )
 
-  // TODO: `findNewHead` will be updated on every incoming event
-  // can lead to a game not rendering/progressing because of "too many start events"
+  
   useEffect(() => {
     if (!currentGameStart) {
       return
     }
 
-    setIsSearchingHead(true)
-
     const abortCtrl = new AbortController()
-    const timer = setTimeout(() => {
-      if (abortCtrl.signal.aborted) return
-      setCurrentGameHead((currentHead) => findNewHead(currentGameStart, currentHead))
-      setIsSearchingHead(false)
-    }, 10)
+    const newHead = findNewHead(currentGameStart, currentGameHead)
+
+    hasReferencingEvents(newHead.event().id)
+      .then((newHeadHasChildren) => {
+        if (abortCtrl.signal.aborted) return
+
+        setCurrentGameHead(newHead)
+        //const newHeadHasChildren = children.length !== 0
+        setIsSearchingHead(newHeadHasChildren)
+      })
+      .catch((e) => console.error(e))
 
     return () => {
       abortCtrl.abort()
-      clearTimeout(timer)
     }
   }, [currentGameStart, currentGameHead, findNewHead])
 
@@ -501,7 +527,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     return <>Loading... (waiting for game data to arrive)</>
   }
 
-  if (!isLoading && currentGame === null) {
+  if (currentGame === null) {
     return (
       <div>
         <div>Game not found...</div>
@@ -511,29 +537,30 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     )
   }
 
-  // TODO: Show loading indicator when `(isLoading && currentGame !== null)`
-
-  const isInitialSearchForGameHead =
-    isSearchingHead && (currentGameHead === null || currentGameHead === currentGameStart)
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">
-        Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
+        GameByIdFromStore <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
       </Heading1>
 
-      <div>{currentGame && `You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
-      <div>{currentGame && <GameStateMessage game={currentGame} />}</div>
-      <div style={{ filter: isInitialSearchForGameHead ? 'grayscale()' : 'none' }}>
-        {currentGame && <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />}
+      <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+      <div>
+        {isSearchingHead ? (<>
+          <div>{`Loading...`}</div>
+          <div><LoadingBoard /></div>
+        </>) : (<>
+          <div>{<GameStateMessage game={currentGame} />}</div>
+          <div><BoardContainer game={currentGame} onGameChanged={onChessboardChanged} /></div>
+        </>)}
       </div>
-      <div>{currentGame && <BotMoveSuggestions game={isSearchingHead ? null : currentGame} />}</div>
-      <div>{currentGame && <GameEventsDebugDiv game={currentGame} />}</div>
+      <div><BotMoveSuggestions game={isSearchingHead ? null : currentGame} /></div>
+      <div>{<GameEventsDebugDiv game={currentGame} />}</div>
       {/*currentGameStart && (
         <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
           <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
         </div>
       )*/}
-      {!currentGameStart && <div>No game?</div>}
     </div>
   )
 }
+
