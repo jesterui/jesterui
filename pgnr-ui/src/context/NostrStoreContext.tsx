@@ -1,9 +1,8 @@
-import React, { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
+import React, { createContext, ProviderProps, useEffect } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
-import * as NostrEvents from '../util/nostr/events'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { db } from '../util/db'
+import { NostrEventRef, db } from '../util/db'
 
 interface NostrStoreEntry {
 }
@@ -21,11 +20,19 @@ const NostrStoreProvider = ({ children }: ProviderProps<NostrStoreEntry | undefi
       NIP01.RelayEventType.EVENT,
       (event: CustomEvent<NIP01.RelayMessage>) => {
         if (event.type !== NIP01.RelayEventType.EVENT) return
+
         const req = event.detail as NIP01.RelayEventMessage
         const nostrEvent: NIP01.Event = req[2]
 
+        const targetEventRefs = nostrEvent.tags.filter((t) => t && t[0] === 'e').map((t) => t[1] as NIP01.EventId)
+        const nostrEventRefs: NostrEventRef = {sourceId: nostrEvent.id, targetIds: targetEventRefs}
+
         db.nostr_events.put(nostrEvent)
-          .then((val) => console.debug('adding event', val))
+          .then((val) => {
+            console.debug('added event', val)
+            return db.nostr_event_refs.put(nostrEventRefs)
+              .then((val) => console.debug('added event refs', val))
+          })
           .catch((e) => console.error('error while adding event', e))
       },
       { signal: abortCtrl.signal }

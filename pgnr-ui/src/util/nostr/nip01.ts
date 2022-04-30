@@ -4,7 +4,7 @@ export type Sig = Hex //  <64-bytes signature of the sha256 hash of the serializ
 
 export type Sha256 = Hex
 
-type EventId = Hex
+export type EventId = Sha256
 
 type Timestamp = number
 type CreatedAtTimestamp = Timestamp
