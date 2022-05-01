@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { db, NostrEvent } from '../util/db'
+import { db, NostrEvent } from '../util/nostr_db'
 
 import { useLiveQuery } from 'dexie-react-hooks'
 import CreateGameButton from './CreateGameButton'

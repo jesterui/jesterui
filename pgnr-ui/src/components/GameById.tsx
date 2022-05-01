@@ -6,7 +6,7 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
 import * as Bot from '../util/bot'
-import { db, NostrEvent, NostrEventRef } from '../util/db'
+import { db, NostrEvent, NostrEventRef } from '../util/nostr_db'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
