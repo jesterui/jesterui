@@ -34,7 +34,7 @@ interface GamesFilter {
 
 const createGamesFilter = (now: Date) => {
   const from = new Date(now.getTime() - GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
-  const until = new Date(now.getTime() + GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
+  const until = new Date(now.getTime())
 
   return {
     from: from,
@@ -48,23 +48,20 @@ export default function GamesOverview() {
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
 
-
   const [filter, setFilter] = useState(createGamesFilter(new Date()))
   const [tick, setTick] = useState<number>(Date.now())
   useEffect(() => {
     setFilter(createGamesFilter(new Date()))
   }, [tick])
 
-  const db = useGameStore()
+  const gameStore = useGameStore()
 
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
-      const events = (
-        await db.game_start
-          .where('created_at')
-          .between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
-          .toArray()
-      )
+      const events = await gameStore.game_start
+        .where('created_at')
+        .between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
+        .toArray()
 
       return events
     },

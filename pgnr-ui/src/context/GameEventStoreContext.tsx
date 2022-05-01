@@ -20,7 +20,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
         try {
           const id = await db.game_start.put(entry)
           console.debug(`insert new game_start entry ${id}`)
-        } catch(e) { 
+        } catch (e) {
           throw new Error('Could not insert game_start entry')
         }
       }

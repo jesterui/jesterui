@@ -74,7 +74,7 @@ class NostrEventBufferImpl implements NostrEventBuffer {
   private _state: NostrEventBufferState = {
     latest: null,
     order: [],
-    events: {}
+    events: {},
   }
 
   constructor(copy?: NostrEventBufferState) {
@@ -91,8 +91,7 @@ class NostrEventBufferImpl implements NostrEventBuffer {
     if (!event) throw new Error('Event cannot be added')
 
     const slicedOrder = this._state.order.slice(0, this.maxEvents - 1)
-    const slicedEvents = slicedOrder.map((it) => this._state.events[it])
-      .reduce((acc, obj) => ({ ...acc, ...obj }), {})
+    const slicedEvents = slicedOrder.map((it) => this._state.events[it]).reduce((acc, obj) => ({ ...acc, ...obj }), {})
 
     return new NostrEventBufferImpl({
       latest: { ...event },

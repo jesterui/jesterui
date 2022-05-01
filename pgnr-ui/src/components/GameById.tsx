@@ -6,7 +6,9 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
 import * as Bot from '../util/bot'
-import { db, NostrEvent, NostrEventRef } from '../util/nostr_db'
+import { NostrEvent, NostrEventRef } from '../util/nostr_db'
+import { useNostrStore } from '../context/NostrStoreContext'
+import { useGameStore } from '../context/GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -174,28 +176,6 @@ const GameOverMessage = ({ game }: { game: Game }) => {
   return <>Game over: {`${game.game.turn() === 'b' ? 'White' : 'Black'} won`}</>
 }
 
-const GameEventsDebugDiv = ({ game }: { game: Game }) => {
-  const listOfReferencingEvents = useLiveQuery(
-    async () => {
-      const events = await db.nostr_event_refs.where('targetIds').equals(game.id).toArray()
-
-      return events
-    },
-    [game],
-    [] as NostrEventRef[]
-  )
-
-  return (
-    <>
-      <div className="my-4">
-        {listOfReferencingEvents.map((it) => {
-          return <div key={it.sourceId}>{JSON.stringify(it)}</div>
-        })}
-      </div>
-    </>
-  )
-}
-
 const GameStateMessage = ({ game }: { game: Game }) => {
   if (game.game.game_over()) {
     return <GameOverMessage game={game} />
@@ -222,6 +202,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
+  const gameStore = useGameStore()
+  const nostrStore = useNostrStore()
 
   const [humanReadableError, setHumanReadableError] = useState<string | null>(null)
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
@@ -234,13 +216,13 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   // -----------------------
   const hasReferencingEvents = async (refId: NIP01.EventId) => {
-    return (await db.nostr_event_refs.where('targetIds').equals(refId).limit(1).count()) > 0
+    return (await nostrStore.nostr_event_refs.where('targetIds').equals(refId).limit(1).count()) > 0
   }
 
   const findReferencingEvents = async (refId: NIP01.EventId) => {
-    const eventsRefs = await db.nostr_event_refs.where('targetIds').equals(refId).toArray()
+    const eventsRefs = await nostrStore.nostr_event_refs.where('targetIds').equals(refId).toArray()
 
-    const events = await db.nostr_events
+    const events = await nostrStore.nostr_events
       .where('id')
       .anyOf(eventsRefs.map((it) => it.sourceId))
       .toArray()
@@ -261,9 +243,9 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   const currentGameStart = useLiveQuery(async () => {
     if (!gameId) return
-    const event = await db.nostr_events.get(gameId)
 
-    if (!event || !AppUtils.isStartGameEvent(event)) {
+    const event = await gameStore.game_start.get(gameId)
+    if (!event) {
       return
     }
 
@@ -516,7 +498,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     return <div>Error: GameId not present</div>
   }
 
-  if (isLoading) {
+  if (isLoading && currentGame === null) {
     return <>Loading... (waiting for game data to arrive)</>
   }
 
@@ -537,7 +519,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
       <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
       <div>
-        {isSearchingHead ? (
+        {isLoading || isSearchingHead ? (
           <>
             <div>{`Loading...`}</div>
             <div>
@@ -554,9 +536,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         )}
       </div>
       <div>
-        <BotMoveSuggestions game={isSearchingHead ? null : currentGame} />
+        <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
       </div>
-      <div>{<GameEventsDebugDiv game={currentGame} />}</div>
       {/*currentGameStart && (
         <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
           <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
