@@ -75,8 +75,8 @@ const StyledChessboard = ({
       ...config.movable,
     },
     premovable: {
-      enabled: false, // "premoves" are currently not supported
       ...config.premovable,
+      enabled: false, // "premoves" are currently not supported
     },
     highlight: {
       lastMove: true,

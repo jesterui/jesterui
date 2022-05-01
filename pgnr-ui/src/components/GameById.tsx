@@ -282,25 +282,25 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       return { ...currentGame, game: chessboard }
     })*/
     console.log('WILL SEND THE EVENT VIA NOSTR...')
-    await sendGameStateViaNostr(currentGame, chessboard)
+    try {
+      const event = await sendGameStateViaNostr(chessboard)
+    } catch(e) {
+      console.error(e)
+    }
   }
 
-  const sendGameStateViaNostr = async (currentGame: Game, chessboard: ChessInstance) => {
+  const sendGameStateViaNostr = async (chessboard: ChessInstance) => {
     if (!outgoingNostr) {
-      console.info('Nostr EventBus not ready..')
-      return
+      throw new Error('Nostr EventBus not ready..')
     }
     if (!publicKeyOrNull) {
-      console.info('PubKey not available..')
-      return
+      throw new Error('PubKey not available..')
     }
     if (!privateKeyOrNull) {
-      console.info('PrivKey not available..')
-      return
+      throw new Error('PrivKey not available..')
     }
     if (!currentGameHead || !currentGameStart) {
-      console.info('Game head not available..')
-      return
+      throw new Error('Game head not available..')
     }
 
     const publicKey = publicKeyOrNull!
@@ -325,16 +325,17 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       ['e', currentGameHead.event().id],
     ]
 
-    await new Promise<void>(function (resolve) {
+    return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(async () => {
         try {
           const event = NostrEvents.constructEvent(eventParts)
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-        } finally {
-          resolve()
+          resolve(signedEvent)
+        } catch(e) {
+          reject(e)
         }
-      }, 100)
+      }, 1)
     })
   }
 
@@ -378,8 +379,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   // TODO: maybe do not start the game at "game start", but initialize with latest event?
   useEffect(() => {
-    if (!currentGameHead) return
     if (isSearchingHead) return
+    if (!currentGameHead) return
 
     setCurrentGame((current) => {
       if (!current) return current
