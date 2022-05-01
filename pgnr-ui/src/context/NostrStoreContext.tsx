@@ -1,10 +1,12 @@
-import React, { createContext, ProviderProps, useEffect } from 'react'
+import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { NostrEventRef, db } from '../util/nostr_db'
+import { AppNostrDexie, NostrEventRef, db } from '../util/nostr_db'
 
-interface NostrStoreEntry {}
+interface NostrStoreEntry {
+  db: AppNostrDexie
+}
 
 const NostrStoreContext = createContext<NostrStoreEntry | undefined>(undefined)
 
@@ -50,9 +52,18 @@ const NostrStoreProvider = ({ children }: ProviderProps<NostrStoreEntry | undefi
 
   return (
     <>
-      <NostrStoreContext.Provider value={{}}>{children}</NostrStoreContext.Provider>
+      <NostrStoreContext.Provider value={{ db }}>{children}</NostrStoreContext.Provider>
     </>
   )
 }
 
-export { NostrStoreContext, NostrStoreProvider }
+const useNostrStore = () => {
+  const context = useContext(NostrStoreContext)
+  if (context === undefined) {
+    throw new Error('useNostrStore must be used within a NostrStoreProvider')
+  }
+
+  return context.db
+}
+
+export { NostrStoreContext, NostrStoreProvider, useNostrStore }

@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState, MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { db, NostrEvent } from '../util/nostr_db'
+import { NostrEvent } from '../util/nostr_db'
 
 import { useLiveQuery } from 'dexie-react-hooks'
 import CreateGameButton from './CreateGameButton'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
+import { useGameStore } from '../context/GameEventStoreContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
 
@@ -15,7 +16,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
 
-const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1000 : 5
+const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
 const MIN_UPDATE_IN_SECONDS = 60
 
@@ -47,19 +48,23 @@ export default function GamesOverview() {
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
 
-  const [filter, setFilter] = useState(createGamesFilter(new Date()))
 
-  //const [games, setGames] = useState<GameSummary[]>([])
+  const [filter, setFilter] = useState(createGamesFilter(new Date()))
   const [tick, setTick] = useState<number>(Date.now())
+  useEffect(() => {
+    setFilter(createGamesFilter(new Date()))
+  }, [tick])
+
+  const db = useGameStore()
 
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
       const events = (
-        await db.nostr_events
+        await db.game_start
           .where('created_at')
           .between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
           .toArray()
-      ).filter((event) => AppUtils.isStartGameEvent(event))
+      )
 
       return events
     },
@@ -80,10 +85,6 @@ export default function GamesOverview() {
       abortCtrl.abort()
     }
   }, [])
-
-  useEffect(() => {
-    setFilter(createGamesFilter(new Date()))
-  }, [tick])
 
   // TODO:  can lead to game overview not rendered because of "too many start events"
   /*useEffect(() => {
