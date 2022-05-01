@@ -29,7 +29,8 @@ import * as cg from 'chessground/types'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
-const WAITING_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
+const MIN_LOADING_INDICATOR_DURATION_IN_MS = 1_000
+const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
 
 function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
   const updateGameCallback = (modify: (g: ChessInstance) => void) => {
@@ -184,11 +185,11 @@ const GameStateMessage = ({ game }: { game: Game }) => {
   return <>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>
 }
 
-const LoadingBoard = () => {
+const LoadingBoard = ({ color }: { color: cg.Color }) => {
   const loadingGame = {
     id: 'loading_game',
     game: new Chess.Chess(),
-    color: [],
+    color: [color],
   } as Game
 
   return <div style={{ filter: 'grayscale()' }}>{<BoardContainer game={loadingGame} onGameChanged={() => {}} />}</div>
@@ -484,7 +485,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   useEffect(() => {
     const abortCtrl = new AbortController()
-    const waitDuration = currentGameStart ? 200 : WAITING_DURATION_IN_MS
+    const waitDuration = currentGameStart ? MIN_LOADING_INDICATOR_DURATION_IN_MS : MAX_LOADING_INDICATOR_DURATION_IN_MS
 
     const timer = setTimeout(() => !abortCtrl.signal.aborted && setIsLoading(false), waitDuration)
 
@@ -497,52 +498,53 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   if (!gameId) {
     return <div>Error: GameId not present</div>
   }
-
-  if (isLoading && currentGame === null) {
-    return <>Loading... (waiting for game data to arrive)</>
-  }
-
-  if (currentGame === null) {
-    return (
-      <div>
-        <div>Game not found...</div>
-        <CreateGameButton onGameCreated={onGameCreated} />
-      </div>
-    )
-  }
-
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">
         GameById <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
       </Heading1>
 
-      <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
-      <div>
-        {isLoading || isSearchingHead ? (
-          <>
-            <div>{`Loading...`}</div>
-            <div>
-              <LoadingBoard />
-            </div>
-          </>
-        ) : (
-          <>
-            <div>{<GameStateMessage game={currentGame} />}</div>
-            <div>
-              <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
-            </div>
-          </>
-        )}
-      </div>
-      <div>
-        <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
-      </div>
-      {/*currentGameStart && (
-        <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
-          <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
+      {isLoading && currentGame === null && (<div>Loading... (waiting for game data to arrive)</div>)}
+      {!isLoading && currentGame === null && (
+        <div>
+        <div>Game not found...</div>
+        <CreateGameButton onGameCreated={onGameCreated} />
+      </div>)}
+      {isLoading && currentGame !== null && (<>
+        <div style={{paddingTop: '1.5rem'}}>{`Loading...`}</div>
+        <div>
+          <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
         </div>
+      </>)}
+      {!isLoading && currentGame !== null && (<>
+        <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+        <div>
+          {isSearchingHead ? (
+            <>
+              <div>{`Loading...`}</div>
+              <div>
+                <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>{<GameStateMessage game={currentGame} />}</div>
+              <div>
+                <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
+              </div>
+            </>
+          )}
+        </div>
+        <div>
+          <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
+        </div>
+        {/*currentGameStart && (
+          <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
+            <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
+          </div>
       )*/}
+      </>)}
+      
     </div>
   )
 }
