@@ -18,7 +18,7 @@ import * as NostrEvents from '../util/nostr/events'
 import * as AppUtils from '../util/pgnrui'
 import { getSession } from '../util/session'
 import { PgnruiMove, GameStart, GameMove } from '../util/pgnrui'
-import CreateGameButton from './CreateGameButton'
+import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -179,7 +179,9 @@ const GameOverMessage = ({ game }: { game: Game }) => {
 
 const GameStateMessage = ({ game }: { game: Game }) => {
   if (game.game.game_over()) {
-    return <GameOverMessage game={game} />
+    return (<>
+      <GameOverMessage game={game} />
+    </>)
   }
 
   return <>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>
@@ -231,7 +233,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     return events
   }
 
-  const allGameEvents = useLiveQuery(
+  /*const allGameEvents = useLiveQuery(
     async () => {
       if (!gameId) return []
 
@@ -240,7 +242,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     },
     [gameId, currentGameHead],
     [] as NostrEvent[]
-  )
+  )*/
 
   const currentGameStart = useLiveQuery(async () => {
     if (!gameId) return
@@ -251,6 +253,19 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
 
     return new GameStart(event)
+  }, [gameId])
+
+  useEffect(() => {
+    const previousTitle = document.title
+    if (!gameId) {
+      document.title = `Game ...`
+    } else {
+      document.title = `Game ${AppUtils.gameDisplayName(gameId)}`
+    }
+
+    return () => {
+      document.title = previousTitle
+    }
   }, [gameId])
 
   const newestHeads = useLiveQuery(
@@ -337,13 +352,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         }
       }, 1)
     })
-  }
-
-  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
-    // TODO: this is a hack so we do not need to watch for gameId changes..
-    // please, please please.. try to remove it and immediately
-    // navigate to /game/:gameId
-    navigate(`/redirect/game/${gameId}`)
   }
 
   /**  MOVE UPDATES******************************************************************* */
@@ -502,14 +510,14 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">
-        GameById <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
+        Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
       </Heading1>
 
       {isLoading && currentGame === null && (<div>Loading... (waiting for game data to arrive)</div>)}
       {!isLoading && currentGame === null && (
         <div>
         <div>Game not found...</div>
-        <CreateGameButton onGameCreated={onGameCreated} />
+        <CreateGameAndRedirectButton />
       </div>)}
       {isLoading && currentGame !== null && (<>
         <div style={{paddingTop: '1.5rem'}}>{`Loading...`}</div>
@@ -530,6 +538,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           ) : (
             <>
               <div>{<GameStateMessage game={currentGame} />}</div>
+              <div>{currentGame.game.game_over() && (<CreateGameAndRedirectButton />)}</div>
               <div>
                 <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
               </div>

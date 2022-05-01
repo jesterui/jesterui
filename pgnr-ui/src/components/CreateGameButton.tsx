@@ -6,6 +6,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
 import * as AppUtils from '../util/pgnrui'
+import { useNavigate } from 'react-router-dom'
 
 interface CreateGameButtonProps {
   onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => void
@@ -53,5 +54,23 @@ export default function CreateGameButton({ buttonRef, onGameCreated }: CreateGam
     >
       Start new game
     </button>
+  )
+}
+interface CreateGameAndRedirectButtonProps {
+  buttonRef?: RefObject<HTMLButtonElement>
+}
+
+export function CreateGameAndRedirectButton({ buttonRef }: CreateGameAndRedirectButtonProps) {
+  const navigate = useNavigate()
+
+  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
+    // TODO: this is a hack so we do not need to watch for gameId changes..
+    // please, please please.. try to remove it and immediately
+    // navigate to /game/:gameId
+    navigate(`/redirect/game/${gameId}`)
+  }
+  
+  return (
+    <CreateGameButton buttonRef={buttonRef} onGameCreated={onGameCreated} />
   )
 }
