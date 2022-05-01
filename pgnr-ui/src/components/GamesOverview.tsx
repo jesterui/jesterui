@@ -18,7 +18,7 @@ import Small from '@material-tailwind/react/Small'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
-const MIN_UPDATE_IN_SECONDS = 60
+const MIN_UPDATE_IN_SECONDS = 10
 
 /*
 interface GameSummary {
@@ -34,7 +34,7 @@ interface GamesFilter {
 
 const createGamesFilter = (now: Date) => {
   const from = new Date(now.getTime() - GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
-  const until = new Date(now.getTime())
+  const until = new Date(now.getTime() + GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
 
   return {
     from: from,
@@ -43,16 +43,28 @@ const createGamesFilter = (now: Date) => {
 }
 
 export default function GamesOverview() {
+  const renderedAt = new Date()
   const createGameButtonRef = useRef<HTMLButtonElement>(null)
   const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
-
   const [filter, setFilter] = useState(createGamesFilter(new Date()))
   const [tick, setTick] = useState<number>(Date.now())
   useEffect(() => {
     setFilter(createGamesFilter(new Date()))
   }, [tick])
+
+  useEffect(() => {
+    const abortCtrl = new AbortController()
+    const timer = setInterval(
+      () => !abortCtrl.signal.aborted && setTick((_) => Date.now()),
+      MIN_UPDATE_IN_SECONDS * 1_000
+    )
+    return () => {
+      clearInterval(timer)
+      abortCtrl.abort()
+    }
+  }, [])
 
   const gameStore = useGameStore()
 
@@ -68,20 +80,6 @@ export default function GamesOverview() {
     [filter],
     [] as NostrEvent[]
   )
-
-  const renderedAt = new Date()
-
-  useEffect(() => {
-    const abortCtrl = new AbortController()
-    const timer = setInterval(
-      () => !abortCtrl.signal.aborted && setTick((_) => Date.now()),
-      MIN_UPDATE_IN_SECONDS * 1_000
-    )
-    return () => {
-      clearInterval(timer)
-      abortCtrl.abort()
-    }
-  }, [])
 
   // TODO:  can lead to game overview not rendered because of "too many start events"
   /*useEffect(() => {

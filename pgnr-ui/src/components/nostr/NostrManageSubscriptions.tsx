@@ -16,27 +16,19 @@ export default function NostrManageSubscriptions() {
     if (!outgoingNostr) return
     if (closeSubscriptions.length === 0) return
 
-    const abortCtrl = new AbortController()
-
     closeSubscriptions.forEach((sub) => {
-      outgoingNostr.emit('CLOSE', NIP01.createClientCloseMessage(sub.id))
+      outgoingNostr.emit(NIP01.ClientEventType.CLOSE, NIP01.createClientCloseMessage(sub.id))
     })
 
     setCloseSubscriptions([])
-    return () => abortCtrl.abort()
   }, [closeSubscriptions, outgoingNostr])
 
   useEffect(() => {
     if (!outgoingNostr) return
     if (subscriptions.length === 0) return
-
-    const abortCtrl = new AbortController()
-
     subscriptions.forEach((sub) => {
-      outgoingNostr.emit('REQ', NIP01.createClientReqMessage(sub.id, sub.filters))
+      outgoingNostr.emit(NIP01.ClientEventType.REQ, NIP01.createClientReqMessage(sub.id, sub.filters))
     })
-
-    return () => abortCtrl.abort()
   }, [outgoingNostr, subscriptions])
 
   // initialize subscriptons based on settings

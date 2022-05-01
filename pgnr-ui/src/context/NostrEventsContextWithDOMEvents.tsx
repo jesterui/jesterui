@@ -4,84 +4,51 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
 import { once } from '../util/utils'
-import { Dexie, DexieEvent } from 'dexie'
 
 type WithAbortSignal = {
   signal: AbortSignal
 }
 
-export class IncomingNostrEventBus {
-  private incomingEvent: DexieEvent
-  private incomingNotice: DexieEvent
-
-  constructor() {
-    const events = Dexie.Events(this)
-    this.incomingEvent = events.addEventType(NIP01.RelayEventType.EVENT)
-    this.incomingNotice = events.addEventType(NIP01.RelayEventType.NOTICE)
+export class EventBus<DetailType = any> {
+  private eventTarget: Node
+  constructor(eventTarget: Node) {
+    this.eventTarget = eventTarget
   }
-  _handler(type: NIP01.RelayEventType) {
-    switch(type) {
-      case NIP01.RelayEventType.EVENT: return this.incomingEvent
-      case NIP01.RelayEventType.NOTICE: return this.incomingNotice
-      default: throw new Error(`Cannot handle event type`)
-    }
+  on(type: string, listener: (event: CustomEvent<DetailType>) => void, { signal }: WithAbortSignal) {
+    this.eventTarget.addEventListener(
+      type,
+      (e) => {
+        e.stopPropagation()
+        return listener(e as CustomEvent<DetailType>)
+      },
+      { signal }
+    )
   }
-  on(type: NIP01.RelayEventType, listener: (event: CustomEvent<NIP01.RelayMessage>) => void, { signal }: WithAbortSignal) {
-    const handler = this._handler(type)
-    handler.subscribe(listener)
-    signal.addEventListener('abort', (_) => handler.unsubscribe(listener))
+  once(type: string, listener: (event: CustomEvent<DetailType>) => void, { signal }: WithAbortSignal) {
+    this.eventTarget.addEventListener(
+      type,
+      (e) => {
+        e.stopPropagation()
+        return listener(e as CustomEvent<DetailType>)
+      },
+      { signal, once: true }
+    )
   }
-  
-  emit(type: NIP01.RelayEventType, detail?: NIP01.RelayMessage) {
-    const handler = this._handler(type)
-    return handler.fire(new CustomEvent(type, {
-      bubbles: false,
-      cancelable: false,
-      composed: false,
-      detail,
-    }))
-  }
-}
-
-export class OutgoingNostrEventBus {
-  private outgoingEvent: DexieEvent
-  private outgoingClose: DexieEvent
-  private outgoingReq: DexieEvent
-
-  constructor() {
-    const events = Dexie.Events(this)
-    this.outgoingEvent = events.addEventType(NIP01.ClientEventType.EVENT)
-    this.outgoingClose = events.addEventType(NIP01.ClientEventType.CLOSE)
-    this.outgoingReq = events.addEventType(NIP01.ClientEventType.REQ)
-  }
-  _handler(type: NIP01.ClientEventType) {
-    switch(type) {
-      case NIP01.ClientEventType.EVENT: return this.outgoingEvent
-      case NIP01.ClientEventType.CLOSE: return this.outgoingClose
-      case NIP01.ClientEventType.REQ: return this.outgoingReq
-      default: throw new Error(`Cannot handle event type`)
-    }
-  }
-  on(type: NIP01.ClientEventType, listener: (event: CustomEvent<NIP01.ClientMessage>) => void, { signal }: WithAbortSignal) {
-    const handler = this._handler(type)
-    handler.subscribe(listener)
-    signal.addEventListener('abort', (_) => handler.unsubscribe(listener))
-  }
-  
-  emit(type: NIP01.ClientEventType, detail?: NIP01.ClientMessage) {
-    const handler = this._handler(type)
-    return handler.fire(new CustomEvent(type, {
-      bubbles: false,
-      cancelable: false,
-      composed: false,
-      detail,
-    }))
+  emit(type: string, detail?: DetailType) {
+    return this.eventTarget.dispatchEvent(
+      new CustomEvent(type, {
+        bubbles: false,
+        cancelable: false,
+        composed: false,
+        detail,
+      })
+    )
   }
 }
 
 interface NostrEventsEntry {
-  incoming: IncomingNostrEventBus | null
-  outgoing: OutgoingNostrEventBus | null
+  incoming: EventBus<NIP01.RelayMessage> | null
+  outgoing: EventBus<NIP01.ClientMessage> | null
   incomingBuffer: NostrEventBuffer
 }
 
@@ -136,12 +103,24 @@ class NostrEventBufferImpl implements NostrEventBuffer {
 
 const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
 
+const createEventTarget = <T extends NIP01.RelayMessage | NIP01.ClientMessage>(node: Node) => {
+  return new EventBus<T>(node)
+}
+const createIncoming = (node: Node) => {
+  return createEventTarget<NIP01.RelayMessage>(node)
+}
+const createOutgoing = (node: Node) => {
+  return createEventTarget<NIP01.ClientMessage>(node)
+}
 
 const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | undefined>) => {
   const websocket = useWebsocket()
-  const [incoming, setIncoming] = useState<IncomingNostrEventBus | null>(null)
-  const [outgoing, setOutgoing] = useState<OutgoingNostrEventBus | null>(null)
+  const [incoming, setIncoming] = useState<EventBus<NIP01.RelayMessage> | null>(null)
+  const [outgoing, setOutgoing] = useState<EventBus<NIP01.ClientMessage> | null>(null)
   const [incomingBuffer, setIncomingBuffer] = useState<NostrEventBuffer>(new NostrEventBufferImpl())
+
+  const incomingRef = useRef<HTMLDivElement>(null)
+  const outgoingRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!websocket) {
@@ -160,9 +139,8 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     const abortCtrl = new AbortController()
 
     // hack: use "once" as "StrictMode" will invoke "setState setter" twice - must be prevented otherwise events get emitted twice
-    const setupIncomingEventBus = once<IncomingNostrEventBus>(() => {
-      const newEventBus = new IncomingNostrEventBus()
-
+    const setupIncomingEventBus = once<EventBus<NIP01.RelayMessage>>((current: HTMLDivElement) => {
+      const newEventBus = createIncoming(current)
       websocket.addEventListener(
         'message',
         async (event) => {
@@ -190,12 +168,12 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     })
 
     setIncoming((_) => {
-      return setupIncomingEventBus()
+      return setupIncomingEventBus(incomingRef.current!)
     })
 
     // hack: use "once" as "StrictMode" will invoke "setState setter" twice - must be prevented otherwise events get emitted twice
-    const setupOutgoingEventBus = once<OutgoingNostrEventBus>(() => {
-      const newEventBus = new OutgoingNostrEventBus()
+    const setupOutgoingEventBus = once<EventBus<NIP01.ClientMessage>>((current: HTMLDivElement) => {
+      const newEventBus = createOutgoing(current)
       // Publish from internal event bus to relay via websocket
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
@@ -260,7 +238,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     })
 
     setOutgoing((_) => {
-      return setupOutgoingEventBus()
+      return setupOutgoingEventBus(outgoingRef.current!)
     })
 
     return () => {
@@ -273,6 +251,8 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
 
   return (
     <>
+      <div id="nostr-incoming-events" ref={incomingRef} style={{ display: 'none' }}></div>
+      <div id="nostr-outgoing-events" ref={outgoingRef} style={{ display: 'none' }}></div>
       <NostrEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>
         {children}
       </NostrEventsContext.Provider>
