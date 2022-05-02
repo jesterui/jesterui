@@ -4,8 +4,8 @@ import * as NIP01 from './nostr/nip01'
 export interface NostrEvent extends NIP01.Event {}
 
 export interface NostrEventRef {
-  sourceId: NIP01.Sha256
-  targetIds: NIP01.Sha256[]
+  sourceId: NIP01.EventId
+  targetIds: NIP01.EventId[]
 }
 
 export class AppNostrDexie extends Dexie {

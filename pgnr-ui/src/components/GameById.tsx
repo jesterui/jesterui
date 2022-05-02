@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useCallback, MouseEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
 import * as Bot from '../util/bot'
-import { NostrEvent, NostrEventRef } from '../util/nostr_db'
 import { useNostrStore } from '../context/NostrStoreContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
+import { useIncomingNostrEventsBuffer, useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as AppUtils from '../util/pgnrui'
@@ -26,11 +25,12 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import * as Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
+import { GameMoveEvent } from '../util/app_db'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
 
-const MIN_LOADING_INDICATOR_DURATION_IN_MS = 1_000
-const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 10_000
+const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
+const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
 function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
   const updateGameCallback = (modify: (g: ChessInstance) => void) => {
@@ -179,9 +179,11 @@ const GameOverMessage = ({ game }: { game: Game }) => {
 
 const GameStateMessage = ({ game }: { game: Game }) => {
   if (game.game.game_over()) {
-    return (<>
-      <GameOverMessage game={game} />
-    </>)
+    return (
+      <>
+        <GameOverMessage game={game} />
+      </>
+    )
   }
 
   return <>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>
@@ -201,14 +203,13 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
   const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
 
-  const navigate = useNavigate()
   const outgoingNostr = useOutgoingNostrEvents()
+  const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const gameStore = useGameStore()
   const nostrStore = useNostrStore()
 
-  const [humanReadableError, setHumanReadableError] = useState<string | null>(null)
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
@@ -218,10 +219,14 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   // -----------------------
+  const hasChildMoves = async (gameId: NIP01.EventId, refId: NIP01.EventId) => {
+    //return (await gameStore.game_move.where(['gameId', 'parentMoveId']).equals([gameId, refId]).limit(1).count()) > 0
+    return (await gameStore.game_move.where('parentMoveId').equals(refId).limit(1).count()) > 0
+  }
+  /*
   const hasReferencingEvents = async (refId: NIP01.EventId) => {
     return (await nostrStore.nostr_event_refs.where('targetIds').equals(refId).limit(1).count()) > 0
   }
-
   const findReferencingEvents = async (refId: NIP01.EventId) => {
     const eventsRefs = await nostrStore.nostr_event_refs.where('targetIds').equals(refId).toArray()
 
@@ -232,8 +237,18 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
     return events
   }
+  const findReferencingMoves = async (refId: NIP01.EventId) => {
+    const eventsRefs = await nostrStore.nostr_event_refs.where('targetIds').equals(refId).toArray()
 
-  /*const allGameEvents = useLiveQuery(
+    const events = await nostrStore.nostr_events
+      .where('id')
+      .anyOf(eventsRefs.map((it) => it.sourceId))
+      .toArray()
+
+    return events
+  }
+
+  const allGameEvents = useLiveQuery(
     async () => {
       if (!gameId) return []
 
@@ -243,17 +258,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     [gameId, currentGameHead],
     [] as NostrEvent[]
   )*/
-
-  const currentGameStart = useLiveQuery(async () => {
-    if (!gameId) return
-
-    const event = await gameStore.game_start.get(gameId)
-    if (!event) {
-      return
-    }
-
-    return new GameStart(event)
-  }, [gameId])
 
   useEffect(() => {
     const previousTitle = document.title
@@ -268,16 +272,108 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     }
   }, [gameId])
 
+  /********************** SUBSCRIBE TO GAME */
+
+  /*useEffect(() => {
+    if (!gameId) return
+
+    const newCurrentGameFilter = AppUtils.createGameFilterByGameId(gameId) must be single item
+
+    const currentSubs = settings.subscriptions || []
+    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)[0]
+
+    // this is soo stupid..
+    const currentGameFilterJson = JSON.stringify(newCurrentGameFilters)
+    const containsCurrentGameFilter =
+      currentSubFilters.filter((it) => JSON.stringify(it) === currentGameFilterJson).length > 0
+
+    if (!containsCurrentGameFilter) {
+      // TODO: Replace with "updateSubscriptionSettings"
+      settingsDispatch({
+        ...settings,
+        subscriptions: [
+          {
+            id: 'my-sub',
+            filters: [...currentSubFilters, newCurrentGameFilters],
+          },
+        ],
+      } as AppSettings)
+    }
+  }, [gameId, settings, settingsDispatch])*/
+  useEffect(() => {
+    if (!gameId) return
+
+    const newCurrentGameFilters = AppUtils.createGameFilterByGameId(gameId)
+    const newCurrentGameFilterJson = newCurrentGameFilters.map((it) => JSON.stringify(it))
+
+    const currentSubs = settings.subscriptions || []
+    const currentMySub = currentSubs.filter((it) => it.id === 'my-sub')
+    const currentMySubFilters = currentMySub.length === 0 ? [] : currentMySub[0].filters
+    const currentMySubFiltersJson = currentMySubFilters.map((it) => JSON.stringify(it))
+
+    // this is soo stupid..
+    const containsCurrentGameFilters =
+      newCurrentGameFilterJson.filter((it) => {
+        return currentMySubFiltersJson.includes(it)
+      }).length === newCurrentGameFilterJson.length
+
+    console.log(containsCurrentGameFilters)
+    if (!containsCurrentGameFilters) {
+      // TODO: Replace with "updateSubscriptionSettings"
+      settingsDispatch({
+        ...settings,
+        subscriptions: [
+          {
+            id: 'my-sub',
+            filters: [...currentMySubFilters, ...newCurrentGameFilters],
+          },
+        ],
+      } as AppSettings)
+    }
+  }, [gameId, settings, settingsDispatch])
+  /********************** SUBS CRIBE TO GAME - end */
+
+  const currentGameStart = useLiveQuery(async () => {
+    if (!gameId) return
+
+    const event = await gameStore.game_start.get(gameId)
+    if (!event) {
+      return
+    }
+
+    return new GameStart(event)
+  }, [gameId])
+
+  const currentGameMoves = useLiveQuery(
+    async () => {
+      if (!gameId) return []
+
+      const events = await gameStore.game_move.where('gameId').equals(gameId).sortBy('moveCounter')
+      return events
+    },
+    [gameId, incomingNostrBuffer],
+    [] as GameMoveEvent[]
+  )
+
+  /*const currentGameStart = useLiveQuery(async () => {
+    const events = currentGameMoves.filter((move) => move.moveCounter === 1)
+    if (events.length === 0) return
+    return new GameStart(events[0])
+  }, [currentGameMoves])*/
+
   const newestHeads = useLiveQuery(
     async () => {
       if (!currentGameHead) return []
 
       const currentHeadId = currentGameHead.event().id
-      const events = await findReferencingEvents(currentHeadId)
+      const searchParentMoveId = currentGameHead.isStart() ? null : currentHeadId
+      const events = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
+      //const events = await findReferencingMoves(currentHeadId)
+      console.log(`FOUND HEADS FOR ${currentHeadId} ` + events.length)
       return events
     },
-    [currentGameHead],
-    [] as NostrEvent[]
+    [currentGameHead, currentGameMoves],
+    [] as GameMoveEvent[]
   )
 
   //------------------------
@@ -299,7 +395,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     console.log('WILL SEND THE EVENT VIA NOSTR...')
     try {
       const event = await sendGameStateViaNostr(chessboard)
-    } catch(e) {
+    } catch (e) {
       console.error(e)
     }
   }
@@ -325,19 +421,21 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const latestMove = (history && history[history.length - 1]) || null
     console.log('[]: ', latestMove)
 
+    // TODO: move to AppUtils
     const eventParts = NostrEvents.blankEvent()
-    eventParts.kind = 1 // text_note
+    eventParts.kind = NIP01.KindEnum.EventTextNote
     eventParts.pubkey = publicKey
     eventParts.created_at = Math.floor(Date.now() / 1000)
     eventParts.content = JSON.stringify({
       version: '0',
+      kind: AppUtils.KindEnum.Move,
       fen: chessboard.fen(),
       move: latestMove,
       history: history,
     })
     eventParts.tags = [
-      ['e', currentGameStart.event().id],
-      ['e', currentGameHead.event().id],
+      [NIP01.TagEnum.e, currentGameStart.event().id],
+      [NIP01.TagEnum.e, currentGameHead.event().id],
     ]
 
     return await new Promise<NIP01.Event>(function (resolve, reject) {
@@ -347,7 +445,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
-        } catch(e) {
+        } catch (e) {
           reject(e)
         }
       }, 1)
@@ -403,34 +501,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       return { ...current, game: newGame }
     })
   }, [isSearchingHead, currentGameHead])
-  /********************** */
-
-  useEffect(() => {
-    if (!currentGameStart) return
-
-    const currentGameFilter = AppUtils.createGameFilter(currentGameStart)
-
-    const currentSubs = settings.subscriptions || []
-    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)[0]
-
-    // this is soo stupid..
-    const currentGameFilterJson = JSON.stringify(currentGameFilter)
-    const containsCurrentGameFilter =
-      currentSubFilters.filter((it) => JSON.stringify(it) === currentGameFilterJson).length > 0
-
-    if (!containsCurrentGameFilter) {
-      // TODO: Replace with "updateSubscriptionSettings"
-      settingsDispatch({
-        ...settings,
-        subscriptions: [
-          {
-            id: 'my-sub',
-            filters: [...currentSubFilters, currentGameFilter],
-          },
-        ],
-      } as AppSettings)
-    }
-  }, [currentGameStart, settings, settingsDispatch])
 
   const findNewHead = useCallback(
     (currentGameStart: AppUtils.GameStart, currentHead: AppUtils.PgnruiMove | null): AppUtils.PgnruiMove => {
@@ -477,15 +547,19 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const abortCtrl = new AbortController()
     const newHead = findNewHead(currentGameStart, currentGameHead)
 
-    hasReferencingEvents(newHead.event().id)
+    setCurrentGameHead(newHead)
+
+    const searchParentMoveId = newHead.isStart() ? null : newHead.event().id
+    const children = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
+    setIsSearchingHead(children.length > 0)
+    /*hasChildMoves(currentGameStart.event().id, newHead.event().id)
       .then((newHeadHasChildren) => {
         if (abortCtrl.signal.aborted) return
 
         setCurrentGameHead(newHead)
-        //const newHeadHasChildren = children.length !== 0
         setIsSearchingHead(newHeadHasChildren)
       })
-      .catch((e) => console.error(e))
+      .catch((e) => console.error(e))*/
 
     return () => {
       abortCtrl.abort()
@@ -513,48 +587,63 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
       </Heading1>
 
-      {isLoading && currentGame === null && (<div>Loading... (waiting for game data to arrive)</div>)}
+      {
+        <>
+          <div>{`isLoading: ${isLoading}`}</div>
+          <div>{`isSearchingHead: ${isSearchingHead}`}</div>
+          <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
+          <div>{`Moves: ${currentGameMoves.length}`}</div>
+          <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
+        </>
+      }
+
+      {isLoading && currentGame === null && <div>Loading... (waiting for game data to arrive)</div>}
       {!isLoading && currentGame === null && (
         <div>
-        <div>Game not found...</div>
-        <CreateGameAndRedirectButton />
-      </div>)}
-      {isLoading && currentGame !== null && (<>
-        <div style={{paddingTop: '1.5rem'}}>{`Loading...`}</div>
-        <div>
-          <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+          <div>Game not found...</div>
+          <CreateGameAndRedirectButton />
         </div>
-      </>)}
-      {!isLoading && currentGame !== null && (<>
-        <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
-        <div>
-          {isSearchingHead ? (
-            <>
-              <div>{`Loading...`}</div>
-              <div>
-                <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
-              </div>
-            </>
-          ) : (
-            <>
-              <div>{<GameStateMessage game={currentGame} />}</div>
-              <div>{currentGame.game.game_over() && (<CreateGameAndRedirectButton />)}</div>
-              <div>
-                <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
-              </div>
-            </>
-          )}
-        </div>
-        <div>
-          <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
-        </div>
-        {/*currentGameStart && (
-          <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
-            <pre>{JSON.stringify(currentGameStart.event(), null, 2)}</pre>
+      )}
+      {isLoading && currentGame !== null && (
+        <>
+          <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+          <div>{`Loading...`}</div>
+          <div>
+            <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
           </div>
-      )*/}
-      </>)}
-      
+        </>
+      )}
+      {!isLoading && currentGame !== null && (
+        <>
+          <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+          <div>
+            {isSearchingHead ? (
+              <>
+                <div>{`Loading...`}</div>
+                <div>
+                  <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>{<GameStateMessage game={currentGame} />}</div>
+                <div>{currentGame.game.game_over() && <CreateGameAndRedirectButton />}</div>
+                <div>
+                  <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
+                </div>
+              </>
+            )}
+          </div>
+          <div>
+            <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
+          </div>
+          {/*currentGameMoves && (
+          <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
+            <pre>{JSON.stringify(currentGameMoves, null, 2)}</pre>
+          </div>
+        )*/}
+        </>
+      )}
     </div>
   )
 }

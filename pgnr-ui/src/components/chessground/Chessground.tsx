@@ -49,6 +49,7 @@ const StyledChessboard = ({
 }) => {
   const [validMoves, setValidMoves] = useState<Map<cg.Key, cg.Key[]>>(new Map())
   const [lastMove, setLastMove] = useState<CgKeyPair | null>(null)
+  const [chessgroundConfig, setChessgroundConfig] = useState<Partial<CgConfig>>({} as Partial<CgConfig>)
 
   useEffect(() => {
     console.debug('[Chess] Recalculating valid moves.. ')
@@ -61,29 +62,31 @@ const StyledChessboard = ({
     setLastMove(newLastMove)
   }, [game])
 
-  // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
-  const chessgroundConfig = {
-    fen: game.fen(),
-    turnColor: game.turn() === 'b' ? 'black' : 'white', // turn to play. white | black
-    viewOnly: userColor.length === 0 || game.game_over(), // don't bind events: the user will never be able to move pieces around
-    lastMove: lastMove,
-    ...config,
-    movable: {
-      color: moveableColorProp(userColor),
-      dests: config.movable?.dests || validMoves,
-      free: false,
-      ...config.movable,
-    },
-    premovable: {
-      ...config.premovable,
-      enabled: false, // "premoves" are currently not supported
-    },
-    highlight: {
-      lastMove: true,
-      check: true,
-      ...config.highlight,
-    },
-  } as Partial<CgConfig>
+  useEffect(() => {
+    // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
+    setChessgroundConfig({
+      fen: game.fen(),
+      turnColor: game.turn() === 'b' ? 'black' : 'white', // turn to play. white | black
+      viewOnly: userColor.length === 0 || game.game_over(), // don't bind events: the user will never be able to move pieces around
+      lastMove: lastMove,
+      ...config,
+      movable: {
+        color: moveableColorProp(userColor),
+        dests: config.movable?.dests || validMoves,
+        free: false,
+        ...config.movable,
+      },
+      premovable: {
+        ...config.premovable,
+        enabled: false, // "premoves" are currently not supported
+      },
+      highlight: {
+        lastMove: true,
+        check: true,
+        ...config.highlight,
+      },
+    } as Partial<CgConfig>)
+  }, [game, lastMove, validMoves, config, userColor])
 
   return (
     <>

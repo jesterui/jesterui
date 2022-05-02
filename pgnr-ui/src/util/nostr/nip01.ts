@@ -9,7 +9,18 @@ export type EventId = Sha256
 type Timestamp = number
 type CreatedAtTimestamp = Timestamp
 
+export enum TagEnum {
+  e = 'e',
+  p = 'p',
+}
+
 type TagType = 'e' | 'p' | string
+
+export enum KindEnum {
+  EventSetMetadata = 0,
+  EventTextNote = 1,
+  EventRecommendServer = 2,
+}
 
 // EVENT Types
 // 0: set_metadata: the content is set to a stringified JSON object {name: <string>, about: <string>, picture: <url, string>} describing the user who created the event. A relay may delete past set_metadata events once it gets a new one for the same pubkey.

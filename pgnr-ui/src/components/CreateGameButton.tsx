@@ -69,8 +69,6 @@ export function CreateGameAndRedirectButton({ buttonRef }: CreateGameAndRedirect
     // navigate to /game/:gameId
     navigate(`/redirect/game/${gameId}`)
   }
-  
-  return (
-    <CreateGameButton buttonRef={buttonRef} onGameCreated={onGameCreated} />
-  )
+
+  return <CreateGameButton buttonRef={buttonRef} onGameCreated={onGameCreated} />
 }

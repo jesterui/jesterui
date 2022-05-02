@@ -4,7 +4,9 @@ import * as NIP01 from './nostr/nip01'
 export interface GameStartEvent extends NIP01.Event {}
 
 export interface GameMoveEvent extends NIP01.Event {
-  gameId: NIP01.Sha256
+  gameId: NIP01.EventId
+  moveCounter: number
+  parentMoveId: NIP01.EventId | null
 }
 
 export class AppDexie extends Dexie {
@@ -15,7 +17,7 @@ export class AppDexie extends Dexie {
     super('app_game_events')
     this.version(1).stores({
       game_start: '&id, pubkey, created_at',
-      game_move: '&id, gameId',
+      game_move: '&id, gameId, parentMoveId, moveCounter',
     })
   }
 }

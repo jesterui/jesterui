@@ -12,11 +12,12 @@ export const PGNRUI_START_GAME_FILTER: NIP01.Filter = {
   '#e': [PGNRUI_START_GAME_E_REF],
 }
 
-enum Kind {
+export enum KindEnum {
   Start = 0,
+  Move = 1,
 }
 
-interface PgnProtoContent {
+export interface PgnProtoContent {
   version: '0'
   fen: string
   move: string
@@ -149,8 +150,8 @@ export class GameMove extends AbstractGameMove {
 
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
-  eventParts.kind = 1 // text_note
-  eventParts.tags = [['e', PGNRUI_START_GAME_E_REF]]
+  eventParts.kind = NIP01.KindEnum.EventTextNote
+  eventParts.tags = [[NIP01.TagEnum.e, PGNRUI_START_GAME_E_REF]]
   return eventParts
 })()
 
@@ -160,7 +161,7 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
     created_at: Math.floor(Date.now() / 1000),
     content: JSON.stringify({
       version: '0',
-      kind: Kind.Start,
+      kind: KindEnum.Start,
       history: [],
       nonce: bytesToHex(randomBytes(4)),
     }),
@@ -181,20 +182,43 @@ export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   return (
     !!event &&
-    event.kind === 1 &&
-    arrayEquals(event.tags, [['e', PGNRUI_START_GAME_E_REF]]) &&
+    event.kind === NIP01.KindEnum.EventTextNote &&
+    arrayEquals(event.tags, [[NIP01.TagEnum.e, PGNRUI_START_GAME_E_REF]]) &&
     json &&
-    json.kind === Kind.Start &&
+    json.kind === KindEnum.Start &&
     arrayEquals(json.history, [])
   )
 }
-
-export const createGameFilter = (gameStart: GameStart): NIP01.Filter => {
-  return {
-    '#e': [gameStart.event().id],
-  }
+export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
+  const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
+  return (
+    !!event &&
+    // must be a text note
+    event.kind === NIP01.KindEnum.EventTextNote &&
+    json &&
+    json.kind === KindEnum.Move &&
+    Array.isArray(json.history) &&
+    json.history.length > 0 &&
+    // it must refer to at least two other events (start_event, previous_move)
+    event.tags.filter((t) => t[0] === NIP01.TagEnum.e).length === 2
+  )
 }
 
-export const gameDisplayNameShort = (gameId: NIP01.Sha256, length = 5) => gameId.substring(0, length)
-export const gameDisplayName = (gameId: NIP01.Sha256, length = 8) => gameId.substring(0, length)
-export const pubKeyDisplayName = (pubKey: NIP01.Sha256, length = 8) => pubKey.substring(0, length)
+export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] => {
+  return [
+    {
+      ids: [gameId],
+    },
+    {
+      '#e': [gameId],
+    },
+  ]
+}
+
+export const createGameFilter = (gameStart: GameStart): NIP01.Filter[] => {
+  return createGameFilterByGameId(gameStart.event().id)
+}
+
+export const gameDisplayNameShort = (gameId: NIP01.EventId, length = 5) => gameId.substring(0, length)
+export const gameDisplayName = (gameId: NIP01.EventId, length = 8) => gameId.substring(0, length)
+export const pubKeyDisplayName = (pubKey: NIP01.PubKey, length = 8) => pubKey.substring(0, length)

@@ -20,26 +20,35 @@ export class IncomingNostrEventBus {
     this.incomingNotice = events.addEventType(NIP01.RelayEventType.NOTICE)
   }
   _handler(type: NIP01.RelayEventType) {
-    switch(type) {
-      case NIP01.RelayEventType.EVENT: return this.incomingEvent
-      case NIP01.RelayEventType.NOTICE: return this.incomingNotice
-      default: throw new Error(`Cannot handle event type`)
+    switch (type) {
+      case NIP01.RelayEventType.EVENT:
+        return this.incomingEvent
+      case NIP01.RelayEventType.NOTICE:
+        return this.incomingNotice
+      default:
+        throw new Error(`Cannot handle event type`)
     }
   }
-  on(type: NIP01.RelayEventType, listener: (event: CustomEvent<NIP01.RelayMessage>) => void, { signal }: WithAbortSignal) {
+  on(
+    type: NIP01.RelayEventType,
+    listener: (event: CustomEvent<NIP01.RelayMessage>) => void,
+    { signal }: WithAbortSignal
+  ) {
     const handler = this._handler(type)
     handler.subscribe(listener)
     signal.addEventListener('abort', (_) => handler.unsubscribe(listener))
   }
-  
+
   emit(type: NIP01.RelayEventType, detail?: NIP01.RelayMessage) {
     const handler = this._handler(type)
-    return handler.fire(new CustomEvent(type, {
-      bubbles: false,
-      cancelable: false,
-      composed: false,
-      detail,
-    }))
+    return handler.fire(
+      new CustomEvent(type, {
+        bubbles: false,
+        cancelable: false,
+        composed: false,
+        detail,
+      })
+    )
   }
 }
 
@@ -55,27 +64,37 @@ export class OutgoingNostrEventBus {
     this.outgoingReq = events.addEventType(NIP01.ClientEventType.REQ)
   }
   _handler(type: NIP01.ClientEventType) {
-    switch(type) {
-      case NIP01.ClientEventType.EVENT: return this.outgoingEvent
-      case NIP01.ClientEventType.CLOSE: return this.outgoingClose
-      case NIP01.ClientEventType.REQ: return this.outgoingReq
-      default: throw new Error(`Cannot handle event type`)
+    switch (type) {
+      case NIP01.ClientEventType.EVENT:
+        return this.outgoingEvent
+      case NIP01.ClientEventType.CLOSE:
+        return this.outgoingClose
+      case NIP01.ClientEventType.REQ:
+        return this.outgoingReq
+      default:
+        throw new Error(`Cannot handle event type`)
     }
   }
-  on(type: NIP01.ClientEventType, listener: (event: CustomEvent<NIP01.ClientMessage>) => void, { signal }: WithAbortSignal) {
+  on(
+    type: NIP01.ClientEventType,
+    listener: (event: CustomEvent<NIP01.ClientMessage>) => void,
+    { signal }: WithAbortSignal
+  ) {
     const handler = this._handler(type)
     handler.subscribe(listener)
     signal.addEventListener('abort', (_) => handler.unsubscribe(listener))
   }
-  
+
   emit(type: NIP01.ClientEventType, detail?: NIP01.ClientMessage) {
     const handler = this._handler(type)
-    return handler.fire(new CustomEvent(type, {
-      bubbles: false,
-      cancelable: false,
-      composed: false,
-      detail,
-    }))
+    return handler.fire(
+      new CustomEvent(type, {
+        bubbles: false,
+        cancelable: false,
+        composed: false,
+        detail,
+      })
+    )
   }
 }
 
@@ -135,7 +154,6 @@ class NostrEventBufferImpl implements NostrEventBuffer {
 }
 
 const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
-
 
 const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | undefined>) => {
   const websocket = useWebsocket()
