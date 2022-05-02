@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, MouseEvent } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Game } from '../context/GamesContext'
@@ -33,22 +33,22 @@ const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
 function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
-  const updateGameCallback = (modify: (g: ChessInstance) => void) => {
+  const updateGameCallback = useCallback((modify: (g: ChessInstance) => void) => {
     console.debug('[Chess] updateGameCallback invoked')
     const copyOfGame = { ...game.game }
     modify(copyOfGame)
     onGameChanged(copyOfGame)
-  }
+  }, [game, onGameChanged])
 
   return (
     <>
       <div>
         <div style={{ width: 400, height: 400 }}>
-          {game && <Chessboard game={game!.game} userColor={game!.color} onAfterMoveFinished={updateGameCallback} />}
+          {<Chessboard game={game.game} userColor={game.color} onAfterMoveFinished={updateGameCallback} />}
         </div>
         {false && game && (
           <div className="pl-2 overflow-y-scroll">
-            <PgnTable game={game!.game} />
+            <PgnTable game={game.game} />
           </div>
         )}
       </div>
@@ -190,13 +190,14 @@ const GameStateMessage = ({ game }: { game: Game }) => {
 }
 
 const LoadingBoard = ({ color }: { color: cg.Color }) => {
-  const loadingGame = {
+  const onGameChanged = useCallback(() => {}, [])
+  const loadingGame = useCallback(() => ({
     id: 'loading_game',
     game: new Chess.Chess(),
     color: [color],
-  } as Game
+  } as Game), [color])
 
-  return <div style={{ filter: 'grayscale()' }}>{<BoardContainer game={loadingGame} onGameChanged={() => {}} />}</div>
+  return <div style={{ filter: 'grayscale()' }}>{<BoardContainer game={loadingGame()} onGameChanged={onGameChanged} />}</div>
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -597,42 +598,48 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         </>
       }
 
-      {isLoading && currentGame === null && <div>Loading... (waiting for game data to arrive)</div>}
       {!isLoading && currentGame === null && (
         <div>
           <div>Game not found...</div>
           <CreateGameAndRedirectButton />
         </div>
       )}
-      {isLoading && currentGame !== null && (
-        <>
+      {isLoading && (<>
+        {currentGame === null ? (<>
+          <div style={{paddingTop: '1.5rem'}}>Loading... (waiting for game data to arrive)</div>
+        </>) : (<>
           <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
           <div>{`Loading...`}</div>
+        </>)}
           <div>
-            <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+            <LoadingBoard color={currentGame && currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
           </div>
-        </>
-      )}
-      {!isLoading && currentGame !== null && (
-        <>
+      </>)}
+      {currentGame !== null && (
+        <div style={{display: !isLoading ? 'block' : 'none'}}>
           <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
           <div>
-            {isSearchingHead ? (
               <>
-                <div>{`Loading...`}</div>
-                <div>
-                  <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+              {isSearchingHead && (
+                <>
+                  <div>{`Loading...`}</div>
+                </>
+              )}
+              {!isSearchingHead && (
+                <>
+                  <div>{<GameStateMessage game={currentGame} />}</div>
+                  <div>{currentGame.game.game_over() && <CreateGameAndRedirectButton />}</div>
+                </>
+              )}
+              {(<>
+                <div style={{ display: isSearchingHead ? 'block' : 'none'}}>
+                    <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
                 </div>
-              </>
-            ) : (
-              <>
-                <div>{<GameStateMessage game={currentGame} />}</div>
-                <div>{currentGame.game.game_over() && <CreateGameAndRedirectButton />}</div>
-                <div>
-                  <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
+                <div style={{ display: !isSearchingHead ? 'block' : 'none'}}>
+                    <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
                 </div>
-              </>
-            )}
+              </>)}
+            </>
           </div>
           <div>
             <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
@@ -642,7 +649,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
             <pre>{JSON.stringify(currentGameMoves, null, 2)}</pre>
           </div>
         )*/}
-        </>
+        </div>
       )}
     </div>
   )

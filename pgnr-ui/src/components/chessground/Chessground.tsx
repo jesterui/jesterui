@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import Chessground from '@react-chess/chessground'
 import * as cg from 'chessground/types'
 import { Config as CgConfig } from 'chessground/config'
@@ -103,7 +103,9 @@ export default function Chessboard({
   game: ChessInstance
   userColor: MoveableColor
 } & { onAfterMoveFinished: (fn: (g: ChessInstance) => void) => void }) {
-  const onAfter = (orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => {
+  const [chessgroundConfig, setChessgroundConfig] = useState<Partial<CgConfig>>({} as Partial<CgConfig>)
+
+  const onAfter = useCallback((orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => {
     onAfterMoveFinished((g: ChessInstance) => {
       g.move({
         from: orig as Square,
@@ -111,29 +113,34 @@ export default function Chessboard({
         promotion: 'q', // always promote to a queen for example simplicity
       })
     })
-  }
+  }, [onAfterMoveFinished])
+
+  useEffect(() => {
+    // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
+    setChessgroundConfig({
+      orientation: userColor.length === 1 ? userColor[0] : 'white',
+      movable: {
+        events: {
+          after: onAfter, // called after the move has been played
+        },
+      },
+      events: {
+        change: () => {}, // called after the situation changes on the board
+        // called after a piece has been moved.
+        // capturedPiece is undefined or like {color: 'white'; 'role': 'queen'}
+        move: (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => {},
+        dropNewPiece: (piece: cg.Piece, key: cg.Key) => {},
+        select: (key: cg.Key) => {}, // called when a square is selected
+        insert: (elements: cg.Elements) => {}, // when the board DOM has been (re)inserted
+      },
+    } as Partial<CgConfig>)
+  }, [userColor, onAfter])
 
   return (
     <StyledChessboard
       game={game}
       userColor={userColor}
-      config={{
-        orientation: userColor.length === 1 ? userColor[0] : 'white',
-        movable: {
-          events: {
-            after: onAfter, // called after the move has been played
-          },
-        },
-        events: {
-          change: () => {}, // called after the situation changes on the board
-          // called after a piece has been moved.
-          // capturedPiece is undefined or like {color: 'white'; 'role': 'queen'}
-          move: (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => {},
-          dropNewPiece: (piece: cg.Piece, key: cg.Key) => {},
-          select: (key: cg.Key) => {}, // called when a square is selected
-          insert: (elements: cg.Elements) => {}, // when the board DOM has been (re)inserted
-        },
-      }}
+      config={chessgroundConfig}
     />
   )
 }
