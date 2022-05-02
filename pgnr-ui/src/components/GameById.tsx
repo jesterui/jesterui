@@ -10,7 +10,7 @@ import { useNostrStore } from '../context/NostrStoreContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { AppSettings, Subscription, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useIncomingNostrEventsBuffer, useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -275,62 +275,41 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   /********************** SUBSCRIBE TO GAME */
 
-  /*useEffect(() => {
-    if (!gameId) return
-
-    const newCurrentGameFilter = AppUtils.createGameFilterByGameId(gameId) must be single item
+  const updateSubscription = useCallback((sub: Subscription) => {
+    const newSubsFilterJson = sub.filters.map((it) => JSON.stringify(it))
 
     const currentSubs = settings.subscriptions || []
-    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)[0]
+    const currentSub = currentSubs.filter((it) => it.id === sub.id)
+    const currentSubFilters = currentSub.length === 0 ? [] : currentSub[0].filters
+    const currentSubFiltersJson = currentSubFilters.map((it) => JSON.stringify(it))
 
     // this is soo stupid..
-    const currentGameFilterJson = JSON.stringify(newCurrentGameFilters)
-    const containsCurrentGameFilter =
-      currentSubFilters.filter((it) => JSON.stringify(it) === currentGameFilterJson).length > 0
+    const containsNewsSubFilters =
+      newSubsFilterJson.filter((it) => {
+        return currentSubFiltersJson.includes(it)
+      }).length === currentSubFiltersJson.length
 
-    if (!containsCurrentGameFilter) {
-      // TODO: Replace with "updateSubscriptionSettings"
-      settingsDispatch({
-        ...settings,
-        subscriptions: [
-          {
-            id: 'my-sub',
-            filters: [...currentSubFilters, newCurrentGameFilters],
-          },
-        ],
-      } as AppSettings)
+    if (!containsNewsSubFilters) {
+      const formerSubsWithoutNewSub = (settings.subscriptions || []).filter((it) => it.id !== sub.id)
+      if (sub.filters.length > 0) {
+        console.log(`[Nostr/Subscriptions] update ${sub.id} filter`, sub)
+        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub, sub] } as AppSettings)
+      } else {
+        console.log(`[Nostr/Subscriptions] remove ${sub.id} filter`, sub)
+        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub]} as AppSettings)
+      }
     }
-  }, [gameId, settings, settingsDispatch])*/
+  }, [settings, settingsDispatch])
+
   useEffect(() => {
     if (!gameId) return
 
     const newCurrentGameFilters = AppUtils.createGameFilterByGameId(gameId)
-    const newCurrentGameFilterJson = newCurrentGameFilters.map((it) => JSON.stringify(it))
 
-    const currentSubs = settings.subscriptions || []
-    const currentMySub = currentSubs.filter((it) => it.id === 'my-sub')
-    const currentMySubFilters = currentMySub.length === 0 ? [] : currentMySub[0].filters
-    const currentMySubFiltersJson = currentMySubFilters.map((it) => JSON.stringify(it))
-
-    // this is soo stupid..
-    const containsCurrentGameFilters =
-      newCurrentGameFilterJson.filter((it) => {
-        return currentMySubFiltersJson.includes(it)
-      }).length === newCurrentGameFilterJson.length
-
-    console.log(containsCurrentGameFilters)
-    if (!containsCurrentGameFilters) {
-      // TODO: Replace with "updateSubscriptionSettings"
-      settingsDispatch({
-        ...settings,
-        subscriptions: [
-          {
-            id: 'my-sub',
-            filters: [...currentMySubFilters, ...newCurrentGameFilters],
-          },
-        ],
-      } as AppSettings)
-    }
+    updateSubscription({
+      id: 'current_game',
+      filters: newCurrentGameFilters
+    })
   }, [gameId, settings, settingsDispatch])
   /********************** SUBS CRIBE TO GAME - end */
 

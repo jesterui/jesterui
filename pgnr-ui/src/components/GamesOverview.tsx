@@ -81,32 +81,6 @@ export default function GamesOverview() {
     [] as NostrEvent[]
   )
 
-  // TODO:  can lead to game overview not rendered because of "too many start events"
-  /*useEffect(() => {
-    const abortCtrl = new AbortController()
-    const timer = setTimeout(() => {
-      if (abortCtrl.signal.aborted) return
-      const bufferState = incomingNostrBuffer.state()
-
-      // TODO: defer here... should not iterate over all events everytime..
-      const orderedGameStartedEvents = bufferState.order
-        .map((eventId) => bufferState.events[eventId])
-        .filter((event) => AppUtils.isStartGameEvent(event))
-        .map((event) => ({
-          event,
-          refCount: bufferState.refs[event.id].length,
-          createdAt: new Date(event.created_at * 1_000),
-        }))
-
-      setGames(orderedGameStartedEvents)
-    }, 10)
-
-    return () => {
-      abortCtrl.abort()
-      clearTimeout(timer)
-    }
-  }, [incomingNostrBuffer])*/
-
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
     if (e.nativeEvent.isTrusted) {
       navigate(`/game/${gameId}`)

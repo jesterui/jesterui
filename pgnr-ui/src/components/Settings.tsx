@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
-import { AppSettings, useSettings, useSettingsDispatch, createSinceFilterValue } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch, createSinceFilterValue, Subscription } from '../context/SettingsContext'
 import * as Nostr from '../util/nostr/identity'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
@@ -301,6 +301,30 @@ export default function Settings() {
     setSelectedBot(selectedBot)
     settingsDispatch({ botName: bot?.name || null } as AppSettings)
   }
+  
+  const updateSubscription = useCallback((sub: Subscription) => {
+    const newSubsFilterJson = sub.filters.map((it) => JSON.stringify(it))
+
+    const currentSubs = settings.subscriptions || []
+    const currentSub = currentSubs.filter((it) => it.id === sub.id)
+    const currentSubFilters = currentSub.length === 0 ? [] : currentSub[0].filters
+    const currentSubFiltersJson = currentSubFilters.map((it) => JSON.stringify(it))
+
+    // this is soo stupid..
+    const containsNewsSubFilters =
+      newSubsFilterJson.filter((it) => {
+        return currentSubFiltersJson.includes(it)
+      }).length === currentSubFiltersJson.length
+
+    if (!containsNewsSubFilters) {
+      const formerSubsWithoutNewSub = (settings.subscriptions || []).filter((it) => it.id !== sub.id)
+      if (sub.filters.length > 0) {
+        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub, sub] } as AppSettings)
+      } else {
+        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub]} as AppSettings)
+      }
+    }
+  }, [settings, settingsDispatch])
 
   useEffect(() => {
     const since = createSinceFilterValue()
@@ -309,6 +333,15 @@ export default function Settings() {
       ...AppUtils.PGNRUI_START_GAME_FILTER,
       since: since,
     }
+    updateSubscription({
+      id: 'game_start',
+      filters: [filterStartEvents]
+    })
+
+  }, [updateSubscription])
+
+  useEffect(() => {
+    const since = createSinceFilterValue()
 
     const filterForOwnTestEvents: NIP01.Filter[] =
       publicKeyOrNull === null
@@ -320,26 +353,11 @@ export default function Settings() {
               '#e': [TEST_MESSAGE_REF],
             },
           ]
-
-    const currentSubs = settings.subscriptions || []
-    const currentSubFilters = currentSubs.filter((it) => it.id === 'my-sub').map((it) => it.filters)[0]
-
-    const newFilters = [...filterForOwnTestEvents, filterStartEvents]
-    const changed = JSON.stringify(currentSubFilters) !== JSON.stringify(newFilters)
-
-    // TODO: this is so stupid..
-    if (changed) {
-      // TODO:  Replace with "updateSubscriptionSettings"
-      settingsDispatch({
-        subscriptions: [
-          {
-            id: 'my-sub',
-            filters: newFilters,
-          },
-        ],
-      } as AppSettings)
-    }
-  }, [publicKeyOrNull, settingsDispatch])
+    updateSubscription({
+      id: 'debug',
+      filters: filterForOwnTestEvents
+    })
+  }, [publicKeyOrNull, updateSubscription])
 
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)

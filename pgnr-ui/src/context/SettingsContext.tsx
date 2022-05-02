@@ -51,7 +51,7 @@ const initialSettings: AppSettings = {
   ],
   subscriptions: [
     {
-      id: 'my-sub',
+      id: 'game_start',
       filters: [
         {
           ...AppUtils.PGNRUI_START_GAME_FILTER,
