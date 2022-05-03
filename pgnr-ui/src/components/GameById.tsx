@@ -26,21 +26,25 @@ import { ChessInstance } from '../components/ChessJsTypes'
 import { GameMoveEvent } from '../util/app_db'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
-
-type Game = {
-  id: NIP01.EventId
-  game: ChessInstance
-  color: MovebleColor
-}
+const MOVE_COLOR_NONE: MovebleColor = []
+const MOVE_COLOR_WHITE: MovebleColor = ['white']
+const MOVE_COLOR_BLACK: MovebleColor = ['black']
+// const MOVE_COLOR_BOTH: MovebleColor = ['white', 'black']
 
 const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
-function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
+interface BoardContainerProps {
+  game: ChessInstance
+  color: MovebleColor
+  onGameChanged: (game: ChessInstance) => void
+}
+
+function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
-      const copyOfGame = { ...game.game }
+      const copyOfGame = { ...game }
       modify(copyOfGame)
       onGameChanged(copyOfGame)
     },
@@ -51,11 +55,11 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
     <>
       <div>
         <div style={{ width: 400, height: 400 }}>
-          {<Chessboard game={game.game} userColor={game.color} onAfterMoveFinished={updateGameCallback} />}
+          {<Chessboard game={game} userColor={color} onAfterMoveFinished={updateGameCallback} />}
         </div>
         {false && game && (
           <div className="pl-2 overflow-y-scroll">
-            <PgnTable game={game.game} />
+            <PgnTable game={game} />
           </div>
         )}
       </div>
@@ -63,7 +67,7 @@ function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (g
   )
 }
 
-const BotMoveSuggestions = ({ game }: { game: Game | null }) => {
+const BotMoveSuggestions = ({ game }: { game: ChessInstance | null }) => {
   const settings = useSettings()
 
   const [selectedBot] = useState<SelectedBot>(
@@ -82,17 +86,17 @@ const BotMoveSuggestions = ({ game }: { game: Game | null }) => {
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
   const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
   const [move, setMove] = useState<Bot.ShortMove | null>(null)
-  const [gameOver, setGameOver] = useState<boolean>(game?.game.game_over() || false)
+  const [gameOver, setGameOver] = useState<boolean>(game?.game_over() || false)
 
   useEffect(() => {
     if (game === null) return
 
-    if (game.game.game_over()) {
+    if (game.game_over()) {
       setGameOver(true)
       return
     }
 
-    const currentFen = game.game.fen()
+    const currentFen = game.fen()
     setThinkingFens((currentFens) => {
       if (currentFens[currentFens.length - 1] === currentFen) {
         return currentFens
@@ -162,30 +166,30 @@ const BotMoveSuggestions = ({ game }: { game: Game | null }) => {
   )
 }
 
-const GameOverMessage = ({ game }: { game: Game }) => {
-  if (!game.game.game_over()) {
+const GameOverMessage = ({ game }: { game: ChessInstance }) => {
+  if (!game.game_over()) {
     return <></>
   }
 
-  if (game.game.in_stalemate()) {
+  if (game.in_stalemate()) {
     return <>Game over: Draw by stalemate!</>
   }
-  if (game.game.in_threefold_repetition()) {
+  if (game.in_threefold_repetition()) {
     return <>Game over: Draw by threefold repetition!</>
   }
-  if (game.game.insufficient_material()) {
+  if (game.insufficient_material()) {
     return <>Game over: Draw by insufficient material!</>
   }
 
-  if (game.game.in_draw()) {
+  if (game.in_draw()) {
     return <>Game over: Draw!</>
   }
 
-  return <>Game over: {`${game.game.turn() === 'b' ? 'White' : 'Black'} won`}</>
+  return <>Game over: {`${game.turn() === 'b' ? 'White' : 'Black'} won`}</>
 }
 
-const GameStateMessage = ({ game }: { game: Game }) => {
-  if (game.game.game_over()) {
+const GameStateMessage = ({ game }: { game: ChessInstance }) => {
+  if (game.game_over()) {
     return (
       <>
         <GameOverMessage game={game} />
@@ -193,23 +197,17 @@ const GameStateMessage = ({ game }: { game: Game }) => {
     )
   }
 
-  return <>{`${game.game.turn() === 'b' ? 'black' : 'white'}`} to move</>
+  return <>{`${game.turn() === 'b' ? 'black' : 'white'}`} to move</>
 }
 
-const LoadingBoard = ({ color }: { color: cg.Color }) => {
+const LoadingBoard = ({ color }: { color: MovebleColor }) => {
+  const [game] = useState<ChessInstance>(new Chess.Chess())
   const onGameChanged = useCallback(() => {}, [])
-  const loadingGame = useCallback(
-    () =>
-      ({
-        id: 'loading_game',
-        game: new Chess.Chess(),
-        color: [color],
-      } as Game),
-    [color]
-  )
 
   return (
-    <div style={{ filter: 'grayscale()' }}>{<BoardContainer game={loadingGame()} onGameChanged={onGameChanged} />}</div>
+    <div style={{ filter: 'grayscale()' }}>
+      {<BoardContainer game={game} color={color} onGameChanged={onGameChanged} />}
+    </div>
   )
 }
 
@@ -222,7 +220,9 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const settingsDispatch = useSettingsDispatch()
   const gameStore = useGameStore()
 
-  const [currentGame, setCurrentGame] = useState<Game | null>(null)
+  //const [currentGame, setCurrentGame] = useState<Game | null>(null)
+  //const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance>(new Chess.Chess())
+  const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
 
@@ -279,7 +279,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     [] as GameMoveEvent[]
   )
 
-  const newestHeads = useLiveQuery(
+  /*const newestHeads = useLiveQuery(
     async () => {
       if (!currentGameHead) return []
 
@@ -291,7 +291,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     },
     [currentGameHead, currentGameMoves],
     [] as GameMoveEvent[]
-  )
+  )*/
 
   //------------------------
 
@@ -299,7 +299,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const onChessboardChanged = async (chessboard: ChessInstance) => {
-    if (!currentGame) return
+    if (!currentChessInstance) return
 
     try {
       await sendGameStateViaNostr(chessboard)
@@ -360,43 +360,60 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     })
   }
 
+  const [color, setColor] = useState<MovebleColor>(MOVE_COLOR_NONE)
+  useEffect(() => {
+    setColor((_) => {
+      if (currentGameStart && privateKeyOrNull !== null && publicKeyOrNull !== null) {
+        if (publicKeyOrNull === currentGameStart.event().pubkey) {
+          //if (process.env.NODE_ENV === 'development') {
+          //  return MOVE_COLOR_BOTH
+          //}
+          return MOVE_COLOR_WHITE
+        } else {
+          return MOVE_COLOR_BLACK
+        }
+      }
+
+      return MOVE_COLOR_NONE
+    })
+  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
+
   /**  MOVE UPDATES******************************************************************* */
-  const color = useCallback(() => {
-    let color: MovebleColor = []
+  /*const color = useCallback(() => {
+    let color: MovebleColor = MOVE_COLOR_NONE
     if (!currentGameStart || privateKeyOrNull === null || publicKeyOrNull === null) {
-      color = []
+      color = MOVE_COLOR_NONE
     } else {
       if (publicKeyOrNull === currentGameStart.event().pubkey) {
-        color = ['white']
+        color = MOVE_COLOR_WHITE
       } else {
-        color = ['black']
+        color = MOVE_COLOR_BLACK
       }
     }
-    /*if (process.env.NODE_ENV === 'development') {
-      color =  ['white', 'black']
-    }*/
+    //*if (process.env.NODE_ENV === 'development') {
+    //  color =  ['white', 'black']
+    //}
     return color
-  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
+  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])*/
 
   useEffect(() => {
     if (!currentGameStart) {
-      setCurrentGame(null)
+      setCurrentChessInstance(null)
       return
     }
 
-    setCurrentGame((_) => ({
-      id: currentGameStart.event().id, // TODO should the game hold the hole event?
-      game: new Chess.Chess(),
-      color: color(),
-    }))
-  }, [currentGameStart, color])
+    console.log('NEW2d')
+
+    setCurrentChessInstance(new Chess.Chess())
+    setCurrentGameHead(null)
+  }, [currentGameStart])
 
   // TODO: maybe do not start the game at "game start", but initialize with latest event?
   useEffect(() => {
     if (isSearchingHead) return
     if (!currentGameHead) return
 
-    setCurrentGame((current) => {
+    setCurrentChessInstance((current) => {
       if (!current) return current
 
       // TODO: does the "game" really need to change, or can you just do:
@@ -406,7 +423,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       const loaded = newGame.load_pgn(currentGameHead.pgn())
       console.log('LOADED NEW GAME STATE FROM PGN', loaded, currentGameHead.pgn())
 
-      return { ...current, game: newGame }
+      return newGame
     })
   }, [isSearchingHead, currentGameHead])
 
@@ -419,7 +436,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       const currentHeadId = currentHead.event().id
 
       console.log(`Start gathering events referencing current head event ${currentHeadId}`)
-      const successors = newestHeads
+      const searchParentMoveId = currentHead.isStart() ? null : currentHeadId
+      const successors = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
 
       if (successors.length === 0) {
         console.log('Search for current head is over, a head without children has been found.')
@@ -444,7 +462,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         return currentHead
       }
     },
-    [newestHeads]
+    [currentGameMoves]
   )
 
   useEffect(() => {
@@ -489,15 +507,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
       {
         <>
+          <div>{`gameId: ${gameId}`}</div>
+          <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
+          <div>{`Moves: ${currentGameMoves.length}`}</div>
           <div>{`isLoading: ${isLoading}`}</div>
           <div>{`isSearchingHead: ${isSearchingHead}`}</div>
           <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
-          <div>{`Moves: ${currentGameMoves.length}`}</div>
-          <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
         </>
       }
 
-      {!isLoading && currentGame === null && (
+      {!isLoading && currentChessInstance === null && (
         <div>
           <div>Game not found...</div>
           <CreateGameAndRedirectButton />
@@ -505,24 +524,24 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       )}
       {isLoading && (
         <>
-          {currentGame === null ? (
+          {currentChessInstance === null ? (
             <>
               <div style={{ paddingTop: '1.5rem' }}>Loading... (waiting for game data to arrive)</div>
             </>
           ) : (
             <>
-              <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+              <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
               <div>{`Loading...`}</div>
             </>
           )}
           <div>
-            <LoadingBoard color={currentGame && currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+            <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
           </div>
         </>
       )}
-      {currentGame !== null && (
+      {currentChessInstance !== null && (
         <div style={{ display: !isLoading ? 'block' : 'none' }}>
-          <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+          <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
           <div>
             <>
               {isSearchingHead && (
@@ -532,24 +551,24 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
               )}
               {!isSearchingHead && (
                 <>
-                  <div>{<GameStateMessage game={currentGame} />}</div>
-                  <div>{currentGame.game.game_over() && <CreateGameAndRedirectButton />}</div>
+                  <div>{<GameStateMessage game={currentChessInstance} />}</div>
+                  <div>{currentChessInstance.game_over() && <CreateGameAndRedirectButton />}</div>
                 </>
               )}
               {
                 <>
                   <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
-                    <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
+                    <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
                   </div>
                   <div style={{ display: !isSearchingHead ? 'block' : 'none' }}>
-                    <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
+                    <BoardContainer game={currentChessInstance} color={color} onGameChanged={onChessboardChanged} />
                   </div>
                 </>
               }
             </>
           </div>
           <div>
-            <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentGame} />
+            <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
           </div>
           {/*currentGameMoves && (
           <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
