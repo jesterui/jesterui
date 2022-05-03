@@ -14,7 +14,7 @@ export interface AppSettings {
   dev: boolean
   relays: Relay[]
   identity?: Identity
-  botName: string | null,
+  botName: string | null
   currentGameId?: NIP01.EventId
 }
 

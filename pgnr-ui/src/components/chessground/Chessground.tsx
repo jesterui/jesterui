@@ -105,15 +105,18 @@ export default function Chessboard({
 } & { onAfterMoveFinished: (fn: (g: ChessInstance) => void) => void }) {
   const [chessgroundConfig, setChessgroundConfig] = useState<Partial<CgConfig>>({} as Partial<CgConfig>)
 
-  const onAfter = useCallback((orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => {
-    onAfterMoveFinished((g: ChessInstance) => {
-      g.move({
-        from: orig as Square,
-        to: dest as Square,
-        promotion: 'q', // always promote to a queen for example simplicity
+  const onAfter = useCallback(
+    (orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => {
+      onAfterMoveFinished((g: ChessInstance) => {
+        g.move({
+          from: orig as Square,
+          to: dest as Square,
+          promotion: 'q', // always promote to a queen for example simplicity
+        })
       })
-    })
-  }, [onAfterMoveFinished])
+    },
+    [onAfterMoveFinished]
+  )
 
   useEffect(() => {
     // For config, see: https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
@@ -136,11 +139,5 @@ export default function Chessboard({
     } as Partial<CgConfig>)
   }, [userColor, onAfter])
 
-  return (
-    <StyledChessboard
-      game={game}
-      userColor={userColor}
-      config={chessgroundConfig}
-    />
-  )
+  return <StyledChessboard game={game} userColor={userColor} config={chessgroundConfig} />
 }

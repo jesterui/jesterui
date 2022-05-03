@@ -5,12 +5,11 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
 import * as Bot from '../util/bot'
-import { useNostrStore } from '../context/NostrStoreContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { useIncomingNostrEventsBuffer, useOutgoingNostrEvents } from '../context/NostrEventsContext'
+import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as AppUtils from '../util/pgnrui'
@@ -38,12 +37,15 @@ const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
 function BoardContainer({ game, onGameChanged }: { game: Game; onGameChanged: (game: ChessInstance) => void }) {
-  const updateGameCallback = useCallback((modify: (g: ChessInstance) => void) => {
-    console.debug('[Chess] updateGameCallback invoked')
-    const copyOfGame = { ...game.game }
-    modify(copyOfGame)
-    onGameChanged(copyOfGame)
-  }, [game, onGameChanged])
+  const updateGameCallback = useCallback(
+    (modify: (g: ChessInstance) => void) => {
+      console.debug('[Chess] updateGameCallback invoked')
+      const copyOfGame = { ...game.game }
+      modify(copyOfGame)
+      onGameChanged(copyOfGame)
+    },
+    [game, onGameChanged]
+  )
 
   return (
     <>
@@ -196,13 +198,19 @@ const GameStateMessage = ({ game }: { game: Game }) => {
 
 const LoadingBoard = ({ color }: { color: cg.Color }) => {
   const onGameChanged = useCallback(() => {}, [])
-  const loadingGame = useCallback(() => ({
-    id: 'loading_game',
-    game: new Chess.Chess(),
-    color: [color],
-  } as Game), [color])
+  const loadingGame = useCallback(
+    () =>
+      ({
+        id: 'loading_game',
+        game: new Chess.Chess(),
+        color: [color],
+      } as Game),
+    [color]
+  )
 
-  return <div style={{ filter: 'grayscale()' }}>{<BoardContainer game={loadingGame()} onGameChanged={onGameChanged} />}</div>
+  return (
+    <div style={{ filter: 'grayscale()' }}>{<BoardContainer game={loadingGame()} onGameChanged={onGameChanged} />}</div>
+  )
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -210,11 +218,9 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
 
   const outgoingNostr = useOutgoingNostrEvents()
-  const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const gameStore = useGameStore()
-  const nostrStore = useNostrStore()
 
   const [currentGame, setCurrentGame] = useState<Game | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
@@ -223,47 +229,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
   const [isLoading, setIsLoading] = useState<boolean>(true)
-
-  // -----------------------
-  const hasChildMoves = async (gameId: NIP01.EventId, refId: NIP01.EventId) => {
-    //return (await gameStore.game_move.where(['gameId', 'parentMoveId']).equals([gameId, refId]).limit(1).count()) > 0
-    return (await gameStore.game_move.where('parentMoveId').equals(refId).limit(1).count()) > 0
-  }
-  /*
-  const hasReferencingEvents = async (refId: NIP01.EventId) => {
-    return (await nostrStore.nostr_event_refs.where('targetIds').equals(refId).limit(1).count()) > 0
-  }
-  const findReferencingEvents = async (refId: NIP01.EventId) => {
-    const eventsRefs = await nostrStore.nostr_event_refs.where('targetIds').equals(refId).toArray()
-
-    const events = await nostrStore.nostr_events
-      .where('id')
-      .anyOf(eventsRefs.map((it) => it.sourceId))
-      .toArray()
-
-    return events
-  }
-  const findReferencingMoves = async (refId: NIP01.EventId) => {
-    const eventsRefs = await nostrStore.nostr_event_refs.where('targetIds').equals(refId).toArray()
-
-    const events = await nostrStore.nostr_events
-      .where('id')
-      .anyOf(eventsRefs.map((it) => it.sourceId))
-      .toArray()
-
-    return events
-  }
-
-  const allGameEvents = useLiveQuery(
-    async () => {
-      if (!gameId) return []
-
-      const events = await findReferencingEvents(gameId)
-      return events
-    },
-    [gameId, currentGameHead],
-    [] as NostrEvent[]
-  )*/
 
   useEffect(() => {
     const previousTitle = document.title
@@ -310,7 +275,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       const events = await gameStore.game_move.where('gameId').equals(gameId).sortBy('moveCounter')
       return events
     },
-    [gameId, incomingNostrBuffer],
+    [gameId],
     [] as GameMoveEvent[]
   )
 
@@ -334,19 +299,10 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const onChessboardChanged = async (chessboard: ChessInstance) => {
-    if (!currentGame) return null
+    if (!currentGame) return
 
-    // TODO: Should we additionally set the game here?
-    // leaning towards no.. leads to waiting time before
-    // the move is made for the event via nostr to return..
-    // but better than to be in an inconsitent state...
-    /*setCurrentGame((currentGame) => {
-      if (!currentGame) return null
-      return { ...currentGame, game: chessboard }
-    })*/
-    console.log('WILL SEND THE EVENT VIA NOSTR...')
     try {
-      const event = await sendGameStateViaNostr(chessboard)
+      await sendGameStateViaNostr(chessboard)
     } catch (e) {
       console.error(e)
     }
@@ -508,7 +464,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     return () => {
       abortCtrl.abort()
     }
-  }, [currentGameStart, currentGameHead, findNewHead])
+  }, [currentGameStart, currentGameMoves, currentGameHead, findNewHead])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
@@ -547,22 +503,28 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           <CreateGameAndRedirectButton />
         </div>
       )}
-      {isLoading && (<>
-        {currentGame === null ? (<>
-          <div style={{paddingTop: '1.5rem'}}>Loading... (waiting for game data to arrive)</div>
-        </>) : (<>
-          <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
-          <div>{`Loading...`}</div>
-        </>)}
+      {isLoading && (
+        <>
+          {currentGame === null ? (
+            <>
+              <div style={{ paddingTop: '1.5rem' }}>Loading... (waiting for game data to arrive)</div>
+            </>
+          ) : (
+            <>
+              <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
+              <div>{`Loading...`}</div>
+            </>
+          )}
           <div>
             <LoadingBoard color={currentGame && currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
           </div>
-      </>)}
+        </>
+      )}
       {currentGame !== null && (
-        <div style={{display: !isLoading ? 'block' : 'none'}}>
+        <div style={{ display: !isLoading ? 'block' : 'none' }}>
           <div>{`You are ${currentGame.color.length === 0 ? 'in watch-only mode' : currentGame.color}`}</div>
           <div>
-              <>
+            <>
               {isSearchingHead && (
                 <>
                   <div>{`Loading...`}</div>
@@ -574,14 +536,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
                   <div>{currentGame.game.game_over() && <CreateGameAndRedirectButton />}</div>
                 </>
               )}
-              {(<>
-                <div style={{ display: isSearchingHead ? 'block' : 'none'}}>
+              {
+                <>
+                  <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
                     <LoadingBoard color={currentGame.color.length === 1 ? currentGame.color[0] : 'white'} />
-                </div>
-                <div style={{ display: !isSearchingHead ? 'block' : 'none'}}>
+                  </div>
+                  <div style={{ display: !isSearchingHead ? 'block' : 'none' }}>
                     <BoardContainer game={currentGame} onGameChanged={onChessboardChanged} />
-                </div>
-              </>)}
+                  </div>
+                </>
+              }
             </>
           </div>
           <div>

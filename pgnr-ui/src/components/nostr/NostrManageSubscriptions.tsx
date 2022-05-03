@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { useSettings,  } from '../../context/SettingsContext'
+import { useSettings } from '../../context/SettingsContext'
 import { useUpdateSubscription } from '../../context/NostrSubscriptionsContext'
 import * as NIP01 from '../../util/nostr/nip01'
 import * as AppUtils from '../../util/pgnrui'
@@ -29,25 +29,26 @@ export default function NostrManageSubscriptions() {
   const settings = useSettings()
   const updateSubscription = useUpdateSubscription()
 
-  const [gameStartFilters] = useState<NIP01.Filter[]>([{
-        ...AppUtils.PGNRUI_START_GAME_FILTER,
-        since: createSinceFilterValue(),
-      },
-    ])
+  const [gameStartFilters] = useState<NIP01.Filter[]>([
+    {
+      ...AppUtils.PGNRUI_START_GAME_FILTER,
+      since: createSinceFilterValue(),
+    },
+  ])
 
   const [currentGameFilters, setCurrentGameFilters] = useState<NIP01.Filter[]>([])
 
   useEffect(() => {
     updateSubscription({
       id: 'game_start',
-      filters: gameStartFilters
+      filters: gameStartFilters,
     })
   }, [gameStartFilters, updateSubscription])
 
   useEffect(() => {
     updateSubscription({
       id: 'current_game',
-      filters: currentGameFilters
+      filters: currentGameFilters,
     })
   }, [currentGameFilters, updateSubscription])
 
@@ -59,5 +60,5 @@ export default function NostrManageSubscriptions() {
     }
   }, [settings])
 
-  return (<></>)
+  return <></>
 }

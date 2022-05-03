@@ -11,7 +11,6 @@ import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import * as AppUtils from '../util/pgnrui'
 import * as Bot from '../util/bot'
 
 // @ts-ignore
@@ -64,23 +63,25 @@ function TestNostrConnectionButton() {
     const since = Math.round(Date.now() / 1_000)
 
     const filterForOwnTestEvents: NIP01.Filter[] =
-      publicKeyOrNull !== null ? [
+      publicKeyOrNull !== null
+        ? [
             {
               authors: [publicKeyOrNull],
               since: since,
               '#e': [TEST_MESSAGE_REF],
             },
-          ] : []
+          ]
+        : []
 
     updateSubscription({
       id: 'dev_debug',
-      filters: filterForOwnTestEvents
+      filters: filterForOwnTestEvents,
     })
 
     return () => {
       updateSubscription({
         id: 'dev_debug',
-        filters: []
+        filters: [],
       })
     }
   }, [publicKeyOrNull, updateSubscription])
@@ -309,8 +310,6 @@ export default function Settings() {
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
-
   const [selectedBot, setSelectedBot] = useState<SelectedBot>(
     (() => {
       if (settings.botName && Bot.Bots[settings.botName]) {
@@ -333,7 +332,6 @@ export default function Settings() {
     const index = settings.relays.indexOf(relay, 0)
     const shouldAdd = index === -1
     if (shouldAdd) {
-      // TODO: For multiple release do: settingsDispatch({ ...settings, relays: [relay, ...settings.relays] })
       settingsDispatch({ relays: [relay] } as AppSettings)
     } else {
       const newVal = [...settings.relays]
@@ -362,7 +360,7 @@ export default function Settings() {
         disabled={false}
       />
 
-{/*
+      {/*
       <Heading2 color="blueGray">Subscriptions</Heading2>
       <div>
         <pre>{`${JSON.stringify(settings.subscriptions, null, 2)}`}</pre>
