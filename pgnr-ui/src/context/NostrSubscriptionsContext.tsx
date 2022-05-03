@@ -1,6 +1,4 @@
 import React, { createContext, useCallback, useEffect, useState, useContext, ProviderProps } from 'react'
-
-
 import { useOutgoingNostrEvents } from './NostrEventsContext'
 
 import * as NIP01 from '../util/nostr/nip01'
@@ -105,30 +103,7 @@ const NostrSubscriptionsProvider = ({ children }: ProviderProps<NostrSubscriptio
 
       setSubscriptionsUpdate(EMPTY_UPDATE)
     }, [outgoingNostr, subscriptionsUpdate])
-  
-    /*const updateSubscription = useCallback((sub: Subscription) => {
-        const newSubsFilterJson = sub.filters.map((it) => JSON.stringify(it))
-    
-        const currentSubs = settings.subscriptions || []
-        const currentSub = currentSubs.filter((it) => it.id === sub.id)
-        const currentSubFilters = currentSub.length === 0 ? [] : currentSub[0].filters
-        const currentSubFiltersJson = currentSubFilters.map((it) => JSON.stringify(it))
-    
-        // this is soo stupid..
-        const containsNewsSubFilters =
-          newSubsFilterJson.filter((it) => {
-            return currentSubFiltersJson.includes(it)
-          }).length === currentSubFiltersJson.length
-    
-        if (!containsNewsSubFilters) {
-          const formerSubsWithoutNewSub = (settings.subscriptions || []).filter((it) => it.id !== sub.id)
-          if (sub.filters.length > 0) {
-            settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub, sub] } as AppSettings)
-          } else {
-            settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub]} as AppSettings)
-          }
-        }
-      }, [subscriptions])*/
+
 
   return <NostrSubscriptionsContext.Provider value={{ updateSubscription }}>{children}</NostrSubscriptionsContext.Provider>
 }

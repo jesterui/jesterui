@@ -10,7 +10,7 @@ import { useNostrStore } from '../context/NostrStoreContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { AppSettings, Subscription, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useIncomingNostrEventsBuffer, useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -309,12 +309,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     [] as GameMoveEvent[]
   )
 
-  /*const currentGameStart = useLiveQuery(async () => {
-    const events = currentGameMoves.filter((move) => move.moveCounter === 1)
-    if (events.length === 0) return
-    return new GameStart(events[0])
-  }, [currentGameMoves])*/
-
   const newestHeads = useLiveQuery(
     async () => {
       if (!currentGameHead) return []
@@ -322,7 +316,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       const currentHeadId = currentGameHead.event().id
       const searchParentMoveId = currentGameHead.isStart() ? null : currentHeadId
       const events = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
-      //const events = await findReferencingMoves(currentHeadId)
       console.log(`FOUND HEADS FOR ${currentHeadId} ` + events.length)
       return events
     },
@@ -506,14 +499,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const searchParentMoveId = newHead.isStart() ? null : newHead.event().id
     const children = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
     setIsSearchingHead(children.length > 0)
-    /*hasChildMoves(currentGameStart.event().id, newHead.event().id)
-      .then((newHeadHasChildren) => {
-        if (abortCtrl.signal.aborted) return
-
-        setCurrentGameHead(newHead)
-        setIsSearchingHead(newHeadHasChildren)
-      })
-      .catch((e) => console.error(e))*/
 
     return () => {
       abortCtrl.abort()

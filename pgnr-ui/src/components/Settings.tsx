@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
-import { AppSettings, useSettings, useSettingsDispatch, createSinceFilterValue, Subscription } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import * as Nostr from '../util/nostr/identity'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
@@ -328,63 +328,6 @@ export default function Settings() {
     setSelectedBot(selectedBot)
     settingsDispatch({ botName: bot?.name || null } as AppSettings)
   }
-  
-  const updateSubscription = useCallback((sub: Subscription) => {
-    const newSubsFilterJson = sub.filters.map((it) => JSON.stringify(it))
-
-    const currentSubs = settings.subscriptions || []
-    const currentSub = currentSubs.filter((it) => it.id === sub.id)
-    const currentSubFilters = currentSub.length === 0 ? [] : currentSub[0].filters
-    const currentSubFiltersJson = currentSubFilters.map((it) => JSON.stringify(it))
-
-    // this is soo stupid..
-    const containsNewsSubFilters =
-      newSubsFilterJson.filter((it) => {
-        return currentSubFiltersJson.includes(it)
-      }).length === currentSubFiltersJson.length
-
-    if (!containsNewsSubFilters) {
-      const formerSubsWithoutNewSub = (settings.subscriptions || []).filter((it) => it.id !== sub.id)
-      if (sub.filters.length > 0) {
-        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub, sub] } as AppSettings)
-      } else {
-        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub]} as AppSettings)
-      }
-    }
-  }, [settings, settingsDispatch])
-
-  useEffect(() => {
-    const since = createSinceFilterValue()
-
-    const filterStartEvents: NIP01.Filter = {
-      ...AppUtils.PGNRUI_START_GAME_FILTER,
-      since: since,
-    }
-    updateSubscription({
-      id: 'game_start',
-      filters: [filterStartEvents]
-    })
-
-  }, [updateSubscription])
-
-  useEffect(() => {
-    const since = createSinceFilterValue()
-
-    const filterForOwnTestEvents: NIP01.Filter[] =
-      publicKeyOrNull === null
-        ? []
-        : [
-            {
-              authors: [publicKeyOrNull],
-              since: since,
-              '#e': [TEST_MESSAGE_REF],
-            },
-          ]
-    updateSubscription({
-      id: 'debug',
-      filters: filterForOwnTestEvents
-    })
-  }, [publicKeyOrNull, updateSubscription])
 
   const onRelayClicked = (relay: string) => {
     const index = settings.relays.indexOf(relay, 0)
@@ -419,11 +362,12 @@ export default function Settings() {
         disabled={false}
       />
 
+{/*
       <Heading2 color="blueGray">Subscriptions</Heading2>
       <div>
         <pre>{`${JSON.stringify(settings.subscriptions, null, 2)}`}</pre>
       </div>
-
+  */}
       <Heading2 color="blueGray">Relays</Heading2>
       <div className="pb-4">
         <div className="pb-1">
