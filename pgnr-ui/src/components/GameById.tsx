@@ -374,88 +374,84 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   useEffect(() => {
     if (!currentGameStart) {
       setCurrentChessInstance(null)
+      setCurrentGameHead(null)
       return
     }
 
     setCurrentChessInstance(new Chess.Chess())
-    setCurrentGameHead(null)
+    setCurrentGameHead(currentGameStart)
   }, [currentGameStart])
 
-  // TODO: maybe do not start the game at "game start", but initialize with latest event?
   useEffect(() => {
     if (isSearchingHead) return
     if (!currentGameHead) return
 
-    setCurrentChessInstance((current) => {
-      if (!current) return current
-
+    setCurrentChessInstance((_) => {
       // TODO: does the "game" really need to change, or can you just do:
       // current.game.load_pgn(history.join('\n'))
       // without returning a copy?
       const newGame = new Chess.Chess()
-      const loaded = newGame.load_pgn(currentGameHead.pgn())
-      console.log('LOADED NEW GAME STATE FROM PGN', loaded, currentGameHead.pgn())
+      if (currentGameHead.isStart()) {
+        return newGame
+      } else {
+        const pgn = currentGameHead.pgn()
+        const loaded = newGame.load_pgn(pgn)
+        if (!loaded) {
+          // should not happen as currentGameHead contains a valid pgn
+          throw new Error(`Cannot load new game state from pgn: ${pgn}`)
+        }
 
-      return newGame
+        console.info('loaded new game state from pgn', pgn)
+        return newGame
+      }
     })
   }, [isSearchingHead, currentGameHead])
 
-  const findNewHead = useCallback(
-    (currentGameStart: AppUtils.GameStart, currentHead: AppUtils.PgnruiMove | null): AppUtils.PgnruiMove => {
-      if (!currentHead) {
-        return currentGameStart
-      }
+  const findChildren = useCallback((move: AppUtils.PgnruiMove, moves: GameMoveEvent[]) => {
+    const searchParentMoveId = move.isStart() ? null : move.event().id
+    return moves.filter((move) => move.parentMoveId === searchParentMoveId)
+  }, [])
 
-      const currentHeadId = currentHead.event().id
+  const findNextHead = useCallback(
+    (currentHead: AppUtils.PgnruiMove, moves: GameMoveEvent[]): AppUtils.PgnruiMove => {
+      const children = findChildren(currentHead, moves)
 
-      console.log(`Start gathering events referencing current head event ${currentHeadId}`)
-      const searchParentMoveId = currentHead.isStart() ? null : currentHeadId
-      const successors = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
-
-      if (successors.length === 0) {
-        console.log('Search for current head is over, a head without children has been found.')
+      if (children.length === 0) {
         return currentHead
-      }
-
-      successors.sort((a, b) => b.created_at - a.created_at)
-
-      console.log(`Found ${successors.length} events referencing the current event...`)
-
-      const earliestArrivingChild = successors[successors.length - 1]
-      if (earliestArrivingChild.id === currentHeadId) {
-        return currentHead
-      }
-
-      try {
-        const newHead = new GameMove(earliestArrivingChild, currentHead)
-        return newHead
-      } catch (err) {
-        // this can happen anytime someone sends an event thats not a valid successor to the current head
-        console.error(err, earliestArrivingChild.content, currentHead.content())
-        return currentHead
+      } else {
+        children.sort((a, b) => b.created_at - a.created_at)
+        const earliestArrivingChild = children[children.length - 1]
+        try {
+          return new GameMove(earliestArrivingChild, currentHead)
+        } catch (err) {
+          // this can happen anytime someone sends an event thats not a valid successor to the current head
+          console.error(err, earliestArrivingChild.content, currentHead.content())
+          return currentHead
+        }
       }
     },
-    [currentGameMoves]
+    [findChildren]
   )
 
   useEffect(() => {
-    if (!currentGameStart) {
-      return
-    }
+    if (!currentGameStart) return
+    if (!currentGameHead) return
 
-    const abortCtrl = new AbortController()
-    const newHead = findNewHead(currentGameStart, currentGameHead)
+    console.debug(`Start gathering events referencing current head event ${currentGameHead.event().id}`)
 
+    const newHead = findNextHead(currentGameHead, currentGameMoves)
     setCurrentGameHead(newHead)
 
-    const searchParentMoveId = newHead.isStart() ? null : newHead.event().id
-    const children = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
-    setIsSearchingHead(children.length > 0)
+    const children = findChildren(newHead, currentGameMoves)
+    const stillSearching = children.length > 0
+    setIsSearchingHead(stillSearching)
 
-    return () => {
-      abortCtrl.abort()
+    if (!stillSearching) {
+      console.debug('Search for head is over, current head is at the top and has no children.')
+    } else {
+      console.debug(`Search for head continues. Found ${children.length} event(s) referencing the current head...`)
     }
-  }, [currentGameStart, currentGameMoves, currentGameHead, findNewHead])
+  }, [currentGameStart, currentGameMoves, currentGameHead, findNextHead, findChildren])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
