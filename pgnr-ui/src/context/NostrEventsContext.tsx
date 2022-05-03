@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
+import React, { createContext, useContext, ProviderProps, useEffect, useState } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'

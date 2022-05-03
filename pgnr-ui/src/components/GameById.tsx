@@ -372,25 +372,23 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
 
   useEffect(() => {
-    if (!currentGameStart) {
-      setCurrentChessInstance(null)
-      setCurrentGameHead(null)
-      return
-    }
-
-    setCurrentChessInstance(new Chess.Chess())
     setCurrentGameHead(currentGameStart)
   }, [currentGameStart])
 
   useEffect(() => {
-    if (isSearchingHead) return
-    if (!currentGameHead) return
+    setCurrentChessInstance((current) => {
+      if (!currentGameHead) {
+        return null
+      }
 
-    setCurrentChessInstance((_) => {
+      const newGame = new Chess.Chess()
+      if (isSearchingHead && current === null) {
+        return newGame
+      }
+
       // TODO: does the "game" really need to change, or can you just do:
       // current.game.load_pgn(history.join('\n'))
       // without returning a copy?
-      const newGame = new Chess.Chess()
       if (currentGameHead.isStart()) {
         return newGame
       } else {

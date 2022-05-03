@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
-import { NostrEvent, NostrEventRef } from '../util/nostr_db'
+import { NostrEvent } from '../util/nostr_db'
 import { AppDexie, db, GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { IndexableType, Transaction } from 'dexie'
 import { useNostrStore } from '../context/NostrStoreContext'
