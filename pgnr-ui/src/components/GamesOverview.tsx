@@ -14,6 +14,8 @@ import * as AppUtils from '../util/pgnrui'
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
+import Heading6 from '@material-tailwind/react/Heading6'
+// @ts-ignore
 import Small from '@material-tailwind/react/Small'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
@@ -32,7 +34,7 @@ interface GamesFilter {
   until: Date
 }
 
-const createGamesFilter = (now: Date) => {
+const createGameOverviewFilter = (now: Date) => {
   const from = new Date(now.getTime() - GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
   const until = new Date(now.getTime() + GAMES_FILTER_PAST_DURATION_IN_SECONDS * 1_000)
 
@@ -48,10 +50,13 @@ export default function GamesOverview() {
   const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
-  const [filter, setFilter] = useState(createGamesFilter(new Date()))
+  const gameStore = useGameStore()
+  const [gameStartEventFilter, setGameStartEventFilter] = useState(createGameOverviewFilter(new Date()))
+
   const [tick, setTick] = useState<number>(Date.now())
+
   useEffect(() => {
-    setFilter(createGamesFilter(new Date()))
+    setGameStartEventFilter(createGameOverviewFilter(new Date()))
   }, [tick])
 
   useEffect(() => {
@@ -66,19 +71,29 @@ export default function GamesOverview() {
     }
   }, [])
 
-  const gameStore = useGameStore()
-
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
       const events = await gameStore.game_start
         .where('created_at')
-        .between(filter.from.getTime() / 1_000, filter.until.getTime() / 1_000)
+        .between(gameStartEventFilter.from.getTime() / 1_000, gameStartEventFilter.until.getTime() / 1_000)
         .toArray()
 
       return events
     },
-    [filter],
+    [gameStartEventFilter],
     [] as NostrEvent[]
+  )
+  const currentGameLiveQuery = useLiveQuery(
+    async () => {
+      if (!settings.currentGameId) {
+        return null
+      }
+      const event = await gameStore.game_start.get(settings.currentGameId)
+
+      return event || null
+    },
+    [gameStartEventFilter],
+    null
   )
 
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
@@ -112,23 +127,49 @@ export default function GamesOverview() {
         <div>No connection to nostr</div>
       ) : (
         <>
-          <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={onGameCreated} />
-          {settings.dev && (
-            <button
-              type="button"
-              className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-              onClick={() => __dev_createMultipleGames(100)}
-            >
-              DEV: Start 100 games
-            </button>
-          )}
+          <div className="my-4">
+            <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={onGameCreated} />
+            {settings.dev && (
+              <button
+                type="button"
+                className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+                onClick={() => __dev_createMultipleGames(100)}
+              >
+                DEV: Start 100 games
+              </button>
+            )}
+          </div>
 
           {
-            <div>
+            <div className="my-4">
+              <Heading6 color="blueGray">Current Game</Heading6>
+              {currentGameLiveQuery && (
+                <Link to={`/game/${currentGameLiveQuery.id}`}>
+                  <>
+                    <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery.id)}</span>
+                    {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
+                    <Small color="gray">
+                      {' '}
+                      started by{' '}
+                      <span className="font-mono">{AppUtils.pubKeyDisplayName(currentGameLiveQuery.pubkey)}</span>
+                    </Small>
+                    <Small color="yellow">
+                      {' '}
+                      at {new Date(currentGameLiveQuery.created_at * 1_000).toLocaleString()}
+                    </Small>
+                  </>
+                </Link>
+              )}
+            </div>
+          }
+
+          {
+            <div className="m-4">
+              <Heading6 color="blueGray">Latest Games</Heading6>
               {listOfStartGamesLiveQuery.length} games available
               <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
-              <Small color="gray"> from {filter.from.toLocaleString()}</Small>
-              <Small color="gray"> to {filter.until.toLocaleString()}</Small>
+              <Small color="gray"> from {gameStartEventFilter.from.toLocaleString()}</Small>
+              <Small color="gray"> to {gameStartEventFilter.until.toLocaleString()}</Small>
             </div>
           }
           <div className="my-4">
@@ -144,7 +185,6 @@ export default function GamesOverview() {
                         started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.pubkey)}</span>
                       </Small>
                       <Small color="yellow"> at {new Date(it.created_at * 1_000).toLocaleString()}</Small>
-                      <Small color="gray">{it.created_at * 1_000}</Small>
                     </>
                   </Link>
                 </div>

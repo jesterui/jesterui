@@ -2,15 +2,19 @@
 
 
 TODO:
-- [ ] Do not save all subscriptions to local storage -> make NostrManageSubscriptions and _load_ at App Start
+- [ ] only let validated moves into "game event store" -> currently received out of order
+      with ability to insert invalid events.
+- [ ] currently, player started the game is always white 
+  - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
+
 - [ ] Send nostr events `content` as chess json proto
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
 - [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
-- [ ] only let validated moves into "game event store" -> currently received out of order
-      with ability to insert invalid events.
 - [ ] make "multichess" option - users are either black/white and vote on moves
 - [ ] add POW if necessary
-
+- [ ] rename to jester
+- [ ] add ability to watch games next to "currentGameId"
+ 
 ---
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
