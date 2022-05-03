@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, MouseEvent } from 'react'
+import React, { useEffect, useRef, useState, MouseEvent, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { NostrEvent } from '../util/nostr_db'
 
@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import CreateGameButton from './CreateGameButton'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { useSettings } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as AppUtils from '../util/pgnrui'
@@ -48,6 +48,7 @@ export default function GamesOverview() {
   const renderedAt = new Date()
   const createGameButtonRef = useRef<HTMLButtonElement>(null)
   const settings = useSettings()
+  const settingsDispatch = useSettingsDispatch()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
@@ -71,6 +72,27 @@ export default function GamesOverview() {
     }
   }, [])
 
+  const currentGameLiveQuery = useLiveQuery(
+    async () => {
+      if (!settings.currentGameId) return null
+
+      const event = await gameStore.game_start.get(settings.currentGameId)
+      return event || null
+    },
+    [settings],
+    null
+  )
+
+  const currentGameMoveCountLiveQuery = useLiveQuery(
+    async () => {
+      if (!currentGameLiveQuery) return null
+
+      return await gameStore.game_move.where('gameId').equals(currentGameLiveQuery.id).count()
+    },
+    [currentGameLiveQuery],
+    null
+  )
+
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
       const events = await gameStore.game_start
@@ -82,18 +104,6 @@ export default function GamesOverview() {
     },
     [gameStartEventFilter],
     [] as NostrEvent[]
-  )
-  const currentGameLiveQuery = useLiveQuery(
-    async () => {
-      if (!settings.currentGameId) {
-        return null
-      }
-      const event = await gameStore.game_start.get(settings.currentGameId)
-
-      return event || null
-    },
-    [gameStartEventFilter],
-    null
   )
 
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
@@ -116,6 +126,10 @@ export default function GamesOverview() {
       setTimeout(() => __dev_createMultipleGames(amount - chunks), 4)
     }
   }
+
+  const unsubscribeFromCurrentGame = useCallback(() => {
+    settingsDispatch({ currentGameId: undefined } as AppSettings)
+  }, [settingsDispatch])
 
   return (
     <div className="screen-games-overview">
@@ -143,28 +157,41 @@ export default function GamesOverview() {
           {
             <div className="my-4">
               <Heading6 color="blueGray">Current Game</Heading6>
+              {!currentGameLiveQuery && <CreateGameButton onGameCreated={onGameCreated} />}
               {currentGameLiveQuery && (
-                <Link to={`/game/${currentGameLiveQuery.id}`}>
-                  <>
-                    <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery.id)}</span>
-                    {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
-                    <Small color="gray">
-                      {' '}
-                      started by{' '}
-                      <span className="font-mono">{AppUtils.pubKeyDisplayName(currentGameLiveQuery.pubkey)}</span>
-                    </Small>
-                    <Small color="yellow">
-                      {' '}
-                      at {new Date(currentGameLiveQuery.created_at * 1_000).toLocaleString()}
-                    </Small>
-                  </>
-                </Link>
+                <>
+                  <div>
+                    <Link to={`/game/${currentGameLiveQuery.id}`}>
+                      <>
+                        <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery.id)}</span>
+                        {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
+                        <Small color="green"> with {currentGameMoveCountLiveQuery} events</Small>
+                        <Small color="gray">
+                          {' '}
+                          started by{' '}
+                          <span className="font-mono">{AppUtils.pubKeyDisplayName(currentGameLiveQuery.pubkey)}</span>
+                        </Small>
+                        <Small color="yellow">
+                          {' '}
+                          at {new Date(currentGameLiveQuery.created_at * 1_000).toLocaleString()}
+                        </Small>
+                      </>
+                    </Link>
+                    <button
+                      type="button"
+                      className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1 "
+                      onClick={() => unsubscribeFromCurrentGame()}
+                    >
+                      Unsubscribe
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           }
 
           {
-            <div className="m-4">
+            <div className="my-4">
               <Heading6 color="blueGray">Latest Games</Heading6>
               {listOfStartGamesLiveQuery.length} games available
               <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
