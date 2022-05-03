@@ -220,15 +220,18 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const settingsDispatch = useSettingsDispatch()
   const gameStore = useGameStore()
 
-  //const [currentGame, setCurrentGame] = useState<Game | null>(null)
-  //const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance>(new Chess.Chess())
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
+  const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
+  const [color, setColor] = useState<MovebleColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
   const [isLoading, setIsLoading] = useState<boolean>(true)
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
+  const privateKeyOrNull = getSession()?.privateKey || null
 
   useEffect(() => {
     const previousTitle = document.title
@@ -255,18 +258,28 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       // settingsDispatch({ currentGameId: undefined } as AppSettings)
     }
   }, [gameId, settingsDispatch])
-  /********************** SUBS CRIBE TO GAME - end */
+  /********************** SUBSCRIBE TO GAME - end */
 
-  const currentGameStart = useLiveQuery(async () => {
+  const currentGameStartEvent = useLiveQuery(async () => {
     if (!gameId) return
 
     const event = await gameStore.game_start.get(gameId)
-    if (!event) {
-      return
-    }
+    if (!event) return
 
-    return new GameStart(event)
+    return event
   }, [gameId])
+
+  useEffect(() => {
+    setCurrentGameStart((current) => {
+      if (!currentGameStartEvent) {
+        return null
+      }
+      if (current && current.event().id === currentGameStartEvent.id) {
+        return current
+      }
+      return new GameStart(currentGameStartEvent)
+    })
+  }, [currentGameStartEvent])
 
   const currentGameMoves = useLiveQuery(
     async () => {
@@ -278,25 +291,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     [gameId],
     [] as GameMoveEvent[]
   )
-
-  /*const newestHeads = useLiveQuery(
-    async () => {
-      if (!currentGameHead) return []
-
-      const currentHeadId = currentGameHead.event().id
-      const searchParentMoveId = currentGameHead.isStart() ? null : currentHeadId
-      const events = currentGameMoves.filter((move) => move.parentMoveId === searchParentMoveId)
-      console.log(`FOUND HEADS FOR ${currentHeadId} ` + events.length)
-      return events
-    },
-    [currentGameHead, currentGameMoves],
-    [] as GameMoveEvent[]
-  )*/
-
-  //------------------------
-
-  const publicKeyOrNull = settings.identity?.pubkey || null
-  const privateKeyOrNull = getSession()?.privateKey || null
 
   const onChessboardChanged = async (chessboard: ChessInstance) => {
     if (!currentChessInstance) return
@@ -360,7 +354,6 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     })
   }
 
-  const [color, setColor] = useState<MovebleColor>(MOVE_COLOR_NONE)
   useEffect(() => {
     setColor((_) => {
       if (currentGameStart && privateKeyOrNull !== null && publicKeyOrNull !== null) {
@@ -378,31 +371,11 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     })
   }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
 
-  /**  MOVE UPDATES******************************************************************* */
-  /*const color = useCallback(() => {
-    let color: MovebleColor = MOVE_COLOR_NONE
-    if (!currentGameStart || privateKeyOrNull === null || publicKeyOrNull === null) {
-      color = MOVE_COLOR_NONE
-    } else {
-      if (publicKeyOrNull === currentGameStart.event().pubkey) {
-        color = MOVE_COLOR_WHITE
-      } else {
-        color = MOVE_COLOR_BLACK
-      }
-    }
-    //*if (process.env.NODE_ENV === 'development') {
-    //  color =  ['white', 'black']
-    //}
-    return color
-  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])*/
-
   useEffect(() => {
     if (!currentGameStart) {
       setCurrentChessInstance(null)
       return
     }
-
-    console.log('NEW2d')
 
     setCurrentChessInstance(new Chess.Chess())
     setCurrentGameHead(null)
