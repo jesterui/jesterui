@@ -1,13 +1,13 @@
 import React, { ProviderProps, createContext, useReducer, useEffect, useContext } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
-import * as AppUtils from '../util/pgnrui'
 
-const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1 : 10
-const FILTER_TIME_IN_SECONDS = FILTER_TIME_IN_MINUTES * 60
 const localStorageKey = window.APP.SETTINGS_STORE_KEY
 
+// TODO: remove
 export const createSinceFilterValue = () => {
+  const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1 : 10
+  const FILTER_TIME_IN_SECONDS = FILTER_TIME_IN_MINUTES * 60
   const now = new Date()
   const filterDateBase = new Date(now.getTime() - FILTER_TIME_IN_SECONDS * 1_000)
   const filterDate = new Date(
@@ -30,6 +30,7 @@ type Identity = {
   pubkey: string
 }
 
+// TODO: remove
 export type Subscription = {
   id: NIP01.SubscriptionId
   filters: NIP01.Filter[]
@@ -39,8 +40,10 @@ export interface AppSettings {
   dev: boolean
   relays: Relay[]
   identity?: Identity
+  // TODO: remove
   subscriptions?: Subscription[]
-  botName: string | null
+  botName: string | null,
+  currentGameId?: NIP01.EventId
 }
 
 const initialSettings: AppSettings = {
@@ -49,17 +52,8 @@ const initialSettings: AppSettings = {
     // 'wss://relayer.fiatjaf.com', // good uptime
     // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
   ],
-  subscriptions: [
-    {
-      id: 'game_start',
-      filters: [
-        {
-          ...AppUtils.PGNRUI_START_GAME_FILTER,
-          since: createSinceFilterValue(),
-        },
-      ],
-    },
-  ],
+  // TODO: remove!
+  subscriptions: [],
   botName: null,
 }
 

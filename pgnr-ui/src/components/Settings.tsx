@@ -5,6 +5,7 @@ import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
+import { useUpdateSubscription } from '../context/NostrSubscriptionsContext'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { getSession, setSessionAttribute } from '../util/session'
@@ -51,12 +52,38 @@ function TestNostrConnectionButton() {
   const settings = useSettings()
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
+  const updateSubscription = useUpdateSubscription()
 
   const [waitForEvent, setWaitForEvent] = useState<NIP01.Event | null>(null)
   const [statusText, setStatusText] = useState<string>('')
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
+
+  useEffect(() => {
+    const since = Math.round(Date.now() / 1_000)
+
+    const filterForOwnTestEvents: NIP01.Filter[] =
+      publicKeyOrNull !== null ? [
+            {
+              authors: [publicKeyOrNull],
+              since: since,
+              '#e': [TEST_MESSAGE_REF],
+            },
+          ] : []
+
+    updateSubscription({
+      id: 'dev_debug',
+      filters: filterForOwnTestEvents
+    })
+
+    return () => {
+      updateSubscription({
+        id: 'dev_debug',
+        filters: []
+      })
+    }
+  }, [publicKeyOrNull, updateSubscription])
 
   useEffect(() => {
     if (statusText === '') return

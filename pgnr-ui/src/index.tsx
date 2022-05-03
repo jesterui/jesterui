@@ -12,6 +12,7 @@ import { GamesProvider } from './context/GamesContext'
 import { WebsocketProvider } from './context/WebsocketContext'
 import { NostrEventsProvider } from './context/NostrEventsContext'
 import { NostrStoreProvider } from './context/NostrStoreContext'
+import { NostrSubscriptionsProvider } from './context/NostrSubscriptionsContext'
 import { GameEventStoreProvider } from './context/GameEventStoreContext'
 
 declare global {
@@ -35,7 +36,9 @@ ReactDOM.render(
             <NostrStoreProvider value={undefined}>
               <GameEventStoreProvider value={undefined}>
                 <GamesProvider value={undefined}>
-                  <App />
+                  <NostrSubscriptionsProvider value={undefined}>
+                    <App />
+                  </NostrSubscriptionsProvider>
                 </GamesProvider>
               </GameEventStoreProvider>
             </NostrStoreProvider>

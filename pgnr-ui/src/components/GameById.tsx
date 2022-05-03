@@ -274,43 +274,17 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   }, [gameId])
 
   /********************** SUBSCRIBE TO GAME */
-
-  const updateSubscription = useCallback((sub: Subscription) => {
-    const newSubsFilterJson = sub.filters.map((it) => JSON.stringify(it))
-
-    const currentSubs = settings.subscriptions || []
-    const currentSub = currentSubs.filter((it) => it.id === sub.id)
-    const currentSubFilters = currentSub.length === 0 ? [] : currentSub[0].filters
-    const currentSubFiltersJson = currentSubFilters.map((it) => JSON.stringify(it))
-
-    // this is soo stupid..
-    const containsNewsSubFilters =
-      newSubsFilterJson.filter((it) => {
-        return currentSubFiltersJson.includes(it)
-      }).length === currentSubFiltersJson.length
-
-    if (!containsNewsSubFilters) {
-      const formerSubsWithoutNewSub = (settings.subscriptions || []).filter((it) => it.id !== sub.id)
-      if (sub.filters.length > 0) {
-        console.log(`[Nostr/Subscriptions] update ${sub.id} filter`, sub)
-        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub, sub] } as AppSettings)
-      } else {
-        console.log(`[Nostr/Subscriptions] remove ${sub.id} filter`, sub)
-        settingsDispatch({ subscriptions: [...formerSubsWithoutNewSub]} as AppSettings)
-      }
-    }
-  }, [settings, settingsDispatch])
-
   useEffect(() => {
     if (!gameId) return
 
-    const newCurrentGameFilters = AppUtils.createGameFilterByGameId(gameId)
+    settingsDispatch({ currentGameId: gameId } as AppSettings)
 
-    updateSubscription({
-      id: 'current_game',
-      filters: newCurrentGameFilters
-    })
-  }, [gameId, settings, settingsDispatch])
+    return () => {
+      // TODO: should the gameId be removed when naviating away?
+      // This would also close the subscription!
+      // settingsDispatch({ currentGameId: undefined } as AppSettings)
+    }
+  }, [gameId, settingsDispatch])
   /********************** SUBS CRIBE TO GAME - end */
 
   const currentGameStart = useLiveQuery(async () => {

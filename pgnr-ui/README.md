@@ -2,7 +2,7 @@
 
 
 TODO:
-- [ ] own subscripton for "current game" - avoids resubscribing to all start events when single game is loaded
+- [ ] Do not save all subscriptions to local storage -> make NostrManageSubscriptions and _load_ at App Start
 - [ ] Send nostr events `content` as chess json proto
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
 - [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
