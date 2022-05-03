@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Game } from '../context/GamesContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
@@ -23,11 +22,17 @@ import { CreateGameAndRedirectButton } from './CreateGameButton'
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import * as Chess from 'chess.js'
-import { ChessInstance } from '../components/ChessJsTypes'
 import * as cg from 'chessground/types'
+import { ChessInstance } from '../components/ChessJsTypes'
 import { GameMoveEvent } from '../util/app_db'
 
 type MovebleColor = [] | [cg.Color] | ['white', 'black']
+
+type Game = {
+  id: NIP01.EventId
+  game: ChessInstance
+  color: MovebleColor
+}
 
 const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000

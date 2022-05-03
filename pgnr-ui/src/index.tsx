@@ -8,7 +8,6 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 
 import { SettingsProvider } from './context/SettingsContext'
-import { GamesProvider } from './context/GamesContext'
 import { WebsocketProvider } from './context/WebsocketContext'
 import { NostrEventsProvider } from './context/NostrEventsContext'
 import { NostrStoreProvider } from './context/NostrStoreContext'
@@ -35,11 +34,9 @@ ReactDOM.render(
           <NostrEventsProvider value={undefined}>
             <NostrStoreProvider value={undefined}>
               <GameEventStoreProvider value={undefined}>
-                <GamesProvider value={undefined}>
-                  <NostrSubscriptionsProvider value={undefined}>
-                    <App />
-                  </NostrSubscriptionsProvider>
-                </GamesProvider>
+                <NostrSubscriptionsProvider value={undefined}>
+                  <App />
+                </NostrSubscriptionsProvider>
               </GameEventStoreProvider>
             </NostrStoreProvider>
           </NostrEventsProvider>

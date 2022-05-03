@@ -111,7 +111,7 @@ const NostrSubscriptionsProvider = ({ children }: ProviderProps<NostrSubscriptio
 const useUpdateSubscription = () => {
   const context = useContext(NostrSubscriptionsContext)
   if (context === undefined) {
-    throw new Error('useCurrentGame must be used within a GamesProvider')
+    throw new Error('useUpdateSubscription must be used within a NostrSubscriptionsProvider')
   }
 
   return context.updateSubscription
