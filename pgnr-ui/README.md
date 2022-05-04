@@ -4,10 +4,11 @@
 TODO:
 - [ ] only let validated moves into "game event store" -> currently received out of order
       with ability to insert invalid events.
+- [ ] strip down contents of "game move" to bare minimum, e.g. does it really need the fen?
+  - [ ] Send nostr events `content` as chess json proto?
 - [ ] currently, player started the game is always white 
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
-- [ ] Send nostr events `content` as chess json proto
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
 - [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
 - [ ] make "multichess" option - users are either black/white and vote on moves
