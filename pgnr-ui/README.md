@@ -9,14 +9,20 @@ TODO:
 - [ ] currently, player started the game is always white 
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
+
+- [ ] ability to delete data in indexeddb
+- [ ] add ability to watch games next to "currentGameId" aka pinning games
+- [ ] ability to load game by id
+- [ ] fix browser route issues
+- [ ] ability for multiple nostr gateways
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
 - [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
 - [ ] make "multichess" option - users are either black/white and vote on moves
 - [ ] add POW if necessary
 - [ ] rename to jester
-- [ ] add ability to watch games next to "currentGameId"
 - [ ] ability to "offer draw", "draw by agreement", "give up"
 - [ ] "promote to other piece than queen"
+- [ ] support more NIPs!
  
 ---
 
