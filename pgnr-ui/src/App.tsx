@@ -13,7 +13,7 @@ import GameById from './components/GameById'
 import Layout from './Layout'
 
 import * as NIP01 from './util/nostr/nip01'
-import * as AppUtils from './util/pgnrui'
+import * as AppUtils from './util/jester'
 import './App.css'
 
 // TODO: this whole component is a hack.. generally works, but please try to remove it

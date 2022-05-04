@@ -3,7 +3,7 @@ import { NostrEvent } from '../util/nostr_db'
 import { AppDexie, db, GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { IndexableType, Transaction } from 'dexie'
 import { useNostrStore } from '../context/NostrStoreContext'
-import * as AppUtils from '../util/pgnrui'
+import * as AppUtils from '../util/jester'
 import * as NIP01 from '../util/nostr/nip01'
 import { arrayEquals } from '../util/utils'
 import { historyToMinimalPgn } from '../util/chess'
@@ -15,7 +15,7 @@ import { ChessInstance } from '../components/ChessJsTypes'
 const _chessInstance: ChessInstance = new Chess.Chess()
 
 const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.Event) => {
-  const content = JSON.parse(event.content) as AppUtils.PgnProtoContent
+  const content = JSON.parse(event.content) as AppUtils.JesterProtoContent
   if (!Array.isArray(content.history) || content.history.length === 0) {
     return false
   }
@@ -23,7 +23,7 @@ const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.E
   if (content.history[content.history.length - 1] !== content.move) {
     return false
   }
-  const parentContent = JSON.parse(parent.content) as AppUtils.PgnProtoContent
+  const parentContent = JSON.parse(parent.content) as AppUtils.JesterProtoContent
   if (!arrayEquals(parentContent.history, content.history.slice(0, content.history.length - 1))) {
     return false
   }
@@ -103,7 +103,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
       // await findReferencingEvents(previousMoveEventOrNull.id)
 
       trans.on('complete', async () => {
-        const content = JSON.parse(entry.content) as AppUtils.PgnProtoContent
+        const content = JSON.parse(entry.content) as AppUtils.JesterProtoContent
 
         await db.game_move
           .add({

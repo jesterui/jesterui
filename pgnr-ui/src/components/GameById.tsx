@@ -12,9 +12,9 @@ import { AppSettings, useSettings, useSettingsDispatch } from '../context/Settin
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import * as AppUtils from '../util/pgnrui'
+import * as AppUtils from '../util/jester'
 import { getSession } from '../util/session'
-import { PgnruiMove, GameStart, GameMove } from '../util/pgnrui'
+import { JesterMove, GameStart, GameMove } from '../util/jester'
 import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 // @ts-ignore
@@ -222,7 +222,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
   const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
-  const [currentGameHead, setCurrentGameHead] = useState<PgnruiMove | null>(null)
+  const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
   const [color, setColor] = useState<MovebleColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
 
@@ -385,13 +385,13 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     })
   }, [isSearchingHead, currentGameHead])
 
-  const findChildren = useCallback((move: AppUtils.PgnruiMove, moves: GameMoveEvent[]) => {
+  const findChildren = useCallback((move: AppUtils.JesterMove, moves: GameMoveEvent[]) => {
     const searchParentMoveId = move.isStart() ? null : move.event().id
     return moves.filter((move) => move.parentMoveId === searchParentMoveId)
   }, [])
 
   const findNextHead = useCallback(
-    (currentHead: AppUtils.PgnruiMove, moves: GameMoveEvent[]): AppUtils.PgnruiMove => {
+    (currentHead: AppUtils.JesterMove, moves: GameMoveEvent[]): AppUtils.JesterMove => {
       const children = findChildren(currentHead, moves)
 
       if (children.length === 0) {

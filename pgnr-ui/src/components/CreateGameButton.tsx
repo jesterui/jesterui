@@ -5,7 +5,7 @@ import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
-import * as AppUtils from '../util/pgnrui'
+import * as AppUtils from '../util/jester'
 import { useNavigate } from 'react-router-dom'
 
 interface CreateGameButtonProps {

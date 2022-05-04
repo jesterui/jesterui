@@ -9,7 +9,7 @@ import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import * as NIP01 from '../util/nostr/nip01'
-import * as AppUtils from '../util/pgnrui'
+import * as AppUtils from '../util/jester'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'

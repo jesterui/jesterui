@@ -2,7 +2,7 @@ import React, { ProviderProps, createContext, useReducer, useEffect, useContext 
 
 import * as NIP01 from '../util/nostr/nip01'
 
-const localStorageKey = window.APP.SETTINGS_STORE_KEY
+const localStorageKey = () => window.APP.SETTINGS_STORE_KEY
 
 // TODO: add {read: true, write: true} to relay
 type Relay = string
@@ -46,11 +46,11 @@ const settingsReducer = (oldSettings: AppSettings, action: AppSettings) => {
 const SettingsProvider = ({ children }: ProviderProps<AppSettingsEntry | undefined>) => {
   const [settings, dispatch] = useReducer(
     settingsReducer,
-    Object.assign({}, initialSettings, JSON.parse(window.localStorage.getItem(localStorageKey) || '{}'))
+    Object.assign({}, initialSettings, JSON.parse(window.localStorage.getItem(localStorageKey()) || '{}'))
   )
 
   useEffect(() => {
-    window.localStorage.setItem(localStorageKey, JSON.stringify(settings))
+    window.localStorage.setItem(localStorageKey(), JSON.stringify(settings))
   }, [settings])
 
   return <SettingsContext.Provider value={{ settings, dispatch }}>{children}</SettingsContext.Provider>

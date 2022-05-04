@@ -1,16 +1,16 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
-import * as NIP01 from '../util/nostr/nip01'
-import * as NostrEvents from '../util/nostr/events'
+import * as NIP01 from './nostr/nip01'
+import * as NostrEvents from './nostr/events'
 import { arrayEquals } from './utils'
-import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
+import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from './chess'
 import { ChessInstance } from '../components/ChessJsTypes'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-export const PGNRUI_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
+export const JESTER_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
 
-export const PGNRUI_START_GAME_FILTER: NIP01.Filter = {
-  '#e': [PGNRUI_START_GAME_E_REF],
+export const JESTER_START_GAME_FILTER: NIP01.Filter = {
+  '#e': [JESTER_START_GAME_E_REF],
 }
 
 export enum KindEnum {
@@ -18,7 +18,7 @@ export enum KindEnum {
   Move = 1,
 }
 
-export interface PgnProtoContent {
+export interface JesterProtoContent {
   version: '0'
   fen: string
   move: string
@@ -28,41 +28,41 @@ export interface PgnProtoContent {
 type GameStartEvent = NIP01.Event
 type MoveEvent = NIP01.Event
 
-export interface PgnruiMove {
+export interface JesterMove {
   source(): GameStartEvent
   event(): MoveEvent
-  parent(): PgnruiMove | null
-  children(): PgnruiMove[]
-  addChild(child: PgnruiMove): boolean
-  content(): PgnProtoContent
+  parent(): JesterMove | null
+  children(): JesterMove[]
+  addChild(child: JesterMove): boolean
+  content(): JesterProtoContent
   fen(): ValidFen
   pgn(): Pgn
-  isValidSuccessor(move: PgnruiMove): boolean
+  isValidSuccessor(move: JesterMove): boolean
   isStart(): boolean
 }
 
 const _validStartFen = toValidFen(FEN_START_POSITION)
 
-abstract class AbstractGameMove implements PgnruiMove {
-  private _children: PgnruiMove[] = []
+abstract class AbstractGameMove implements JesterMove {
+  private _children: JesterMove[] = []
 
   abstract source(): GameStartEvent
   abstract event(): MoveEvent
-  abstract parent(): PgnruiMove | null
-  abstract content(): PgnProtoContent
+  abstract parent(): JesterMove | null
+  abstract content(): JesterProtoContent
   abstract fen(): ValidFen
 
-  children(): PgnruiMove[] {
+  children(): JesterMove[] {
     return this._children
   }
-  addChild(child: PgnruiMove): boolean {
+  addChild(child: JesterMove): boolean {
     if (!this.isValidSuccessor(child)) {
       return false
     }
     this._children = [...this._children, child]
     return true
   }
-  isValidSuccessor(move: PgnruiMove): boolean {
+  isValidSuccessor(move: JesterMove): boolean {
     const fenIsValid = this.fen().validMoves().contains(move.fen())
     return fenIsValid
   }
@@ -76,14 +76,14 @@ abstract class AbstractGameMove implements PgnruiMove {
 
 export class GameStart extends AbstractGameMove {
   private _event: GameStartEvent
-  private _content: PgnProtoContent
+  private _content: JesterProtoContent
   constructor(event: GameStartEvent) {
     super()
     if (!isStartGameEvent(event)) {
       throw new Error('GameStartMoveEvent can only be created from a GameStartEvent')
     }
     this._event = event
-    this._content = JSON.parse(event.content) as PgnProtoContent
+    this._content = JSON.parse(event.content) as JesterProtoContent
   }
   source() {
     return this._event
@@ -94,7 +94,7 @@ export class GameStart extends AbstractGameMove {
   parent(): null {
     return null
   }
-  content(): PgnProtoContent {
+  content(): JesterProtoContent {
     return this._content
   }
   fen(): ValidFen {
@@ -106,13 +106,13 @@ export class GameStart extends AbstractGameMove {
 
 export class GameMove extends AbstractGameMove {
   private _event: NIP01.Event
-  private _parent: PgnruiMove
-  private _content: PgnProtoContent
+  private _parent: JesterMove
+  private _content: JesterProtoContent
   private _fen: ValidFen
 
-  constructor(event: NIP01.Event, parent: PgnruiMove) {
+  constructor(event: NIP01.Event, parent: JesterMove) {
     super()
-    const content = JSON.parse(event.content) as PgnProtoContent
+    const content = JSON.parse(event.content) as JesterProtoContent
 
     // TODO: verify that 'move' is really valid (can be different to given fen!)
     if (content.history[content.history.length - 1] !== content.move) {
@@ -138,10 +138,10 @@ export class GameMove extends AbstractGameMove {
   event(): NIP01.Event {
     return this._event
   }
-  parent(): PgnruiMove {
+  parent(): JesterMove {
     return this._parent
   }
-  content(): PgnProtoContent {
+  content(): JesterProtoContent {
     return this._content
   }
   fen(): ValidFen {
@@ -152,7 +152,7 @@ export class GameMove extends AbstractGameMove {
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = NIP01.KindEnum.EventTextNote
-  eventParts.tags = [[NIP01.TagEnum.e, PGNRUI_START_GAME_E_REF]]
+  eventParts.tags = [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]
   return eventParts
 })()
 
@@ -171,7 +171,7 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
   return NostrEvents.constructEvent(eventParts)
 }
 
-export const constructGameMoveEvent = (pubkey: NIP01.PubKey, currentGameStart: GameStart, currentGameHead: PgnruiMove, game: ChessInstance): NIP01.UnsignedEvent => {
+export const constructGameMoveEvent = (pubkey: NIP01.PubKey, currentGameStart: GameStart, currentGameHead: JesterMove, game: ChessInstance): NIP01.UnsignedEvent => {
   const history = game.history()
   const latestMove = (history && history[history.length - 1]) || null
 
@@ -208,7 +208,7 @@ export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   return (
     !!event &&
     event.kind === NIP01.KindEnum.EventTextNote &&
-    arrayEquals(event.tags, [[NIP01.TagEnum.e, PGNRUI_START_GAME_E_REF]]) &&
+    arrayEquals(event.tags, [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]) &&
     json &&
     json.kind === KindEnum.Start &&
     arrayEquals(json.history, [])
@@ -238,10 +238,6 @@ export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] 
       '#e': [gameId],
     },
   ]
-}
-
-export const createGameFilter = (gameStart: GameStart): NIP01.Filter[] => {
-  return createGameFilterByGameId(gameStart.event().id)
 }
 
 export const gameDisplayNameShort = (gameId: NIP01.EventId, length = 5) => gameId.substring(0, length)

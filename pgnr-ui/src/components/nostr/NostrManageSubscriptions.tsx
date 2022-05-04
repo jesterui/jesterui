@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useSettings } from '../../context/SettingsContext'
 import { useUpdateSubscription } from '../../context/NostrSubscriptionsContext'
 import * as NIP01 from '../../util/nostr/nip01'
-import * as AppUtils from '../../util/pgnrui'
+import * as AppUtils from '../../util/jester'
 
 const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 5 : 2
 
@@ -30,7 +30,7 @@ export default function NostrManageSubscriptions() {
 
   const [gameStartFilters] = useState<NIP01.Filter[]>([
     {
-      ...AppUtils.PGNRUI_START_GAME_FILTER,
+      ...AppUtils.JESTER_START_GAME_FILTER,
       since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
     },
   ])
