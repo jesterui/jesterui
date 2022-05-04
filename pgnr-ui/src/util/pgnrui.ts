@@ -4,6 +4,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { arrayEquals } from './utils'
 import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
+import { ChessInstance } from '../components/ChessJsTypes'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const PGNRUI_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
@@ -169,6 +170,30 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
   } as NIP01.EventParts
   return NostrEvents.constructEvent(eventParts)
 }
+
+export const constructGameMoveEvent = (pubkey: NIP01.PubKey, currentGameStart: GameStart, currentGameHead: PgnruiMove, game: ChessInstance): NIP01.UnsignedEvent => {
+  const history = game.history()
+  const latestMove = (history && history[history.length - 1]) || null
+
+  // TODO: move to AppUtils
+  const eventParts = NostrEvents.blankEvent()
+  eventParts.kind = NIP01.KindEnum.EventTextNote
+  eventParts.pubkey = pubkey
+  eventParts.created_at = Math.floor(Date.now() / 1000)
+  eventParts.content = JSON.stringify({
+    version: '0',
+    kind: KindEnum.Move,
+    fen: game.fen(),
+    move: latestMove,
+    history: history,
+  })
+  eventParts.tags = [
+    [NIP01.TagEnum.e, currentGameStart.event().id],
+    [NIP01.TagEnum.e, currentGameHead.event().id],
+  ]
+  return NostrEvents.constructEvent(eventParts)
+}
+
 
 const tryParseJsonObject = (val: string) => {
   try {
