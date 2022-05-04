@@ -247,17 +247,25 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   }, [gameId])
 
   /********************** SUBSCRIBE TO GAME */
-  useEffect(() => {
-    if (!gameId) return
+  const unsubscribeFromCurrentGame = useCallback(() => {
+    settingsDispatch({ currentGameId: undefined } as AppSettings)
+  }, [settingsDispatch])
 
+  const subscribeToGameId = useCallback(() => {
+    if (!gameId) return
     settingsDispatch({ currentGameId: gameId } as AppSettings)
+  }, [gameId, settingsDispatch])
+
+  useEffect(() => {
+    subscribeToGameId()
 
     return () => {
       // TODO: should the gameId be removed when naviating away?
       // This would also close the subscription!
-      // settingsDispatch({ currentGameId: undefined } as AppSettings)
+      // unsubscribeFromCurrentGame()
     }
-  }, [gameId, settingsDispatch])
+  }, [subscribeToGameId])
+
   /********************** SUBSCRIBE TO GAME - end */
 
   const currentGameStartEvent = useLiveQuery(async () => {
@@ -450,11 +458,34 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   if (!gameId) {
     return <div>Error: GameId not present</div>
   }
+
   return (
     <div className="screen-game-by-id">
       <Heading1 color="blueGray">
         Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
       </Heading1>
+
+      {settings.currentGameId === gameId ? (
+        <>
+          <button
+            type="button"
+            className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+            onClick={() => unsubscribeFromCurrentGame()}
+          >
+            Unsubscribe
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+            onClick={() => subscribeToGameId()}
+          >
+            Subscribe
+          </button>
+        </>
+      )}
 
       {
         <>

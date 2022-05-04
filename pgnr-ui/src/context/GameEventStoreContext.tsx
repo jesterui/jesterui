@@ -51,7 +51,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
       if (AppUtils.isStartGameEvent(entry)) {
         trans.on('complete', async () => {
           try {
-            const id = await db.game_start.add(entry)
+            const id = await db.game_start.put(entry)
             console.debug(`insert new game_start entry ${id}`)
           } catch (e) {
             console.debug('error while adding game_start - might already exist')

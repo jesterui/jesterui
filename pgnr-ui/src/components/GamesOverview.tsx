@@ -23,13 +23,6 @@ const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'developm
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
 const MIN_UPDATE_IN_SECONDS = 10
 
-/*
-interface GameSummary {
-  event: NIP01.Event
-  refCount: number
-  createdAt: Date
-}*/
-
 interface GamesFilter {
   from: Date
   until: Date

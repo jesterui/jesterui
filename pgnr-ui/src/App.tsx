@@ -15,6 +15,7 @@ import Layout from './Layout'
 import * as NIP01 from './util/nostr/nip01'
 import * as AppUtils from './util/jester'
 import './App.css'
+import CurrentGame from './components/CurrentGame'
 
 // TODO: this whole component is a hack.. generally works, but please try to remove it
 function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -45,6 +46,7 @@ export default function App() {
           <Routes>
             <Route element={<Layout variant={null} />}>
               <Route path="/" element={<Index />} />
+              <Route path="/current" element={<CurrentGame />} />
               <Route path="/games" element={<GamesOverview />} />
               <Route path="/game/:gameId" element={<GameById />} />
               <Route path="/redirect/game/:gameId" element={<RedirectToGame />} />

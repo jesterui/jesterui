@@ -27,7 +27,7 @@ const NostrStoreProvider = ({ children }: ProviderProps<NostrStoreEntry | undefi
 
         db.transaction('rw', db.nostr_events, db.nostr_event_refs, () => {
           return db.nostr_events
-            .add(nostrEvent)
+            .put(nostrEvent)
             .then((val) => {
               console.debug('added event', val)
               return val
@@ -35,7 +35,7 @@ const NostrStoreProvider = ({ children }: ProviderProps<NostrStoreEntry | undefi
             .then((_) => {
               const targetEventRefs = nostrEvent.tags.filter((t) => t && t[0] === 'e').map((t) => t[1] as NIP01.EventId)
               const nostrEventRefs: NostrEventRef = { sourceId: nostrEvent.id, targetIds: targetEventRefs }
-              return db.nostr_event_refs.add(nostrEventRefs)
+              return db.nostr_event_refs.put(nostrEventRefs)
             })
             .then((val) => {
               console.debug('added event refs', val)

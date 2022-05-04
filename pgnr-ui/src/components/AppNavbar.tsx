@@ -29,17 +29,22 @@ export default function AppNavbar() {
       <NavbarContainer>
         <NavbarWrapper>
           <NavbarBrand>
-            jester
-            <span className="px-1">
-              <WebsocketIndicator />
-            </span>
+            <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
+              jester
+              <span className="px-1">
+                <WebsocketIndicator />
+              </span>
+            </ReactNavLink>
           </NavbarBrand>
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 
         <NavbarCollapse open={openMenu}>
           <Nav>
-            <ReactNavLink to="/" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
+            <ReactNavLink
+              to="/current"
+              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+            >
               <NavItem ripple="light">
                 <Icon name="language" size="xl" />
                 Game
