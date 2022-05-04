@@ -67,6 +67,29 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
   )
 }
 
+const createGameEvent = (pubkey: NIP01.PubKey, currentGameStart: GameStart, currentGameHead: PgnruiMove, game: ChessInstance): NIP01.UnsignedEvent => {
+  const history = game.history()
+  const latestMove = (history && history[history.length - 1]) || null
+
+  // TODO: move to AppUtils
+  const eventParts = NostrEvents.blankEvent()
+  eventParts.kind = NIP01.KindEnum.EventTextNote
+  eventParts.pubkey = pubkey
+  eventParts.created_at = Math.floor(Date.now() / 1000)
+  eventParts.content = JSON.stringify({
+    version: '0',
+    kind: AppUtils.KindEnum.Move,
+    fen: game.fen(),
+    move: latestMove,
+    history: history,
+  })
+  eventParts.tags = [
+    [NIP01.TagEnum.e, currentGameStart.event().id],
+    [NIP01.TagEnum.e, currentGameHead.event().id],
+  ]
+  return NostrEvents.constructEvent(eventParts)
+}
+
 const BotMoveSuggestions = ({ game }: { game: ChessInstance | null }) => {
   const settings = useSettings()
 
@@ -305,45 +328,22 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const sendGameStateViaNostr = async (chessboard: ChessInstance) => {
     if (!outgoingNostr) {
       throw new Error('Nostr EventBus not ready..')
-    }
-    if (!publicKeyOrNull) {
+    }    if (!publicKeyOrNull) {
       throw new Error('PubKey not available..')
     }
     if (!privateKeyOrNull) {
       throw new Error('PrivKey not available..')
     }
-    if (!currentGameHead || !currentGameStart) {
+    if (!currentGameStart || !currentGameHead) {
       throw new Error('Game head not available..')
     }
-
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
-
-    const history = chessboard.history()
-    const latestMove = (history && history[history.length - 1]) || null
-    console.log('[]: ', latestMove)
-
-    // TODO: move to AppUtils
-    const eventParts = NostrEvents.blankEvent()
-    eventParts.kind = NIP01.KindEnum.EventTextNote
-    eventParts.pubkey = publicKey
-    eventParts.created_at = Math.floor(Date.now() / 1000)
-    eventParts.content = JSON.stringify({
-      version: '0',
-      kind: AppUtils.KindEnum.Move,
-      fen: chessboard.fen(),
-      move: latestMove,
-      history: history,
-    })
-    eventParts.tags = [
-      [NIP01.TagEnum.e, currentGameStart.event().id],
-      [NIP01.TagEnum.e, currentGameHead.event().id],
-    ]
 
     return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(async () => {
         try {
-          const event = NostrEvents.constructEvent(eventParts)
+          const event = createGameEvent(publicKey, currentGameStart, currentGameHead, chessboard)
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
