@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -6,6 +6,15 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 
 export default function Faq() {
+  useEffect(() => {
+    const previousTitle = document.title
+    document.title = `jester - FAQ`
+
+    return () => {
+      document.title = previousTitle
+    }
+  }, [])
+
   return (
     <div className="screen-faq">
       <Heading1 color="blueGray">FAQ</Heading1>

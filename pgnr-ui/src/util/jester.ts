@@ -171,7 +171,12 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
   return NostrEvents.constructEvent(eventParts)
 }
 
-export const constructGameMoveEvent = (pubkey: NIP01.PubKey, currentGameStart: GameStart, currentGameHead: JesterMove, game: ChessInstance): NIP01.UnsignedEvent => {
+export const constructGameMoveEvent = (
+  pubkey: NIP01.PubKey,
+  currentGameStart: GameStart,
+  currentGameHead: JesterMove,
+  game: ChessInstance
+): NIP01.UnsignedEvent => {
   const history = game.history()
   const latestMove = (history && history[history.length - 1]) || null
 
@@ -193,7 +198,6 @@ export const constructGameMoveEvent = (pubkey: NIP01.PubKey, currentGameStart: G
   ]
   return NostrEvents.constructEvent(eventParts)
 }
-
 
 const tryParseJsonObject = (val: string) => {
   try {

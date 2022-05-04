@@ -236,9 +236,9 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   useEffect(() => {
     const previousTitle = document.title
     if (!gameId) {
-      document.title = `Game ...`
+      document.title = `jester - Game ...`
     } else {
-      document.title = `Game ${AppUtils.gameDisplayName(gameId)}`
+      document.title = `jester - Game ${AppUtils.gameDisplayName(gameId)}`
     }
 
     return () => {
@@ -305,7 +305,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const sendGameStateViaNostr = async (chessboard: ChessInstance) => {
     if (!outgoingNostr) {
       throw new Error('Nostr EventBus not ready..')
-    }    if (!publicKeyOrNull) {
+    }
+    if (!publicKeyOrNull) {
       throw new Error('PubKey not available..')
     }
     if (!privateKeyOrNull) {

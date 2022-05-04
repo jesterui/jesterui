@@ -310,6 +310,15 @@ export default function Settings() {
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
 
+  useEffect(() => {
+    const previousTitle = document.title
+    document.title = `jester - Settings`
+
+    return () => {
+      document.title = previousTitle
+    }
+  }, [])
+
   const [selectedBot, setSelectedBot] = useState<SelectedBot>(
     (() => {
       if (settings.botName && Bot.Bots[settings.botName]) {
