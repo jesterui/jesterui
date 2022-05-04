@@ -5,12 +5,11 @@ import { useUpdateSubscription } from '../../context/NostrSubscriptionsContext'
 import * as NIP01 from '../../util/nostr/nip01'
 import * as AppUtils from '../../util/pgnrui'
 
-const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 1 : 10
-const FILTER_TIME_IN_SECONDS = FILTER_TIME_IN_MINUTES * 60
+const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 5 : 2
 
-export const createSinceFilterValue = () => {
+export const createSinceFilterValue = (minutesBack: number) => {
   const now = new Date()
-  const filterDateBase = new Date(now.getTime() - FILTER_TIME_IN_SECONDS * 1_000)
+  const filterDateBase = new Date(now.getTime() - minutesBack * 60 * 1_000)
   const filterDate = new Date(
     Date.UTC(
       filterDateBase.getUTCFullYear(),
@@ -22,7 +21,7 @@ export const createSinceFilterValue = () => {
     )
   )
   const seconds = Math.floor(filterDate.getTime() / 1_000)
-  return seconds - (seconds % FILTER_TIME_IN_SECONDS)
+  return seconds
 }
 
 export default function NostrManageSubscriptions() {
@@ -32,7 +31,7 @@ export default function NostrManageSubscriptions() {
   const [gameStartFilters] = useState<NIP01.Filter[]>([
     {
       ...AppUtils.PGNRUI_START_GAME_FILTER,
-      since: createSinceFilterValue(),
+      since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
     },
   ])
 

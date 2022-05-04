@@ -21,7 +21,7 @@ interface NostrSubscriptionsContextEntry {
 }
 
 // this is so stupid..
-const arrayDeepEquals = (a: unknown[], b: unknown[]): boolean => {
+const arrayDeepEquals = (a: NIP01.Filter[], b: NIP01.Filter[]): boolean => {
   return JSON.stringify(a) === JSON.stringify(b)
 }
 

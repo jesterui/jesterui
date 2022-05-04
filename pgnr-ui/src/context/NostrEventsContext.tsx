@@ -105,12 +105,12 @@ interface NostrEventsEntry {
 }
 
 interface NostrEventDictionary {
-  [id: NIP01.Sha256]: NIP01.Event
+  [id: NIP01.EventId]: NIP01.Event
 }
 
 export interface NostrEventBufferState {
   latest: NIP01.Event | null
-  order: NIP01.Sha256[] // this is the order in which the events arrived - it holds event ids!
+  order: NIP01.EventId[] // this is the order in which the events arrived
   // TODO: add a field holding ids sorted by "created_at"
   events: NostrEventDictionary
 }
@@ -218,8 +218,6 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
         async (event: CustomEvent<NIP01.ClientMessage>) => {
-          //event.stopPropagation()
-
           if (!websocket) {
             console.warn('Websocket not ready yet')
             return

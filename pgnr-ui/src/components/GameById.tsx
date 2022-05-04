@@ -381,8 +381,11 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         return null
       }
 
+      if (isSearchingHead && current !== null) {
+        return current
+      }
       const newGame = new Chess.Chess()
-      if (isSearchingHead && current === null) {
+      if (isSearchingHead) {
         return newGame
       }
 

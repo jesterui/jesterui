@@ -16,7 +16,7 @@ export default function NostrLogIncomingRelayEvents() {
         if (event.type !== NIP01.RelayEventType.EVENT) return
         const req = event.detail as NIP01.RelayEventMessage
 
-        console.info(`[Nostr] LOGGING INCOMING EVENT`, req)
+        console.log(`[Nostr] LOGGING INCOMING EVENT`, req)
       },
       { signal: abortCtrl.signal }
     )
@@ -34,7 +34,7 @@ export default function NostrLogIncomingRelayEvents() {
         if (event.type !== NIP01.RelayEventType.NOTICE) return
         const req = event.detail as NIP01.RelayNoticeMessage
 
-        console.info(`[Nostr] LOGGING INCOMING NOTICE`, req)
+        console.log(`[Nostr] LOGGING INCOMING NOTICE`, req)
       },
       { signal: abortCtrl.signal }
     )
