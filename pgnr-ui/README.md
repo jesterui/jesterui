@@ -1,4 +1,4 @@
-# pgnr-ui
+# jester-ui
 
 
 TODO:

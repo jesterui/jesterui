@@ -1,6 +1,6 @@
 import * as NIP01 from './nostr/nip01'
 
-const SESSION_KEY = 'pgnr-ui'
+const SESSION_KEY = 'jeser-ui'
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 

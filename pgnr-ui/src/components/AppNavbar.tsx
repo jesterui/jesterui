@@ -29,7 +29,7 @@ export default function AppNavbar() {
       <NavbarContainer>
         <NavbarWrapper>
           <NavbarBrand>
-            pgnr-ui
+            jester
             <span className="px-1">
               <WebsocketIndicator />
             </span>
