@@ -318,10 +318,13 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
 
+    const startId = currentGameStart.event().id
+    const headId = currentGameHead.event().id
+
     return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(async () => {
         try {
-          const event = AppUtils.constructGameMoveEvent(publicKey, currentGameStart, currentGameHead, chessboard)
+          const event = AppUtils.constructGameMoveEvent(publicKey, startId, headId, chessboard)
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
@@ -467,7 +470,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       {!isLoading && currentChessInstance === null && (
         <div>
           <div>Game not found...</div>
-          <CreateGameAndRedirectButton />
+          <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
         </div>
       )}
       {isLoading && (
@@ -500,7 +503,11 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
               {!isSearchingHead && (
                 <>
                   <div>{<GameStateMessage game={currentChessInstance} />}</div>
-                  <div>{currentChessInstance.game_over() && <CreateGameAndRedirectButton />}</div>
+                  <div>
+                    {currentChessInstance.game_over() && (
+                      <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
+                    )}
+                  </div>
                 </>
               )}
               {

@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState, MouseEvent, useCallback } from 'react'
+import React, { useEffect, useState, MouseEvent, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { NostrEvent } from '../util/nostr_db'
 
 import { useLiveQuery } from 'dexie-react-hooks'
 import CreateGameButton from './CreateGameButton'
@@ -17,7 +16,8 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import { GameStartEvent } from '../util/app_db'
+import CreateDevelGameButton from './devel/CreateDevelGameButton'
+import CreateMultipleGamesButton from './devel/CreateMultipleGamesButton'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -47,7 +47,6 @@ const createGameOverviewFilter = (now: Date) => {
 
 export default function GamesOverview() {
   const renderedAt = new Date()
-  const createGameButtonRef = useRef<HTMLButtonElement>(null)
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const navigate = useNavigate()
@@ -126,21 +125,6 @@ export default function GamesOverview() {
     }
   }
 
-  const __dev_createMultipleGames = (amount: number) => {
-    if (amount <= 0) return
-
-    const chunks = 10
-
-    if (amount <= chunks) {
-      for (let i = 0; i < amount; i++) {
-        createGameButtonRef.current?.click()
-      }
-    } else {
-      __dev_createMultipleGames(chunks)
-      setTimeout(() => __dev_createMultipleGames(amount - chunks), 4)
-    }
-  }
-
   const unsubscribeFromCurrentGame = useCallback(() => {
     settingsDispatch({ currentGameId: undefined } as AppSettings)
   }, [settingsDispatch])
@@ -156,15 +140,15 @@ export default function GamesOverview() {
       ) : (
         <>
           <div className="my-4">
-            <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={onGameCreated} />
             {settings.dev && (
-              <button
-                type="button"
-                className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-                onClick={() => __dev_createMultipleGames(100)}
-              >
-                DEV: Start 100 games
-              </button>
+              <>
+                <CreateDevelGameButton
+                  onGameCreated={(e, gameId) => {
+                    window.alert(`Published game ${gameId}`)
+                  }}
+                />
+                <CreateMultipleGamesButton amount={21} />
+              </>
             )}
           </div>
 
@@ -193,7 +177,7 @@ export default function GamesOverview() {
                     </Link>
                     <button
                       type="button"
-                      className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1 "
+                      className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
                       onClick={() => unsubscribeFromCurrentGame()}
                     >
                       Unsubscribe

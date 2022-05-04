@@ -173,14 +173,13 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
 
 export const constructGameMoveEvent = (
   pubkey: NIP01.PubKey,
-  currentGameStart: GameStart,
-  currentGameHead: JesterMove,
+  startId: NIP01.EventId,
+  headId: NIP01.EventId,
   game: ChessInstance
 ): NIP01.UnsignedEvent => {
   const history = game.history()
   const latestMove = (history && history[history.length - 1]) || null
 
-  // TODO: move to AppUtils
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = NIP01.KindEnum.EventTextNote
   eventParts.pubkey = pubkey
@@ -193,8 +192,8 @@ export const constructGameMoveEvent = (
     history: history,
   })
   eventParts.tags = [
-    [NIP01.TagEnum.e, currentGameStart.event().id],
-    [NIP01.TagEnum.e, currentGameHead.event().id],
+    [NIP01.TagEnum.e, startId],
+    [NIP01.TagEnum.e, headId],
   ]
   return NostrEvents.constructEvent(eventParts)
 }

@@ -9,7 +9,7 @@ import * as AppUtils from '../util/jester'
 import { useNavigate } from 'react-router-dom'
 
 interface CreateGameButtonProps {
-  onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => void
+  onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => void
   buttonRef?: RefObject<HTMLButtonElement>
   className?: string
 }
@@ -59,9 +59,10 @@ export default function CreateGameButton({ buttonRef, className, onGameCreated }
 }
 interface CreateGameAndRedirectButtonProps {
   buttonRef?: RefObject<HTMLButtonElement>
+  className?: string
 }
 
-export function CreateGameAndRedirectButton({ buttonRef }: CreateGameAndRedirectButtonProps) {
+export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGameAndRedirectButtonProps) {
   const navigate = useNavigate()
 
   const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
@@ -71,5 +72,5 @@ export function CreateGameAndRedirectButton({ buttonRef }: CreateGameAndRedirect
     navigate(`/redirect/game/${gameId}`)
   }
 
-  return <CreateGameButton buttonRef={buttonRef} onGameCreated={onGameCreated} />
+  return <CreateGameButton buttonRef={buttonRef} className={className} onGameCreated={onGameCreated} />
 }

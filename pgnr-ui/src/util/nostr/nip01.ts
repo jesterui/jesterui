@@ -4,7 +4,7 @@ export type Sig = Hex //  <64-bytes signature of the sha256 hash of the serializ
 
 export type Sha256 = Hex
 
-export type EventId = Sha256
+export type EventId = Sha256 // 32-bytes sha256
 
 type Timestamp = number
 type CreatedAtTimestamp = Timestamp
@@ -100,7 +100,7 @@ export interface EventParts {
 }
 
 export type UnsignedEvent = EventParts & {
-  id: Sha256 // 32-bytes sha256
+  id: EventId
 }
 
 const __exampleUnsignedEvent1: UnsignedEvent = {

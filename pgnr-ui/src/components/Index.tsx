@@ -28,10 +28,16 @@ export default function Index() {
     <div className="screen-index">
       {<Heading1 color="blueGray">Gameboard</Heading1>}
       <div className="flex justify-center items-center">
-        {!incomingNostr ? <div>No connection to nostr</div> : (<>
-        <CreateGameButton onGameCreated={onGameCreated} 
-          className={`bg-white bg-opacity-20 rounded px-5 py-5`} />
-      </>)}
+        {!incomingNostr ? (
+          <div>No connection to nostr</div>
+        ) : (
+          <>
+            <CreateGameButton
+              onGameCreated={onGameCreated}
+              className={`bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4`}
+            />
+          </>
+        )}
       </div>
     </div>
   )
