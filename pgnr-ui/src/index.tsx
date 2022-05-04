@@ -28,6 +28,7 @@ declare global {
 
 ReactDOM.render(
   <React.StrictMode>
+    {/*Using HashRouter for GitHub Pages compatibility */}
     <HashRouter>
       <SettingsProvider value={undefined}>
         <WebsocketProvider value={undefined}>
