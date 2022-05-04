@@ -17,6 +17,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
+import { GameStartEvent } from '../util/app_db'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -103,8 +104,21 @@ export default function GamesOverview() {
       return events
     },
     [gameStartEventFilter],
-    [] as NostrEvent[]
+    null
   )
+
+  useEffect(() => {
+    const previousTitle = document.title
+    if (!listOfStartGamesLiveQuery) {
+      document.title = `jester - Overview (...)`
+    } else {
+      document.title = `jester - Overview (${listOfStartGamesLiveQuery.length})`
+    }
+
+    return () => {
+      document.title = previousTitle
+    }
+  }, [listOfStartGamesLiveQuery])
 
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
     if (e.nativeEvent.isTrusted) {
@@ -193,14 +207,14 @@ export default function GamesOverview() {
           {
             <div className="my-4">
               <Heading6 color="blueGray">Latest Games</Heading6>
-              {listOfStartGamesLiveQuery.length} games available
+              {listOfStartGamesLiveQuery?.length || 0} games available
               <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
               <Small color="gray"> from {gameStartEventFilter.from.toLocaleString()}</Small>
               <Small color="gray"> to {gameStartEventFilter.until.toLocaleString()}</Small>
             </div>
           }
           <div className="my-4">
-            {listOfStartGamesLiveQuery.map((it) => {
+            {listOfStartGamesLiveQuery?.map((it) => {
               return (
                 <div key={it.id}>
                   <Link to={`/game/${it.id}`}>
