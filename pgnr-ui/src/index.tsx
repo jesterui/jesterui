@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 
 import './index.css'
 import '@material-tailwind/react/tailwind.css'
@@ -28,7 +28,7 @@ declare global {
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <SettingsProvider value={undefined}>
         <WebsocketProvider value={undefined}>
           <NostrEventsProvider value={undefined}>
@@ -42,7 +42,7 @@ ReactDOM.render(
           </NostrEventsProvider>
         </WebsocketProvider>
       </SettingsProvider>
-    </BrowserRouter>
+    </HashRouter>
   </React.StrictMode>,
   document.getElementById('root')
 )
