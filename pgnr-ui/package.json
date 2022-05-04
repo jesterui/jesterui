@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@alephium/noble-secp256k1": "^1.5.5",
     "@material-tailwind/react": "0.3.4",
     "@noble/secp256k1": "^1.5.5",
     "@react-chess/chessground": "^1.2.2",
