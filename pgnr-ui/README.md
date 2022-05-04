@@ -14,6 +14,8 @@ TODO:
 - [ ] add POW if necessary
 - [ ] rename to jester
 - [ ] add ability to watch games next to "currentGameId"
+- [ ] ability to "offer draw", "draw by agreement", "give up"
+- [ ] "promote to other piece than queen"
  
 ---
 

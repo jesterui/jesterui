@@ -17,7 +17,7 @@ export default function Index() {
   const settings = useSettings()
 
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
-    navigate(`/game:/${gameId}`)
+    navigate(`/game/${gameId}`)
   }
 
   if (settings.currentGameId) {
@@ -28,7 +28,10 @@ export default function Index() {
     <div className="screen-index">
       {<Heading1 color="blueGray">Gameboard</Heading1>}
       <div className="flex justify-center items-center">
-        {!incomingNostr ? <div>No connection to nostr</div> : <CreateGameButton onGameCreated={onGameCreated} />}
+        {!incomingNostr ? <div>No connection to nostr</div> : (<>
+        <CreateGameButton onGameCreated={onGameCreated} 
+          className={`bg-white bg-opacity-20 rounded px-5 py-5`} />
+      </>)}
       </div>
     </div>
   )

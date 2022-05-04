@@ -11,9 +11,10 @@ import { useNavigate } from 'react-router-dom'
 interface CreateGameButtonProps {
   onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => void
   buttonRef?: RefObject<HTMLButtonElement>
+  className?: string
 }
 
-export default function CreateGameButton({ buttonRef, onGameCreated }: CreateGameButtonProps) {
+export default function CreateGameButton({ buttonRef, className, onGameCreated }: CreateGameButtonProps) {
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
 
@@ -49,7 +50,7 @@ export default function CreateGameButton({ buttonRef, onGameCreated }: CreateGam
     <button
       ref={buttonRef}
       type="button"
-      className="bg-white bg-opacity-20 rounded px-2 py-1"
+      className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1'}`}
       onClick={(e: MouseEvent<HTMLButtonElement>) => onStartGameButtonClicked(e)}
     >
       Start new game
