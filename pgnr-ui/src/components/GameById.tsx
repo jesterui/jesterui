@@ -546,7 +546,12 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
                   <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
                     <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
                   </div>
-                  <div style={{ display: !isSearchingHead ? 'block' : 'none' }}>
+                  <div
+                    style={{
+                      display: !isSearchingHead ? 'block' : 'none',
+                      filter: settings.currentGameId === gameId ? undefined : 'brightness(0.5)',
+                    }}
+                  >
                     <BoardContainer game={currentChessInstance} color={color} onGameChanged={onChessboardChanged} />
                   </div>
                 </>
