@@ -16,6 +16,7 @@ import * as NIP01 from './util/nostr/nip01'
 import * as AppUtils from './util/jester'
 import './App.css'
 import CurrentGame from './components/CurrentGame'
+import NostrManageRelays from './components/nostr/NostrManageRelays'
 
 // TODO: this whole component is a hack.. generally works, but please try to remove it
 function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -37,6 +38,7 @@ export default function App() {
       <>
         <NostrManageSubscriptions />
         <NostrLogIncomingRelayEvents />
+        <NostrManageRelays />
       </>
       <div className="App">
         <header className="App-header w-full">

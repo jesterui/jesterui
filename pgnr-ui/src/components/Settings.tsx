@@ -12,6 +12,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as Nostr from '../util/nostr/identity'
 import * as NostrEvents from '../util/nostr/events'
 import * as Bot from '../util/bot'
+import { DEFAULT_RELAYS } from '../util/app_nostr'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
@@ -23,26 +24,6 @@ import Heading2 from '@material-tailwind/react/Heading2'
 import Input from '@material-tailwind/react/Input'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
-
-const developmentRelays = ['ws://localhost:7000']
-
-const publicRelays = [
-  'wss://nostr-pub.wellorder.net',
-  'wss://relayer.fiatjaf.com',
-  'wss://nostr.rocks',
-  'wss://rsslay.fiatjaf.com',
-  'wss://freedom-relay.herokuapp.com/ws',
-  'wss://nostr-relay.freeberty.net',
-  'wss://nostr.bitcoiner.social',
-  'wss://nostr-relay.wlvs.space',
-  'wss://nostr.onsats.org',
-  'wss://nostr-relay.untethr.me',
-  'wss://nostr-verified.wellorder.net',
-  'wss://nostr.drss.io',
-  'wss://nostr.unknown.place',
-]
-
-const defaultRelays = [...(process.env.NODE_ENV === 'development' ? developmentRelays : []), ...publicRelays]
 
 type PubKey = string | null
 type PrivKey = string | null
@@ -394,7 +375,7 @@ export default function Settings() {
           <TestNostrConnectionButton />
         </div>
         <div className="py-1">
-          {defaultRelays.map((relay, index) => (
+          {DEFAULT_RELAYS.map((relay, index) => (
             <div key={index}>
               <Checkbox
                 color="blueGray"
