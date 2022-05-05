@@ -198,8 +198,8 @@ const KeyPairForm = () => {
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const [publicKeyInputValue, setPublicKeyInputValue] = useState<PubKey>(publicKeyOrNull)
-  const [privateKeyInputValue, setPrivateKeyInputValue] = useState<PrivKey>(privateKeyOrNull)
+  const [publicKeyInputValue, setPublicKeyInputValue] = useState<PubKey>(publicKeyOrNull || '')
+  const [privateKeyInputValue, setPrivateKeyInputValue] = useState<PrivKey>(privateKeyOrNull || '')
   const [keyPairValid, setKeyPairValid] = useState<boolean | undefined>(undefined)
 
   const updatePrivKey = (privKey: PrivKey) => {

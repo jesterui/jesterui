@@ -1,12 +1,8 @@
-import React, { ChangeEvent, MouseEvent, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { MouseEvent, ChangeEvent, useState } from 'react'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { useSettings } from '../context/SettingsContext'
-import BoardById from './GameById'
-import CreateGameButton from './CreateGameButton'
-
-import * as NIP01 from '../util/nostr/nip01'
+import { CreateGameAndRedirectButton } from './CreateGameButton'
+import { useNavigate } from 'react-router-dom'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -16,10 +12,16 @@ import Input from '@material-tailwind/react/Input'
 export default function Index() {
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
-  const [searchInputValue, setSearchInputValue] = useState<string | null>(null)
+  const [searchInputValue, setSearchInputValue] = useState<string>('')
 
-  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
-    navigate(`/game/${gameId}`)
+  const search = (searchInput: string) => {
+    if (!searchInput) return
+
+    navigate(`/redirect/game/${searchInput}`)
+  }
+
+  const triggerSearch = () => {
+    search(searchInputValue)
   }
 
   return (
@@ -30,13 +32,28 @@ export default function Index() {
         ) : (
           <>
             <div className="w-full grid grid-cols-1">
-              <div className="flex justify-center">{<Heading1 color="blueGray">Chess on Nostr</Heading1>}</div>
+              <div className="flex justify-center">{<Heading1 color="blueGray">chess on nostr</Heading1>}</div>
+              <div className="pb-2 grow">
+                <Input
+                  type="text"
+                  size="lg"
+                  outline={true}
+                  value={searchInputValue}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchInputValue(e.target.value)}
+                  placeholder="Search"
+                />
+              </div>
 
               <div className="flex justify-center items-center">
-                <CreateGameButton
-                  onGameCreated={onGameCreated}
+                <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-5 py-5 mx-1 my-4`} />
+
+                <button
+                  type="button"
                   className={`bg-white bg-opacity-20 rounded px-5 py-5 mx-1 my-4`}
-                />
+                  onClick={triggerSearch}
+                >
+                  Search
+                </button>
               </div>
             </div>
           </>

@@ -1,5 +1,10 @@
 import React, { useState } from 'react'
 import { NavLink as ReactNavLink } from 'react-router-dom'
+
+import { WebsocketIndicator } from '../components/WebsocketIndicator'
+import { CreateGameAndRedirectButton } from './CreateGameButton'
+import { useSettings } from '../context/SettingsContext'
+
 // @ts-ignore
 import Navbar from '@material-tailwind/react/Navbar'
 // @ts-ignore
@@ -19,9 +24,8 @@ import NavItem from '@material-tailwind/react/NavItem'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 
-import { WebsocketIndicator } from '../components/WebsocketIndicator'
-
 export default function AppNavbar() {
+  const settings = useSettings()
   const [openMenu, setOpenMenu] = useState(false)
 
   return (
@@ -36,6 +40,9 @@ export default function AppNavbar() {
               </span>
             </ReactNavLink>
           </NavbarBrand>
+          {!settings.currentGameId && (
+            <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-3 py-3 mx-1`} />
+          )}
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 

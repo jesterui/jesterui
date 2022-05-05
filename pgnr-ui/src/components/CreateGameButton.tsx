@@ -65,7 +65,7 @@ interface CreateGameAndRedirectButtonProps {
 export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGameAndRedirectButtonProps) {
   const navigate = useNavigate()
 
-  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
+  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => {
     // TODO: this is a hack so we do not need to watch for gameId changes..
     // please, please please.. try to remove it and immediately
     // navigate to /game/:gameId
