@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import { NavLink as ReactNavLink } from 'react-router-dom'
+import { NavLink as ReactNavLink, useNavigate } from 'react-router-dom'
 
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { CreateGameAndRedirectButton } from './CreateGameButton'
-import { useSettings } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { getSession, setSessionAttribute } from '../util/session'
+import * as NostrIdentity from '../util/nostr/identity'
 
 // @ts-ignore
 import Navbar from '@material-tailwind/react/Navbar'
@@ -26,7 +28,24 @@ import Icon from '@material-tailwind/react/Icon'
 
 export default function AppNavbar() {
   const settings = useSettings()
+  const settingsDispatch = useSettingsDispatch()
+  const navigate = useNavigate()
   const [openMenu, setOpenMenu] = useState(false)
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
+  const privateKeyOrNull = getSession()?.privateKey || null
+
+  const newIdentityButtonClicked = () => {
+    const privateKey = NostrIdentity.generatePrivateKey()
+    const publicKey = NostrIdentity.publicKey(privateKey)
+
+    setSessionAttribute({ privateKey })
+    settingsDispatch({ identity: { pubkey: publicKey } } as AppSettings)
+  }
+
+  const onLoginButtonClicked = () => {
+    navigate(`/settings`)
+  }
 
   return (
     <Navbar color="blueGray" navbar>
@@ -40,15 +59,26 @@ export default function AppNavbar() {
               </span>
             </ReactNavLink>
           </NavbarBrand>
-          {!settings.currentGameId && (
-            <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-3 py-3 mx-1`} />
-          )}
+          {privateKeyOrNull ? (<>
+            {!settings.currentGameId && (
+              <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`} />
+            )}
+          </>) : (<>
+            {publicKeyOrNull ? (
+            <button className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`} onClick={() => onLoginButtonClicked()}>
+            Login
+          </button>
+          ): (<button className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`} onClick={() => newIdentityButtonClicked()}>
+          New identity
+        </button>)}
+          </>)}
+
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 
         <NavbarCollapse open={openMenu}>
-          <Nav>
-            <ReactNavLink
+            {settings.currentGameId && (<Nav leftSide>
+              <ReactNavLink
               to="/current"
               className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
             >
@@ -57,6 +87,8 @@ export default function AppNavbar() {
                 Game
               </NavItem>
             </ReactNavLink>
+            </Nav>)}
+          <Nav>
             <ReactNavLink
               to="/games"
               className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}

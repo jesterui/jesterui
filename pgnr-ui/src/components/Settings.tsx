@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import * as Nostr from '../util/nostr/identity'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { SelectedBot, BotSelector } from '../components/BotSelector'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
@@ -10,6 +9,7 @@ import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
+import * as Nostr from '../util/nostr/identity'
 import * as NostrEvents from '../util/nostr/events'
 import * as Bot from '../util/bot'
 
