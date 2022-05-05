@@ -21,6 +21,7 @@ import CreateMultipleGamesButton from './devel/CreateMultipleGamesButton'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
+const MAX_AMOUNT_OF_GAMES = 100
 const MIN_UPDATE_IN_SECONDS = 10
 
 interface GamesFilter {
@@ -91,6 +92,7 @@ export default function GamesOverview() {
       const events = await gameStore.game_start
         .where('created_at')
         .between(gameStartEventFilter.from.getTime() / 1_000, gameStartEventFilter.until.getTime() / 1_000)
+        .limit(MAX_AMOUNT_OF_GAMES)
         .toArray()
 
       return events
