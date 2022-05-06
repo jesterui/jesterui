@@ -27,6 +27,7 @@ TODO:
 - [ ] ability to "offer draw", "draw by agreement", "give up"
 - [ ] "promote to other piece than queen"
 - [ ] support more NIPs!
+- [ ] crashes in firefox private mode (indexeddb is read-only..)
  
 ---
 

@@ -61,7 +61,6 @@ export default function Index() {
                   value={searchInputValue}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => onSearchInputChange(e)}
                   placeholder="Search"
-                  minlength={64}
                 />
               </div>
 

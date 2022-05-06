@@ -263,7 +263,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
 const useIncomingNostrEvents = () => {
   const context = useContext(NostrEventsContext)
   if (context === undefined) {
-    throw new Error('useIncomingNostrEvents must be used within a GamesProvider')
+    throw new Error('useIncomingNostrEvents must be used within a NostrEventsProvider')
   }
 
   return context.incoming
@@ -272,7 +272,7 @@ const useIncomingNostrEvents = () => {
 const useIncomingNostrEventsBuffer = () => {
   const context = useContext(NostrEventsContext)
   if (context === undefined) {
-    throw new Error('useIncomingNostrEventsBuffer must be used within a GamesProvider')
+    throw new Error('useIncomingNostrEventsBuffer must be used within a NostrEventsProvider')
   }
 
   return context.incomingBuffer
@@ -281,7 +281,7 @@ const useIncomingNostrEventsBuffer = () => {
 const useOutgoingNostrEvents = () => {
   const context = useContext(NostrEventsContext)
   if (context === undefined) {
-    throw new Error('useOutgoingNostrEvents must be used within a GamesProvider')
+    throw new Error('useOutgoingNostrEvents must be used within a NostrEventsProvider')
   }
 
   return context.outgoing
