@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
@@ -515,53 +515,55 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
             </div>
           </div>
         )}
-        {currentChessInstance !== null && (<div>
-          <div style={{ display: !isLoading ? 'block' : 'none' }}>
-            <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
-            <div>
-              <>
-                {isSearchingHead && (
-                  <>
-                    <div>{`Loading...`}</div>
-                  </>
-                )}
-                {!isSearchingHead && (
-                  <>
-                    <div>{<GameStateMessage game={currentChessInstance} />}</div>
-                    <div>
-                      {currentChessInstance.game_over() && (
-                        <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
-                      )}
-                    </div>
-                  </>
-                )}
-                {
-                  <>
-                    <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
-                      <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
-                    </div>
-                    <div
-                      style={{
-                        display: !isSearchingHead ? 'block' : 'none',
-                        filter: settings.currentGameId === gameId ? undefined : 'brightness(0.5)',
-                      }}
-                    >
-                      <BoardContainer game={currentChessInstance} color={color} onGameChanged={onChessboardChanged} />
-                    </div>
-                  </>
-                }
-              </>
-            </div>
-            <div>
-              <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
-            </div>
-            {/*currentGameMoves && (
+        {currentChessInstance !== null && (
+          <div>
+            <div style={{ display: !isLoading ? 'block' : 'none' }}>
+              <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
+              <div>
+                <>
+                  {isSearchingHead && (
+                    <>
+                      <div>{`Loading...`}</div>
+                    </>
+                  )}
+                  {!isSearchingHead && (
+                    <>
+                      <div>{<GameStateMessage game={currentChessInstance} />}</div>
+                      <div>
+                        {currentChessInstance.game_over() && (
+                          <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {
+                    <>
+                      <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
+                        <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+                      </div>
+                      <div
+                        style={{
+                          display: !isSearchingHead ? 'block' : 'none',
+                          filter: settings.currentGameId === gameId ? undefined : 'brightness(0.5)',
+                        }}
+                      >
+                        <BoardContainer game={currentChessInstance} color={color} onGameChanged={onChessboardChanged} />
+                      </div>
+                    </>
+                  }
+                </>
+              </div>
+              <div>
+                <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
+              </div>
+              {/*currentGameMoves && (
             <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
               <pre>{JSON.stringify(currentGameMoves, null, 2)}</pre>
             </div>
           )*/}
+            </div>
           </div>
-        </div>)}
+        )}
       </div>
 
       <div style={{ margin: '2.5rem 0' }}></div>
@@ -576,30 +578,30 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
             Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
           </Heading1>
 
-        <div className="my-4">
-          {settings.currentGameId === gameId ? (
-            <>
-              <button
-                type="button"
-                className="bg-white bg-opacity-20 rounded px-2 py-1"
-                onClick={() => unsubscribeFromCurrentGame()}
-              >
-                Unsubscribe
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                className="bg-white bg-opacity-20 rounded px-2 py-1"
-                onClick={() => subscribeToGameId()}
-              >
-                Subscribe
-              </button>
-            </>
-          )}
-        </div>
-        
+          <div className="my-4">
+            {settings.currentGameId === gameId ? (
+              <>
+                <button
+                  type="button"
+                  className="bg-white bg-opacity-20 rounded px-2 py-1"
+                  onClick={() => unsubscribeFromCurrentGame()}
+                >
+                  Unsubscribe
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="bg-white bg-opacity-20 rounded px-2 py-1"
+                  onClick={() => subscribeToGameId()}
+                >
+                  Subscribe
+                </button>
+              </>
+            )}
+          </div>
+
           <div>{`gameId: ${gameId}`}</div>
           <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
           <div>{`Moves: ${currentGameMoves.length}`}</div>

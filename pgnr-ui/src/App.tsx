@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Route, Routes, Navigate, useParams, useNavigate } from 'react-router-dom'
+import React from 'react'
+import { Route, Routes, Navigate } from 'react-router-dom'
 
 import NostrLogIncomingRelayEvents from './components/nostr/devel/NostrLogIncomingRelayEvents'
 import NostrManageSubscriptions from './components/nostr/NostrManageSubscriptions'
@@ -7,31 +7,16 @@ import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Index from './components/Index'
 import Faq from './components/Faq'
+import RedirectToGame from './components/RedirectToGame'
 import GamesOverview from './components/GamesOverview'
 import GameById from './components/GameById'
 
 import Layout from './Layout'
 
-import * as NIP01 from './util/nostr/nip01'
-import * as AppUtils from './util/jester'
 import './App.css'
 import NoCurrentGamePage from './components/NoCurrentGamePage'
 import NostrManageRelays from './components/nostr/NostrManageRelays'
 import { useSettings } from './context/SettingsContext'
-
-// TODO: this whole component is a hack.. generally works, but please try to remove it
-function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
-  const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
-  const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
-
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    navigate(`/game/${gameId}`)
-  }, [navigate, gameId])
-
-  return <>Redirecting to {gameId && AppUtils.gameDisplayNameShort(gameId)}...</>
-}
 
 export default function App() {
   const settings = useSettings()
