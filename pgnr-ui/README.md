@@ -10,7 +10,8 @@ TODO:
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
 - [ ] show current identity and nostr server (tooltip?) in navbar
-- [ ] use first nostr server in list for auto-connect
+- [x] use first nostr server in list for auto-connect
+  - [ ] cycle through till first connection is successful
 - [ ] update FLOW.md to actual workflow
 - [ ] search by fen! games by fen -> send fen as hash in event!
 - [ ] ability to delete data in indexeddb

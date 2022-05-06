@@ -84,7 +84,7 @@ export default function AppNavbar() {
             >
               <NavItem ripple="light">
                 <Icon name="language" size="xl" />
-                Game
+                Current Game
               </NavItem>
             </ReactNavLink>
             </Nav>)}
