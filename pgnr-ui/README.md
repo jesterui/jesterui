@@ -16,7 +16,7 @@ TODO:
 - [ ] search by fen! games by fen -> send fen as hash in event!
 - [ ] ability to delete data in indexeddb
 - [ ] add ability to watch games next to "currentGameId" aka pinning games
-- [ ] ability to load game by id
+- [x] ability to load game by id
 - [ ] ability to use nos2x (browser extension)
 - [ ] ability for multiple nostr gateways
 - [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)

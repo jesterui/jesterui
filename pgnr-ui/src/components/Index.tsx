@@ -76,15 +76,18 @@ export default function Index() {
                 </button>
               </div>
               <div className="pb-2 grow">
-                {searchResults?.length === 0 && (<>
-                  <Heading6 color="blueGray">No results found. </Heading6>
-                  <p>
-                      Are you sure this is a game id?
-                  </p>
-                  <p>
-                    <small>e.g. a game id looks like this: <code>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</code></small>
-                  </p>
-                </>)}
+                {searchResults?.length === 0 && (
+                  <>
+                    <Heading6 color="blueGray">No results found. </Heading6>
+                    <p>Are you sure this is a game id?</p>
+                    <p>
+                      <small>
+                        e.g. a game id looks like this:{' '}
+                        <code>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</code>
+                      </small>
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </>

@@ -1,4 +1,3 @@
-
 const developmentRelays = ['ws://localhost:7000']
 
 const publicRelays = [

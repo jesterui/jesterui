@@ -11,7 +11,7 @@ export default function NostrManageRelays() {
 
   useEffect(() => {
     if (initialized) return
-    
+
     const noNostrRelayConfigured = !settings.relays || settings.relays.length === 0
     if (noNostrRelayConfigured) {
       settingsDispatch({ relays: [DEFAULT_RELAYS[0]] } as AppSettings)
