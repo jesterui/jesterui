@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Route, Routes, Navigate, useParams, useNavigate } from 'react-router-dom'
 
-import NostrLogIncomingRelayEvents from './components/nostr/NostrLogIncomingRelayEvents'
+import NostrLogIncomingRelayEvents from './components/nostr/devel/NostrLogIncomingRelayEvents'
 import NostrManageSubscriptions from './components/nostr/NostrManageSubscriptions'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
@@ -42,8 +42,8 @@ export default function App() {
     <>
       <>
         <NostrManageSubscriptions />
-        <NostrLogIncomingRelayEvents />
         <NostrManageRelays />
+        {settings.dev && <NostrLogIncomingRelayEvents />}
       </>
       <div className="App">
         <header className="App-header w-full">

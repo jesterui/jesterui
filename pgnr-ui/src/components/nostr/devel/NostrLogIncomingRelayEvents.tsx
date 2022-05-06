@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 
-import { useIncomingNostrEvents } from '../../context/NostrEventsContext'
-import * as NIP01 from '../../util/nostr/nip01'
+import { useIncomingNostrEvents } from '../../../context/NostrEventsContext'
+import * as NIP01 from '../../../util/nostr/nip01'
 
 export default function NostrLogIncomingRelayEvents() {
   const incomingNostr = useIncomingNostrEvents()
