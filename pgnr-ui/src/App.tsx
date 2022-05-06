@@ -15,8 +15,9 @@ import Layout from './Layout'
 import * as NIP01 from './util/nostr/nip01'
 import * as AppUtils from './util/jester'
 import './App.css'
-import CurrentGame from './components/CurrentGame'
+import NoCurrentGamePage from './components/NoCurrentGamePage'
 import NostrManageRelays from './components/nostr/NostrManageRelays'
+import { useSettings } from './context/SettingsContext'
 
 // TODO: this whole component is a hack.. generally works, but please try to remove it
 function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -33,6 +34,10 @@ function RedirectToGame({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefin
 }
 
 export default function App() {
+  const settings = useSettings()
+
+  const currentGameIdOrNull = settings.currentGameId
+
   return (
     <>
       <>
@@ -48,7 +53,11 @@ export default function App() {
           <Routes>
             <Route element={<Layout variant={null} />}>
               <Route path="/" element={<Index />} />
-              <Route path="/current" element={<CurrentGame />} />
+              <Route
+                path="/current"
+                element={currentGameIdOrNull ? <RedirectToGame gameId={currentGameIdOrNull} /> : <NoCurrentGamePage />}
+              />
+              {settings.dev && <Route path="/no-current-game" element={<NoCurrentGamePage />} />}
               <Route path="/games" element={<GamesOverview />} />
               <Route path="/game/:gameId" element={<GameById />} />
               <Route path="/redirect/game/:gameId" element={<RedirectToGame />} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
@@ -19,6 +19,9 @@ import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
+// @ts-ignore
+import Input from '@material-tailwind/react/Input'
+
 // @ts-ignore
 import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
@@ -64,6 +67,31 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
         )}
       </div>
     </>
+  )
+}
+
+const CopyGameUrlInput = ({ gameId }: { gameId: NIP01.EventId }) => {
+  const val = window.location.href
+  const copy = () => {
+    console.log(gameId)
+  }
+  return (
+    <div className="flex">
+      <Input
+        type="text"
+        color="lightBlue"
+        size="md"
+        outline={true}
+        value={val}
+        placeholder="Link to Game"
+        readOnly={true}
+        style={{ color: 'white' }}
+      />
+
+      <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={() => copy()}>
+        Copy
+      </button>
+    </div>
   )
 }
 
@@ -465,38 +493,33 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
       </Heading1>
 
-      {settings.currentGameId === gameId ? (
-        <>
-          <button
-            type="button"
-            className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-            onClick={() => unsubscribeFromCurrentGame()}
-          >
-            Unsubscribe
-          </button>
-        </>
-      ) : (
-        <>
-          <button
-            type="button"
-            className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-            onClick={() => subscribeToGameId()}
-          >
-            Subscribe
-          </button>
-        </>
-      )}
+      <div className="my-4">
+        <CopyGameUrlInput gameId={gameId} />
+      </div>
 
-      {
-        <>
-          <div>{`gameId: ${gameId}`}</div>
-          <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
-          <div>{`Moves: ${currentGameMoves.length}`}</div>
-          <div>{`isLoading: ${isLoading}`}</div>
-          <div>{`isSearchingHead: ${isSearchingHead}`}</div>
-          <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
-        </>
-      }
+      <div className="my-4">
+        {settings.currentGameId === gameId ? (
+          <>
+            <button
+              type="button"
+              className="bg-white bg-opacity-20 rounded px-2 py-1"
+              onClick={() => unsubscribeFromCurrentGame()}
+            >
+              Unsubscribe
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="bg-white bg-opacity-20 rounded px-2 py-1"
+              onClick={() => subscribeToGameId()}
+            >
+              Subscribe
+            </button>
+          </>
+        )}
+      </div>
 
       {!isLoading && currentChessInstance === null && (
         <div>
@@ -568,6 +591,17 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         )*/}
         </div>
       )}
+
+      {
+        <>
+          <div>{`gameId: ${gameId}`}</div>
+          <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
+          <div>{`Moves: ${currentGameMoves.length}`}</div>
+          <div>{`isLoading: ${isLoading}`}</div>
+          <div>{`isSearchingHead: ${isSearchingHead}`}</div>
+          <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
+        </>
+      }
     </div>
   )
 }

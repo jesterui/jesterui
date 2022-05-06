@@ -1,8 +1,5 @@
 import React from 'react'
-
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { useSettings } from '../context/SettingsContext'
-import BoardById from './GameById'
 import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 // @ts-ignore
@@ -10,12 +7,6 @@ import Heading1 from '@material-tailwind/react/Heading1'
 
 export default function CurrentGame() {
   const incomingNostr = useIncomingNostrEvents()
-  const settings = useSettings()
-
-  if (settings.currentGameId) {
-    return <BoardById gameId={settings.currentGameId} />
-  }
-
   return (
     <div className="screen-current-game">
       {<Heading1 color="blueGray">It seems you do not have a game running..</Heading1>}
