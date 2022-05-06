@@ -1,7 +1,8 @@
 # jester-ui
 
 
-TODO:
+## TODO
+### primary
 - [ ] only let validated moves into "game event store" -> currently received out of order
       with ability to insert invalid events.
 - [ ] strip down contents of "game move" to bare minimum, e.g. does it really need the fen?
@@ -9,6 +10,15 @@ TODO:
 - [ ] currently, player started the game is always white 
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
+- [ ] let user play against a bot via nostr
+- [ ] Color scheme: More clean interface, use bright, warm colors
+- [ ] Dark Mode
+- [x] centered gameboard
+- [ ] improve gameboard on mobile
+- [ ] Move Menu from Navbar to Sidebar - only necessary stuff in navbar
+- [ ] Identity Wizard with Description, pregenerate identity?
+
+### Secondary
 - [ ] show current identity and nostr server (tooltip?) in navbar
 - [x] use first nostr server in list for auto-connect
   - [ ] cycle through till first connection is successful
@@ -28,7 +38,9 @@ TODO:
 - [ ] "promote to other piece than queen"
 - [ ] support more NIPs!
 - [ ] crashes in firefox private mode (indexeddb is read-only..)
- 
+
+- [ ] Tournaments? How can they be implemented
+
 ---
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -57,7 +57,7 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
   return (
     <>
       <div>
-        <div style={{ width: 400, height: 400 }}>
+        <div style={{ width: 600, height: 600 }}>
           {<Chessboard game={game} userColor={color} onAfterMoveFinished={updateGameCallback} />}
         </div>
         {false && game && (
@@ -489,118 +489,124 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   return (
     <div className="screen-game-by-id">
-      <Heading1 color="blueGray">
-        Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
-      </Heading1>
+      <div style={{ marginTop: '2.5rem' }}></div>
+
+      <div className="flex justify-center">
+        {!isLoading && currentChessInstance === null && (
+          <div>
+            <div>Game not found...</div>
+            <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
+          </div>
+        )}
+        {isLoading && (
+          <div>
+            {currentChessInstance === null ? (
+              <>
+                <div style={{ paddingTop: '1.5rem' }}>Loading... (waiting for game data to arrive)</div>
+              </>
+            ) : (
+              <>
+                <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
+                <div>{`Loading...`}</div>
+              </>
+            )}
+            <div>
+              <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+            </div>
+          </div>
+        )}
+        {currentChessInstance !== null && (<div>
+          <div style={{ display: !isLoading ? 'block' : 'none' }}>
+            <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
+            <div>
+              <>
+                {isSearchingHead && (
+                  <>
+                    <div>{`Loading...`}</div>
+                  </>
+                )}
+                {!isSearchingHead && (
+                  <>
+                    <div>{<GameStateMessage game={currentChessInstance} />}</div>
+                    <div>
+                      {currentChessInstance.game_over() && (
+                        <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
+                      )}
+                    </div>
+                  </>
+                )}
+                {
+                  <>
+                    <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
+                      <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+                    </div>
+                    <div
+                      style={{
+                        display: !isSearchingHead ? 'block' : 'none',
+                        filter: settings.currentGameId === gameId ? undefined : 'brightness(0.5)',
+                      }}
+                    >
+                      <BoardContainer game={currentChessInstance} color={color} onGameChanged={onChessboardChanged} />
+                    </div>
+                  </>
+                }
+              </>
+            </div>
+            <div>
+              <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
+            </div>
+            {/*currentGameMoves && (
+            <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
+              <pre>{JSON.stringify(currentGameMoves, null, 2)}</pre>
+            </div>
+          )*/}
+          </div>
+        </div>)}
+      </div>
+
+      <div style={{ margin: '2.5rem 0' }}></div>
 
       <div className="my-4">
         <CopyGameUrlInput gameId={gameId} />
       </div>
 
-      <div className="my-4">
-        {settings.currentGameId === gameId ? (
-          <>
-            <button
-              type="button"
-              className="bg-white bg-opacity-20 rounded px-2 py-1"
-              onClick={() => unsubscribeFromCurrentGame()}
-            >
-              Unsubscribe
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="bg-white bg-opacity-20 rounded px-2 py-1"
-              onClick={() => subscribeToGameId()}
-            >
-              Subscribe
-            </button>
-          </>
-        )}
-      </div>
+      {
+        <div className="my-4">
+          <Heading1 color="blueGray">
+            Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
+          </Heading1>
 
-      {!isLoading && currentChessInstance === null && (
-        <div>
-          <div>Game not found...</div>
-          <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
-        </div>
-      )}
-      {isLoading && (
-        <>
-          {currentChessInstance === null ? (
+        <div className="my-4">
+          {settings.currentGameId === gameId ? (
             <>
-              <div style={{ paddingTop: '1.5rem' }}>Loading... (waiting for game data to arrive)</div>
+              <button
+                type="button"
+                className="bg-white bg-opacity-20 rounded px-2 py-1"
+                onClick={() => unsubscribeFromCurrentGame()}
+              >
+                Unsubscribe
+              </button>
             </>
           ) : (
             <>
-              <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
-              <div>{`Loading...`}</div>
+              <button
+                type="button"
+                className="bg-white bg-opacity-20 rounded px-2 py-1"
+                onClick={() => subscribeToGameId()}
+              >
+                Subscribe
+              </button>
             </>
           )}
-          <div>
-            <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
-          </div>
-        </>
-      )}
-      {currentChessInstance !== null && (
-        <div style={{ display: !isLoading ? 'block' : 'none' }}>
-          <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
-          <div>
-            <>
-              {isSearchingHead && (
-                <>
-                  <div>{`Loading...`}</div>
-                </>
-              )}
-              {!isSearchingHead && (
-                <>
-                  <div>{<GameStateMessage game={currentChessInstance} />}</div>
-                  <div>
-                    {currentChessInstance.game_over() && (
-                      <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
-                    )}
-                  </div>
-                </>
-              )}
-              {
-                <>
-                  <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
-                    <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
-                  </div>
-                  <div
-                    style={{
-                      display: !isSearchingHead ? 'block' : 'none',
-                      filter: settings.currentGameId === gameId ? undefined : 'brightness(0.5)',
-                    }}
-                  >
-                    <BoardContainer game={currentChessInstance} color={color} onGameChanged={onChessboardChanged} />
-                  </div>
-                </>
-              }
-            </>
-          </div>
-          <div>
-            <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
-          </div>
-          {/*currentGameMoves && (
-          <div style={{ maxWidth: 600, overflowX: 'scroll' }}>
-            <pre>{JSON.stringify(currentGameMoves, null, 2)}</pre>
-          </div>
-        )*/}
         </div>
-      )}
-
-      {
-        <>
+        
           <div>{`gameId: ${gameId}`}</div>
           <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
           <div>{`Moves: ${currentGameMoves.length}`}</div>
           <div>{`isLoading: ${isLoading}`}</div>
           <div>{`isSearchingHead: ${isSearchingHead}`}</div>
           <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
-        </>
+        </div>
       }
     </div>
   )
