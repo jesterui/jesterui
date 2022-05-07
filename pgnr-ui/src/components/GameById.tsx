@@ -643,9 +643,10 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
           <div className="my-4">
             <pre className="py-4" style={{ overflowX: 'scroll' }}>
-              <code>{`gameId: ${gameId}`}</code>
+              <div>{`jesterId: ${AppUtils.gameIdToJesterId(gameId)}`}</div>
+              <div>{`gameId: ${gameId}`}</div>
               <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
-              <code>{`Moves: ${currentGameMoves.length}`}</code>
+              <div>{`Moves: ${currentGameMoves.length}`}</div>
               <div>{`isLoading: ${isLoading}`}</div>
               <div>{`isSearchingHead: ${isSearchingHead}`}</div>
               <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>

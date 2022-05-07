@@ -5,6 +5,8 @@ import * as NostrEvents from './nostr/events'
 import { arrayEquals } from './utils'
 import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from './chess'
 import { ChessInstance } from '../components/ChessJsTypes'
+import {Buffer} from 'buffer'
+import { bech32m } from 'bech32'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const JESTER_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
@@ -246,3 +248,10 @@ export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] 
 export const gameDisplayNameShort = (gameId: NIP01.EventId, length = 5) => gameId.substring(0, length)
 export const gameDisplayName = (gameId: NIP01.EventId, length = 8) => gameId.substring(0, length)
 export const pubKeyDisplayName = (pubKey: NIP01.PubKey, length = 8) => pubKey.substring(0, length)
+export const gameIdToJesterId = (gameId: NIP01.EventId) => {
+  const words = bech32m.toWords(Buffer.from(gameId, 'hex'))
+  return bech32m.encode('jester', words)
+}
+export const gameIdToJesterId64 = (gameId: NIP01.EventId) => {
+  return Buffer.from(gameIdToJesterId(gameId), 'utf8').toString('base64')
+}
