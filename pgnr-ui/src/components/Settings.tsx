@@ -22,6 +22,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading2 from '@material-tailwind/react/Heading2'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
+import { displayKey } from '../util/app'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 
@@ -246,7 +247,7 @@ const KeyPairForm = () => {
     <>
       <div className="pb-4">
         <div className="pb-2">
-          Public Key: <span className="font-mono">{publicKeyOrNull}</span>
+          Public Key: <span className="font-mono">{publicKeyOrNull && displayKey(publicKeyOrNull)}</span>
           <Input
             type="text"
             size="regular"
@@ -254,10 +255,11 @@ const KeyPairForm = () => {
             value={publicKeyInputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPublicKeyInputValue(e.target.value)}
             placeholder="Public Key"
+            style={{ color: 'currentColor' }}
           />
         </div>
         <div className="pb-2">
-          Private Key: <span className="font-mono">{privateKeyOrNull}</span>
+          Private Key: <span className="font-mono">{privateKeyOrNull && displayKey(privateKeyOrNull)}</span>
           <Input
             type="text"
             size="regular"
@@ -265,6 +267,7 @@ const KeyPairForm = () => {
             value={privateKeyInputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
             placeholder="Private Key"
+            style={{ color: 'currentColor' }}
             error={keyPairValid === false ? ' ' : undefined}
             success={keyPairValid === true ? ' ' : undefined}
           />

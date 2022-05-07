@@ -37,6 +37,24 @@ const MOVE_COLOR_BLACK: MovableColor = ['black']
 const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
+const titleMessage = (game: ChessInstance, color: MovableColor) => {
+  if (game.game_over()) {
+    if (game.in_draw()) {
+      return 'Draw'
+    }
+    return 'Game Over'
+  } else {
+    if (color.length !== 1) {
+      return `${game.turn() === 'w' ? 'White' : 'Black'} to move`
+    }
+    if (color[0].charAt(0) === game.turn()) {
+      return `Your turn`
+    } else {
+      return `Waiting for opponent`
+    }
+  }
+}
+
 interface BoardContainerProps {
   game: ChessInstance
   color: MovableColor
@@ -96,7 +114,7 @@ const CopyGameUrlInput = ({ value }: { value: string }) => {
         value={value}
         placeholder="Link to Game"
         readOnly={true}
-        style={{ color: 'white' }}
+        style={{ color: 'currentColor' }}
       />
       <CopyButtonWithConfirmation
         className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
@@ -253,22 +271,36 @@ const LoadingBoard = ({ color }: { color: MovableColor }) => {
   )
 }
 
-const titleMessage = (game: ChessInstance, color: MovableColor) => {
-  if (game.game_over()) {
-    if (game.in_draw()) {
-      return 'Draw'
-    }
-    return 'Game Over'
-  } else {
-    if (color.length !== 1) {
-      return `${game.turn() === 'w' ? 'White' : 'Black'} to move`
-    }
-    if (color[0].charAt(0) === game.turn()) {
-      return `Your turn`
-    } else {
-      return `Waiting for opponent`
-    }
-  }
+interface GameboardWithLoaderProps {
+  game: ChessInstance | null
+  color: MovableColor
+  isLoading: boolean
+  isSearchingHead: boolean
+  onChessboardChanged: (chessboard: ChessInstance) => Promise<void>
+}
+
+function GameboardWithLoader({
+  game,
+  color,
+  isLoading,
+  isSearchingHead,
+  onChessboardChanged,
+}: GameboardWithLoaderProps) {
+  return (
+    <>
+      {isLoading && <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />}
+      {game !== null && (
+        <div style={{ display: !isLoading ? 'block' : 'none' }}>
+          <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
+            <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+          </div>
+          <div style={{ display: !isSearchingHead ? 'block' : 'none' }}>
+            <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -622,37 +654,5 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         </div>
       )}
     </div>
-  )
-}
-
-interface GameboardWithLoaderProps {
-  game: ChessInstance | null
-  color: MovableColor
-  isLoading: boolean
-  isSearchingHead: boolean
-  onChessboardChanged: (chessboard: ChessInstance) => Promise<void>
-}
-
-function GameboardWithLoader({
-  game,
-  color,
-  isLoading,
-  isSearchingHead,
-  onChessboardChanged,
-}: GameboardWithLoaderProps) {
-  return (
-    <>
-      {isLoading && <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />}
-      {game !== null && (
-        <div style={{ display: !isLoading ? 'block' : 'none' }}>
-          <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
-            <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
-          </div>
-          <div style={{ display: !isSearchingHead ? 'block' : 'none' }}>
-            <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
-          </div>
-        </div>
-      )}
-    </>
   )
 }

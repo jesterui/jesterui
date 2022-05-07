@@ -61,6 +61,7 @@ export default function Index() {
                   value={searchInputValue}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => onSearchInputChange(e)}
                   placeholder="Search"
+                  style={{ color: 'currentColor' }}
                 />
               </div>
 

@@ -30,7 +30,7 @@ import DropdownItem from '@material-tailwind/react/DropdownItem'
 
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
-import { displayPubKey } from '../util/app'
+import { displayKey } from '../util/app'
 
 export default function AppNavbar() {
   const settings = useSettings()
@@ -162,7 +162,7 @@ export default function AppNavbar() {
                 <Dropdown
                   color="deepOrange"
                   placement="bottom-start"
-                  buttonText={displayPubKey(publicKeyOrNull)}
+                  buttonText={displayKey(publicKeyOrNull)}
                   buttonType="filled"
                   size="regular"
                   rounded={false}
