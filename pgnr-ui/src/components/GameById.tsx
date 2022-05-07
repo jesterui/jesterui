@@ -489,9 +489,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   return (
     <div className="screen-game-by-id">
-      <div style={{ marginTop: '2.5rem' }}></div>
-
-      <div className="flex justify-center">
+      <div className="flex justify-center my-4">
         {!isLoading && currentChessInstance === null && (
           <div>
             <div>Game not found...</div>
@@ -572,12 +570,8 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
         <CopyGameUrlInput gameId={gameId} />
       </div>
 
-      {
+      {settings.dev && (
         <div className="my-4">
-          <Heading1 color="blueGray">
-            Game <span className="font-mono">{AppUtils.gameDisplayName(gameId)}</span>
-          </Heading1>
-
           <div className="my-4">
             {settings.currentGameId === gameId ? (
               <>
@@ -602,13 +596,15 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
             )}
           </div>
 
-          <div>{`gameId: ${gameId}`}</div>
+          <div className="my-4">
+          <pre>
+          <code>{`gameId: ${gameId}`}</code>
           <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
-          <div>{`Moves: ${currentGameMoves.length}`}</div>
+          <code>{`Moves: ${currentGameMoves.length}`}</code>
           <div>{`isLoading: ${isLoading}`}</div>
           <div>{`isSearchingHead: ${isSearchingHead}`}</div>
-          <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
-        </div>
+          <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div></pre></div>
+        </div>)
       }
     </div>
   )

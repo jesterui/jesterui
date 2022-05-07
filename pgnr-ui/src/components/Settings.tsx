@@ -330,9 +330,21 @@ export default function Settings() {
     }
   }
 
+  const onDeveloperModeToggleClicked = () => {
+    settingsDispatch({ dev: !settings.dev } as AppSettings)
+  }
+
   return (
     <div className="screen-settings pb-4">
       <Heading1 color="blueGray">Settings</Heading1>
+
+      <Checkbox
+        color="blueGray"
+        text="Developer Mode"
+        id="developer-mode-checkbox"
+        checked={settings.dev}
+        onChange={() => onDeveloperModeToggleClicked()}
+      />
 
       <Heading2 color="blueGray">Identity</Heading2>
       <div>
@@ -380,7 +392,7 @@ export default function Settings() {
               <Checkbox
                 color="blueGray"
                 text={relay}
-                id={relay}
+                id={`relay-checkbox-${index}`}
                 checked={settings.relays.includes(relay)}
                 onChange={() => onRelayClicked(relay)}
               />
