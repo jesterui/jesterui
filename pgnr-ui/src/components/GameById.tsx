@@ -26,6 +26,7 @@ import * as cg from 'chessground/types'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { GameMoveEvent } from '../util/app_db'
 import { CopyButtonWithConfirmation } from './CopyButton'
+import useWindowDimensions from '../hooks/WindowDimensions'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -43,6 +44,8 @@ interface BoardContainerProps {
 }
 
 function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
+  const { height, width } = useWindowDimensions()
+
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
@@ -53,10 +56,23 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
     [game, onGameChanged]
   )
 
+  const minSize = 350
+  const maxSize = 600 //600
+  const size = Math.min(maxSize, Math.max(minSize, Math.min(height * 0.75, width)))
+
   return (
     <>
       <div>
-        <div style={{ width: 600, height: 600 }}>
+        <div
+          style={{
+            minWidth: minSize,
+            minHeight: minSize,
+            width: size,
+            height: size,
+            maxWidth: maxSize,
+            maxHeight: maxSize,
+          }}
+        >
           {<Chessboard game={game} userColor={color} onAfterMoveFinished={updateGameCallback} />}
         </div>
         {false && game && (
@@ -279,11 +295,11 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   useEffect(() => {
     if (!gameId) return
-    
+
     const previousTitle = document.title
     let titlePrefix = currentChessInstance && !isSearchingHead ? `${titleMessage(currentChessInstance, color)} – ` : ''
     document.title = `${titlePrefix}Game ${AppUtils.gameDisplayName(gameId)}`
-    
+
     return () => {
       document.title = previousTitle
     }
@@ -612,15 +628,17 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           </div>
 
           <div className="my-4">
-          <pre>
-          <code>{`gameId: ${gameId}`}</code>
-          <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
-          <code>{`Moves: ${currentGameMoves.length}`}</code>
-          <div>{`isLoading: ${isLoading}`}</div>
-          <div>{`isSearchingHead: ${isSearchingHead}`}</div>
-          <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div></pre></div>
-        </div>)
-      }
+            <pre>
+              <code>{`gameId: ${gameId}`}</code>
+              <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
+              <code>{`Moves: ${currentGameMoves.length}`}</code>
+              <div>{`isLoading: ${isLoading}`}</div>
+              <div>{`isSearchingHead: ${isSearchingHead}`}</div>
+              <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

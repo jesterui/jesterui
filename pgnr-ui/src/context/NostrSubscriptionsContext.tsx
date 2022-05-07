@@ -99,7 +99,6 @@ const NostrSubscriptionsProvider = ({ children }: ProviderProps<NostrSubscriptio
     subscriptionsUpdate.close.forEach((sub) => {
       outgoingNostr.emit(NIP01.ClientEventType.CLOSE, NIP01.createClientCloseMessage(sub.id))
     })
-
     ;[...subscriptionsUpdate.refresh, ...subscriptionsUpdate.add].forEach((sub) => {
       outgoingNostr.emit(NIP01.ClientEventType.REQ, NIP01.createClientReqMessage(sub.id, sub.filters))
     })

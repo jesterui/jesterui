@@ -49,7 +49,6 @@ export const once = <T>(fn: Function) => {
   }) as (...args: unknown[]) => T
 }
 
-
 export const copyToClipboard = (
   text: string,
   fallbackInputField?: HTMLInputElement,

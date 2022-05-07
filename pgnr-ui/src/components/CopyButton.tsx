@@ -94,9 +94,7 @@ export function CopyButtonWithConfirmation({
       {...props}
     >
       {showValueCopiedConfirmation ? (
-        <div className="d-flex justify-content-center align-items-center">
-          {successText}
-        </div>
+        <div className="d-flex justify-content-center align-items-center">{successText}</div>
       ) : (
         <>{text}</>
       )}

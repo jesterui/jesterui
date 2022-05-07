@@ -70,9 +70,9 @@ export default function AppNavbar() {
             <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
               jester
             </ReactNavLink>
-              <span className="px-1">
-                <WebsocketIndicator />
-              </span>
+            <span className="px-1">
+              <WebsocketIndicator />
+            </span>
           </NavbarBrand>
           {privateKeyOrNull ? (
             <>

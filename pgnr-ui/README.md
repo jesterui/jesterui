@@ -11,11 +11,8 @@
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
 - [ ] let user play against a bot via nostr
-- [ ] dev mode
 - [ ] Color scheme: More clean interface, use bright, warm colors
 - [ ] Dark Mode
-- [x] centered gameboard
-- [ ] improve gameboard on mobile
 - [ ] Move Menu from Navbar to Sidebar - only necessary stuff in navbar
 - [ ] Identity Wizard with Description, pregenerate identity?
 
