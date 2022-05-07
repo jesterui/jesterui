@@ -77,7 +77,8 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
 
   const minSize = 240 // minimal screen size, e.g. smart watches
   const maxSize = 600
-  const size = Math.min(maxSize, Math.max(minSize, Math.min(height * 0.75, width)))
+  const scrollbarSpacing = 13 * 2
+  const size = Math.min(maxSize, Math.max(minSize, Math.min(height * 0.75, width - scrollbarSpacing)))
 
   return (
     <>
@@ -233,32 +234,51 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
   }
 
   if (game.in_stalemate()) {
-    return <>Game over: Draw by stalemate!</>
+    return <>Stalemate.</>
   }
   if (game.in_threefold_repetition()) {
-    return <>Game over: Draw by threefold repetition!</>
+    return <>Threefold repetition.</>
   }
   if (game.insufficient_material()) {
-    return <>Game over: Draw by insufficient material!</>
+    return <>Insufficient material.</>
   }
 
   if (game.in_draw()) {
-    return <>Game over: Draw!</>
+    return <>Draw.</>
   }
 
-  return <>Game over: {`${game.turn() === 'b' ? 'White' : 'Black'} won`}</>
+  return <>{`${game.turn() === 'b' ? 'White' : 'Black'} won.`}</>
 }
 
-const GameStateMessage = ({ game }: { game: ChessInstance }) => {
-  if (game.game_over()) {
-    return (
-      <>
-        <GameOverMessage game={game} />
-      </>
-    )
-  }
+const ColorMessage = ({ color }: { color: MovableColor }) => {
+  return (
+    <div>
+      <h6 className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+        {`You are ${color.length === 0 ? 'in watch-only mode' : color}`}
+      </h6>
+    </div>
+  )
+}
 
-  return <>{`${game.turn() === 'b' ? 'black' : 'white'}`} to move</>
+const GameStateMessage = ({
+  isLoading,
+  game,
+  color,
+}: {
+  isLoading: boolean
+  game: ChessInstance | null
+  color: MovableColor
+}) => {
+  return (
+    <div>
+      <h6 className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+        {isLoading && game === null && 'Loading...'}
+        {isLoading && game !== null && 'Loading...'}
+        {!isLoading && game !== null && titleMessage(game, color)}
+        {!isLoading && game === null && '...'}
+      </h6>
+    </div>
+  )
 }
 
 const LoadingBoard = ({ color }: { color: MovableColor }) => {
@@ -560,7 +580,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
 
   return (
     <div className="screen-game-by-id">
-      <div className="flex justify-center my-4">
+      <div className="flex justify-center mb-4">
         <div>
           {!isLoading && currentChessInstance === null && (
             <div>
@@ -569,39 +589,28 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
             </div>
           )}
 
-          {isLoading && (
-            <div>
-              {currentChessInstance === null ? (
-                <div style={{ paddingTop: '1.5rem' }}>Loading... (waiting for game data to arrive)</div>
-              ) : (
-                <>
-                  <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
-                  <div>{`Loading...`}</div>
-                </>
-              )}
+          <div className="my-4">
+            <div className="flex justify-center items-center mx-1">
+              <div>
+                <GameStateMessage isLoading={isLoading || isSearchingHead} game={currentChessInstance} color={color} />
+              </div>
             </div>
-          )}
-          {currentChessInstance !== null && (
-            <div style={{ display: !isLoading ? 'block' : 'none' }}>
-              <div>{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</div>
-              {isSearchingHead ? (
-                <div>{`Loading...`}</div>
-              ) : (
-                <>
-                  <div>{<GameStateMessage game={currentChessInstance} />}</div>
-                  <div>
-                    {currentChessInstance.game_over() && (
-                      <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+
+            {!isLoading && !isSearchingHead && currentChessInstance !== null && currentChessInstance.game_over() && (
+              <div className="flex justify-between items-center mx-1">
+                <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+                  <GameOverMessage game={currentChessInstance} />
+                </div>
+                <div className="mx-4">
+                  <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-2 py-2" />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div
             style={{
-              filter: settings.currentGameJesterId === jesterId ? undefined : 'brightness(0.5)',
+              filter: settings.currentGameJesterId !== jesterId ? 'brightness(0.5)' : undefined,
             }}
           >
             <GameboardWithLoader
@@ -614,18 +623,26 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
           </div>
 
           {currentChessInstance !== null && (
-            <div>
-              <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
+            <div className="my-4">
+              <div className="flex justify-center items-center">
+                <div>
+                  <ColorMessage color={color} />
+                </div>
+              </div>
+
+              <div style={{ display: 'none' }}>
+                <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
+              </div>
+
+              <div className="my-4">
+                {currentChessInstance !== null && <CopyGameUrlInput value={window.location.href} />}
+              </div>
             </div>
           )}
         </div>
       </div>
 
       <div style={{ margin: '2.5rem 0' }}></div>
-
-      <div className="my-4">
-        <CopyGameUrlInput value={window.location.href} />
-      </div>
 
       {settings.dev && (
         <div className="my-4">
