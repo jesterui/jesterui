@@ -63,7 +63,7 @@ export default function AppNavbar() {
   }*/
 
   return (
-    <Navbar color="blueGray" navbar>
+    <Navbar color="" navbar>
       <NavbarContainer>
         <NavbarWrapper>
           <NavbarBrand>
@@ -112,7 +112,7 @@ export default function AppNavbar() {
             {settings.currentGameId && (
               <ReactNavLink
                 to="/current"
-                className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+                className={({ isActive }) => (isActive ? '' : '')}
               >
                 <NavItem ripple="light">
                   <Icon name="language" size="xl" />
