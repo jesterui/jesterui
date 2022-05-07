@@ -312,17 +312,19 @@ function GameboardWithLoader({
       {(isLoading || (!isLoading && game === null)) && (
         <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
       )}
-      {game !== null && (<>
-        {/* it's important that these elements are present in the DOM to avoid flickering */}
-        <div style={{ display: isLoading ? 'none' : 'block' }}>
-          <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
-            <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+      {game !== null && (
+        <>
+          {/* it's important that these elements are present in the DOM to avoid flickering */}
+          <div style={{ display: isLoading ? 'none' : 'block' }}>
+            <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
+              <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+            </div>
+            <div style={{ display: isSearchingHead ? 'none' : 'block' }}>
+              <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
+            </div>
           </div>
-          <div style={{ display: isSearchingHead ? 'none' : 'block' }}>
-            <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
-          </div>
-        </div>
-      </>)}
+        </>
+      )}
     </>
   )
 }

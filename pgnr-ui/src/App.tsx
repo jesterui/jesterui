@@ -17,6 +17,7 @@ import Layout from './Layout'
 
 import * as JesterUtils from './util/jester'
 import './App.css'
+import SearchPage from './components/SearchPage'
 
 export default function App() {
   const settings = useSettings()
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/games" element={<GamesOverview />} />
               <Route path="/game/:jesterId" element={<GameById />} />
               <Route path="/redirect/game/:jesterId" element={<RedirectToGame />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/faq" element={<Faq />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />

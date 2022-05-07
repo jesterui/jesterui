@@ -132,10 +132,17 @@ export default function AppNavbar() {
             </ReactNavLink>
           </Nav>
           <Nav>
+            <ReactNavLink
+              to="/search"
+              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+            >
+              <NavItem ripple="light">
+                <Icon name="search" size="xl" />
+              </NavItem>
+            </ReactNavLink>
             <ReactNavLink to="/faq" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
               <NavItem ripple="light">
                 <Icon name="contact_support" size="xl" />
-                FAQ
               </NavItem>
             </ReactNavLink>
             <ReactNavLink
@@ -144,7 +151,6 @@ export default function AppNavbar() {
             >
               <NavItem ripple="light">
                 <Icon name="settings" size="xl" />
-                Settings
               </NavItem>
             </ReactNavLink>
             {/*<ReactNavLink
