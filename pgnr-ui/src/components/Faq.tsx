@@ -8,7 +8,7 @@ import Heading6 from '@material-tailwind/react/Heading6'
 export default function Faq() {
   useEffect(() => {
     const previousTitle = document.title
-    document.title = `jester - FAQ`
+    document.title = `FAQ`
 
     return () => {
       document.title = previousTitle

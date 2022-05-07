@@ -18,8 +18,6 @@ import { JesterMove, GameStart, GameMove } from '../util/jester'
 import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 // @ts-ignore
-import Heading1 from '@material-tailwind/react/Heading1'
-// @ts-ignore
 import Input from '@material-tailwind/react/Input'
 
 // @ts-ignore
@@ -28,18 +26,18 @@ import * as cg from 'chessground/types'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { GameMoveEvent } from '../util/app_db'
 
-type MovebleColor = [] | [cg.Color] | ['white', 'black']
-const MOVE_COLOR_NONE: MovebleColor = []
-const MOVE_COLOR_WHITE: MovebleColor = ['white']
-const MOVE_COLOR_BLACK: MovebleColor = ['black']
-// const MOVE_COLOR_BOTH: MovebleColor = ['white', 'black']
+type MovableColor = [] | [cg.Color] | ['white', 'black']
+const MOVE_COLOR_NONE: MovableColor = []
+const MOVE_COLOR_WHITE: MovableColor = ['white']
+const MOVE_COLOR_BLACK: MovableColor = ['black']
+// const MOVE_COLOR_BOTH: MovableColor = ['white', 'black']
 
 const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
 interface BoardContainerProps {
   game: ChessInstance
-  color: MovebleColor
+  color: MovableColor
   onGameChanged: (game: ChessInstance) => void
 }
 
@@ -228,7 +226,7 @@ const GameStateMessage = ({ game }: { game: ChessInstance }) => {
   return <>{`${game.turn() === 'b' ? 'black' : 'white'}`} to move</>
 }
 
-const LoadingBoard = ({ color }: { color: MovebleColor }) => {
+const LoadingBoard = ({ color }: { color: MovableColor }) => {
   const [game] = useState<ChessInstance>(new Chess.Chess())
   const onGameChanged = useCallback(() => {}, [])
 
@@ -237,6 +235,24 @@ const LoadingBoard = ({ color }: { color: MovebleColor }) => {
       {<BoardContainer game={game} color={color} onGameChanged={onGameChanged} />}
     </div>
   )
+}
+
+const titleMessage = (game: ChessInstance, color: MovableColor) => {
+  if (game.game_over()) {
+    if (game.in_draw()) {
+      return 'Draw'
+    }
+    return 'Game Over'
+  } else {
+    if (color.length !== 1) {
+      return `${game.turn() === 'w' ? 'White' : 'Black'} to move`
+    }
+    if (color[0].charAt(0) === game.turn()) {
+      return `Your turn`
+    } else {
+      return `Waiting for opponent`
+    }
+  }
 }
 
 export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
@@ -251,7 +267,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
   const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
-  const [color, setColor] = useState<MovebleColor>(MOVE_COLOR_NONE)
+  const [color, setColor] = useState<MovableColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
@@ -262,17 +278,16 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   const privateKeyOrNull = getSession()?.privateKey || null
 
   useEffect(() => {
+    if (!gameId) return
+    
     const previousTitle = document.title
-    if (!gameId) {
-      document.title = `jester - Game ...`
-    } else {
-      document.title = `jester - Game ${AppUtils.gameDisplayName(gameId)}`
-    }
-
+    let titlePrefix = currentChessInstance && !isSearchingHead ? `${titleMessage(currentChessInstance, color)} – ` : ''
+    document.title = `${titlePrefix}Game ${AppUtils.gameDisplayName(gameId)}`
+    
     return () => {
       document.title = previousTitle
     }
-  }, [gameId])
+  }, [isSearchingHead, gameId, color, currentChessInstance])
 
   /********************** SUBSCRIBE TO GAME */
   const unsubscribeFromCurrentGame = useCallback(() => {

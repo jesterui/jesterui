@@ -293,7 +293,7 @@ export default function Settings() {
 
   useEffect(() => {
     const previousTitle = document.title
-    document.title = `jester - Settings`
+    document.title = `Settings`
 
     return () => {
       document.title = previousTitle

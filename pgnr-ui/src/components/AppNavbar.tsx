@@ -1,4 +1,4 @@
-import React, { MouseEvent, useState } from 'react'
+import React, { useState } from 'react'
 import { NavLink as ReactNavLink, useNavigate } from 'react-router-dom'
 
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
@@ -25,8 +25,6 @@ import Nav from '@material-tailwind/react/Nav'
 import NavItem from '@material-tailwind/react/NavItem'
 // @ts-ignore
 import Dropdown from '@material-tailwind/react/Dropdown'
-// @ts-ignore
-import DropdownLink from '@material-tailwind/react/DropdownLink'
 // @ts-ignore
 import DropdownItem from '@material-tailwind/react/DropdownItem'
 
@@ -60,9 +58,9 @@ export default function AppNavbar() {
     navigate(`/settings`)
   }
 
-  const onProfileButtonClicked = () => {
+  /*const onProfileButtonClicked = () => {
     navigate(`/profile`)
-  }
+  }*/
 
   return (
     <Navbar color="blueGray" navbar>
@@ -71,10 +69,10 @@ export default function AppNavbar() {
           <NavbarBrand>
             <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
               jester
+            </ReactNavLink>
               <span className="px-1">
                 <WebsocketIndicator />
               </span>
-            </ReactNavLink>
           </NavbarBrand>
           {privateKeyOrNull ? (
             <>
@@ -124,7 +122,7 @@ export default function AppNavbar() {
             >
               <NavItem ripple="light">
                 <Icon name="games" size="xl" />
-                Games
+                Play
               </NavItem>
             </ReactNavLink>
           </Nav>

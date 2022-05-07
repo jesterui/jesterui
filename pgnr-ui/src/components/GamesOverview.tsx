@@ -103,10 +103,10 @@ export default function GamesOverview() {
 
   useEffect(() => {
     const previousTitle = document.title
-    if (!listOfStartGamesLiveQuery) {
-      document.title = `jester - Overview (...)`
+    if (!listOfStartGamesLiveQuery || listOfStartGamesLiveQuery.length === 0) {
+      document.title = `Overview`
     } else {
-      document.title = `jester - Overview (${listOfStartGamesLiveQuery.length})`
+      document.title = `Overview (${listOfStartGamesLiveQuery.length})`
     }
 
     return () => {
