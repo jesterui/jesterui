@@ -27,9 +27,9 @@ import NavItem from '@material-tailwind/react/NavItem'
 import Dropdown from '@material-tailwind/react/Dropdown'
 // @ts-ignore
 import DropdownItem from '@material-tailwind/react/DropdownItem'
-
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+
 import { displayKey } from '../util/app'
 
 export default function AppNavbar() {

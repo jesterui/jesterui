@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 
 import Chessboard from '../components/chessground/Chessground'
@@ -19,7 +19,23 @@ import { JesterMove, GameStart, GameMove } from '../util/jester'
 import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 // @ts-ignore
+import Icon from '@material-tailwind/react/Icon'
+// @ts-ignore
 import Input from '@material-tailwind/react/Input'
+// @ts-ignore
+import Button from '@material-tailwind/react/Button'
+// @ts-ignore
+import Popover from '@material-tailwind/react/Popover'
+// @ts-ignore
+import PopoverContainer from '@material-tailwind/react/PopoverContainer'
+// @ts-ignore
+import PopoverHeader from '@material-tailwind/react/PopoverHeader'
+// @ts-ignore
+import PopoverBody from '@material-tailwind/react/PopoverBody'
+// @ts-ignore
+import Tooltips from '@material-tailwind/react/Tooltips'
+// @ts-ignore
+import TooltipsContent from '@material-tailwind/react/TooltipsContent'
 
 // @ts-ignore
 import * as Chess from 'chess.js'
@@ -278,6 +294,71 @@ const GameStateMessage = ({
         {!isLoading && game === null && '...'}
       </h6>
     </div>
+  )
+}
+
+function ProposeTakebackButton({ disabled }: { disabled: boolean }) {
+  const buttonRef = useRef()
+
+  return (
+    <>
+      <Button className="w-8 mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
+        <Icon name="undo" size="xl" />
+      </Button>
+      <Tooltips placement="top" ref={buttonRef}>
+        <TooltipsContent>Propose a takeback</TooltipsContent>
+      </Tooltips>
+
+      <Popover placement="bottom" ref={buttonRef}>
+        <PopoverContainer>
+          <PopoverHeader>Propose a takeback</PopoverHeader>
+          <PopoverBody>Proposing to take back your move is not yet implemented.</PopoverBody>
+        </PopoverContainer>
+      </Popover>
+    </>
+  )
+}
+function ResignButton({ disabled }: { disabled: boolean }) {
+  const buttonRef = useRef()
+
+  return (
+    <>
+      <Button className="w-8 mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
+        <Icon name="cancel" size="xl" />
+      </Button>
+      <Tooltips placement="top" ref={buttonRef}>
+        <TooltipsContent>Resign</TooltipsContent>
+      </Tooltips>
+
+      <Popover placement="bottom" ref={buttonRef}>
+        <PopoverContainer>
+          <PopoverHeader>Resign</PopoverHeader>
+          <PopoverBody>Don't resign! It is not yet implemented, keep playing!</PopoverBody>
+        </PopoverContainer>
+      </Popover>
+    </>
+  )
+}
+
+function OfferDrawButton({ disabled }: { disabled: boolean }) {
+  const buttonRef = useRef()
+
+  return (
+    <>
+      <Button className="w-8 mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
+        <Icon name="handshake" size="xl" />
+      </Button>
+      <Tooltips placement="top" ref={buttonRef}>
+        <TooltipsContent>Offer Draw</TooltipsContent>
+      </Tooltips>
+
+      <Popover placement="bottom" ref={buttonRef}>
+        <PopoverContainer>
+          <PopoverHeader>Offer Draw</PopoverHeader>
+          <PopoverBody>Offering a draw is not yet impelemented.</PopoverBody>
+        </PopoverContainer>
+      </Popover>
+    </>
   )
 }
 
@@ -637,11 +718,24 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
 
           {currentChessInstance !== null && (
             <div className="my-4">
-              <div className="flex justify-center items-center">
+              <div className="my-4 flex justify-center items-center">
                 <div>
                   <ColorMessage color={color} />
                 </div>
               </div>
+              {currentChessInstance !== null && !currentChessInstance.game_over() && (
+                <div className="my-4 flex justify-center items-center">
+                  <div>
+                    <ProposeTakebackButton disabled={isLoading || isSearchingHead} />
+                  </div>
+                  <div>
+                    <OfferDrawButton disabled={isLoading || isSearchingHead} />
+                  </div>
+                  <div>
+                    <ResignButton disabled={isLoading || isSearchingHead} />
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'none' }}>
                 <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
