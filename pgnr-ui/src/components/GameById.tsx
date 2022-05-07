@@ -25,6 +25,7 @@ import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { GameMoveEvent } from '../util/app_db'
+import { CopyButtonWithConfirmation } from './CopyButton'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -68,11 +69,7 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
   )
 }
 
-const CopyGameUrlInput = ({ gameId }: { gameId: NIP01.EventId }) => {
-  const val = window.location.href
-  const copy = () => {
-    console.log(gameId)
-  }
+const CopyGameUrlInput = ({ value }: { value: string }) => {
   return (
     <div className="flex">
       <Input
@@ -80,15 +77,18 @@ const CopyGameUrlInput = ({ gameId }: { gameId: NIP01.EventId }) => {
         color="lightBlue"
         size="md"
         outline={true}
-        value={val}
+        value={value}
         placeholder="Link to Game"
         readOnly={true}
         style={{ color: 'white' }}
       />
-
-      <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={() => copy()}>
-        Copy
-      </button>
+      <CopyButtonWithConfirmation
+        className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
+        value={value}
+        text="Copy"
+        successText="Copied"
+        disabled={!value}
+      />
     </div>
   )
 }
@@ -582,7 +582,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       <div style={{ margin: '2.5rem 0' }}></div>
 
       <div className="my-4">
-        <CopyGameUrlInput gameId={gameId} />
+        <CopyGameUrlInput value={window.location.href} />
       </div>
 
       {settings.dev && (
