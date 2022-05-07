@@ -56,7 +56,7 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
     [game, onGameChanged]
   )
 
-  const minSize = 312
+  const minSize = 240 // minimal screen size, e.g. smart watches
   const maxSize = 600
   const size = Math.min(maxSize, Math.max(minSize, Math.min(height * 0.75, width)))
 
@@ -610,7 +610,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           </div>
 
           <div className="my-4">
-            <pre>
+            <pre className="py-4" style={{ overflowX:'scroll' }}>
               <code>{`gameId: ${gameId}`}</code>
               <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
               <code>{`Moves: ${currentGameMoves.length}`}</code>
@@ -625,7 +625,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
   )
 }
 
-interface GameboardWithLoader {
+interface GameboardWithLoaderProps {
   game: ChessInstance | null
   color: MovableColor
   isLoading: boolean
@@ -633,7 +633,7 @@ interface GameboardWithLoader {
   onChessboardChanged: (chessboard: ChessInstance) => Promise<void>
 }
 
-function GameboardWithLoader({ game, color, isLoading, isSearchingHead, onChessboardChanged }: GameboardWithLoader) {
+function GameboardWithLoader({ game, color, isLoading, isSearchingHead, onChessboardChanged }: GameboardWithLoaderProps) {
   return (
     <>
       {isLoading && <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />}
