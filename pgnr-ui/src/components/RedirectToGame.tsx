@@ -23,5 +23,5 @@ export default function RedirectToGame({ jesterId: argJesterId }: RedirectToGame
     navigate(`/game/${jesterId}`)
   }, [navigate, jesterId])
 
-  return <>Redirecting to {jesterId}...</>
+  return <></>
 }

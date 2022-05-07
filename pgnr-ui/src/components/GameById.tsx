@@ -311,7 +311,9 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
     JesterUtils.tryParseJesterId(argJesterId) || JesterUtils.tryParseJesterId(paramsJesterId) || undefined
   )
 
-  const [gameId] = useState<NIP01.EventId | undefined>((jesterId && JesterUtils.jesterIdToGameId(jesterId)) || undefined)
+  const [gameId] = useState<NIP01.EventId | undefined>(
+    (jesterId && JesterUtils.jesterIdToGameId(jesterId)) || undefined
+  )
 
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()

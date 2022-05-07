@@ -1,6 +1,6 @@
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import * as AppUtils from '../util/jester'
+import * as JesterUtils from '../util/jester'
 // @ts-ignore
 import * as Chess from 'chess.js'
 import { ChessInstance } from '../components/ChessJsTypes'
@@ -32,7 +32,10 @@ export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise
     throw new Error(`Could not load pgn`)
   }
 
-  const gameStart = await NostrEvents.signEvent(AppUtils.constructStartGameEvent(keyPair.publicKey), keyPair.privateKey)
+  const gameStart = await NostrEvents.signEvent(
+    JesterUtils.constructStartGameEvent(keyPair.publicKey),
+    keyPair.privateKey
+  )
   const events = [gameStart]
 
   const history = fullChessInstance.history({ verbose: true })
@@ -46,7 +49,7 @@ export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise
     }
 
     const gameMove = await NostrEvents.signEvent(
-      AppUtils.constructGameMoveEvent(keyPair.publicKey, gameStart.id, currentHead.id, stateChessInstance),
+      JesterUtils.constructGameMoveEvent(keyPair.publicKey, gameStart.id, currentHead.id, stateChessInstance),
       keyPair.privateKey
     )
     events.push(gameMove)

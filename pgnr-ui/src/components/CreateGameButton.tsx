@@ -5,11 +5,11 @@ import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
-import * as AppUtils from '../util/jester'
+import * as JesterUtils from '../util/jester'
 import { useNavigate } from 'react-router-dom'
 
 interface CreateGameButtonProps {
-  onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => void
+  onGameCreated: (e: MouseEvent<HTMLButtonElement>, jesterId: JesterUtils.JesterId) => void
   buttonRef?: RefObject<HTMLButtonElement>
   className?: string
 }
@@ -39,11 +39,11 @@ export default function CreateGameButton({ buttonRef, className, onGameCreated }
     const publicKey = publicKeyOrNull!
     const privateKey = privateKeyOrNull!
 
-    const event = AppUtils.constructStartGameEvent(publicKey)
+    const event = JesterUtils.constructStartGameEvent(publicKey)
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
-    onGameCreated(e, signedEvent.id)
+    onGameCreated(e, JesterUtils.gameIdToJesterId(signedEvent.id))
   }
 
   return (
@@ -65,11 +65,11 @@ interface CreateGameAndRedirectButtonProps {
 export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGameAndRedirectButtonProps) {
   const navigate = useNavigate()
 
-  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => {
+  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, jesterId: JesterUtils.JesterId) => {
     // TODO: this is a hack so we do not need to watch for gameId changes..
     // please, please please.. try to remove it and immediately
     // navigate to /game/:gameId
-    navigate(`/redirect/game/${AppUtils.gameIdToJesterId(gameId)}`)
+    navigate(`/redirect/game/${jesterId}`)
   }
 
   return <CreateGameButton buttonRef={buttonRef} className={className} onGameCreated={onGameCreated} />

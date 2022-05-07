@@ -117,9 +117,9 @@ export default function GamesOverview() {
     }
   }, [listOfStartGamesLiveQuery])
 
-  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => {
+  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, jesterId: JesterUtils.JesterId) => {
     if (e.nativeEvent.isTrusted) {
-      navigate(`/redirect/game/${JesterUtils.gameIdToJesterId(gameId)}`)
+      navigate(`/redirect/game/${jesterId}`)
     }
   }
 
@@ -141,8 +141,8 @@ export default function GamesOverview() {
             {settings.dev && (
               <>
                 <CreateDevelGameButton
-                  onGameCreated={(e, gameId) => {
-                    window.alert(`Published game ${JesterUtils.gameIdToJesterId(gameId)}`)
+                  onGameCreated={(e, jesterId) => {
+                    window.alert(`Published game ${jesterId}`)
                   }}
                 />
                 <CreateMultipleGamesButton amount={21} />

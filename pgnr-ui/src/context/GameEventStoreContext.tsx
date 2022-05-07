@@ -3,7 +3,7 @@ import { NostrEvent } from '../util/nostr_db'
 import { AppDexie, db, GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { IndexableType, Transaction } from 'dexie'
 import { useNostrStore } from '../context/NostrStoreContext'
-import * as AppUtils from '../util/jester'
+import * as JesterUtils from '../util/jester'
 import * as NIP01 from '../util/nostr/nip01'
 import { arrayEquals } from '../util/utils'
 import { historyToMinimalPgn } from '../util/chess'
@@ -15,7 +15,7 @@ import { ChessInstance } from '../components/ChessJsTypes'
 const _chessInstance: ChessInstance = new Chess.Chess()
 
 const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.Event) => {
-  const content = JSON.parse(event.content) as AppUtils.JesterProtoContent
+  const content = JSON.parse(event.content) as JesterUtils.JesterProtoContent
   if (!Array.isArray(content.history) || content.history.length === 0) {
     return false
   }
@@ -23,7 +23,7 @@ const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.E
   if (content.history[content.history.length - 1] !== content.move) {
     return false
   }
-  const parentContent = JSON.parse(parent.content) as AppUtils.JesterProtoContent
+  const parentContent = JSON.parse(parent.content) as JesterUtils.JesterProtoContent
   if (!arrayEquals(parentContent.history, content.history.slice(0, content.history.length - 1))) {
     return false
   }
@@ -48,7 +48,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
 
   useEffect(() => {
     const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
-      if (AppUtils.isStartGameEvent(entry)) {
+      if (JesterUtils.isStartGameEvent(entry)) {
         trans.on('complete', async () => {
           try {
             const id = await db.game_start.put(entry)
@@ -69,7 +69,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
 
   useEffect(() => {
     const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
-      const looksLikeMoveEvent = AppUtils.mightBeMoveGameEvent(entry)
+      const looksLikeMoveEvent = JesterUtils.mightBeMoveGameEvent(entry)
       if (!looksLikeMoveEvent) return
 
       const eventRefs = entry.tags.filter((t) => t[0] === NIP01.TagEnum.e).map((t) => t[1] as NIP01.EventId)
@@ -103,7 +103,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
       // await findReferencingEvents(previousMoveEventOrNull.id)
 
       trans.on('complete', async () => {
-        const content = JSON.parse(entry.content) as AppUtils.JesterProtoContent
+        const content = JSON.parse(entry.content) as JesterUtils.JesterProtoContent
 
         await db.game_move
           .add({
