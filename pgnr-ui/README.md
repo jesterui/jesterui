@@ -16,11 +16,13 @@
 - [ ] Move Menu from Navbar to Sidebar - only necessary stuff in navbar
 - [ ] Identity Wizard with Description, pregenerate identity?
 
+
 ### Secondary
 - [ ] show current identity and nostr server (tooltip?) in navbar
 - [x] use first nostr server in list for auto-connect
   - [ ] cycle through till first connection is successful
 - [ ] update FLOW.md to actual workflow
+- [ ] encode and shorten gameIds
 - [ ] search by fen! games by fen -> send fen as hash in event!
 - [ ] ability to delete data in indexeddb
 - [ ] add ability to watch games next to "currentGameId" aka pinning games
@@ -38,6 +40,7 @@
 - [ ] crashes in firefox private mode (indexeddb is read-only..)
 
 - [ ] Tournaments? How can they be implemented
+- [ ] PWA compatibility
 
 ---
 

@@ -610,7 +610,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
           </div>
 
           <div className="my-4">
-            <pre className="py-4" style={{ overflowX:'scroll' }}>
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
               <code>{`gameId: ${gameId}`}</code>
               <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
               <code>{`Moves: ${currentGameMoves.length}`}</code>
@@ -633,7 +633,13 @@ interface GameboardWithLoaderProps {
   onChessboardChanged: (chessboard: ChessInstance) => Promise<void>
 }
 
-function GameboardWithLoader({ game, color, isLoading, isSearchingHead, onChessboardChanged }: GameboardWithLoaderProps) {
+function GameboardWithLoader({
+  game,
+  color,
+  isLoading,
+  isSearchingHead,
+  onChessboardChanged,
+}: GameboardWithLoaderProps) {
   return (
     <>
       {isLoading && <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />}
