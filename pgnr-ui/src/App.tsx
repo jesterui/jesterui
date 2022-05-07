@@ -1,8 +1,11 @@
 import React from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom'
+import { useSettings } from './context/SettingsContext'
 
 import NostrLogIncomingRelayEvents from './components/nostr/devel/NostrLogIncomingRelayEvents'
 import NostrManageSubscriptions from './components/nostr/NostrManageSubscriptions'
+import NoCurrentGamePage from './components/NoCurrentGamePage'
+import NostrManageRelays from './components/nostr/NostrManageRelays'
 import AppNavbar from './components/AppNavbar'
 import Settings from './components/Settings'
 import Index from './components/Index'
@@ -10,18 +13,15 @@ import Faq from './components/Faq'
 import RedirectToGame from './components/RedirectToGame'
 import GamesOverview from './components/GamesOverview'
 import GameById from './components/GameById'
-
 import Layout from './Layout'
 
+import * as JesterUtils from './util/jester'
 import './App.css'
-import NoCurrentGamePage from './components/NoCurrentGamePage'
-import NostrManageRelays from './components/nostr/NostrManageRelays'
-import { useSettings } from './context/SettingsContext'
 
 export default function App() {
   const settings = useSettings()
 
-  const currentGameIdOrNull = settings.currentGameId
+  const currentGameJesterIdOrNull = settings.currentGameJesterId
 
   return (
     <>
@@ -40,12 +40,18 @@ export default function App() {
               <Route path="/" element={<Index />} />
               <Route
                 path="/current"
-                element={currentGameIdOrNull ? <RedirectToGame gameId={currentGameIdOrNull} /> : <NoCurrentGamePage />}
+                element={
+                  currentGameJesterIdOrNull ? (
+                    <RedirectToGame jesterId={currentGameJesterIdOrNull} />
+                  ) : (
+                    <NoCurrentGamePage />
+                  )
+                }
               />
               {settings.dev && <Route path="/no-current-game" element={<NoCurrentGamePage />} />}
               <Route path="/games" element={<GamesOverview />} />
-              <Route path="/game/:gameId" element={<GameById />} />
-              <Route path="/redirect/game/:gameId" element={<RedirectToGame />} />
+              <Route path="/game/:jesterId" element={<GameById />} />
+              <Route path="/redirect/game/:jesterId" element={<RedirectToGame />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/faq" element={<Faq />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />

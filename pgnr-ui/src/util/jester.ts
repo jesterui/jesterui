@@ -5,8 +5,8 @@ import * as NostrEvents from './nostr/events'
 import { arrayEquals } from './utils'
 import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from './chess'
 import { ChessInstance } from '../components/ChessJsTypes'
-import {Buffer} from 'buffer'
-import { bech32m } from 'bech32'
+import { Buffer } from 'buffer'
+import { bech32m, bech32 } from 'bech32'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const JESTER_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
@@ -27,6 +27,9 @@ export interface JesterProtoContent {
   history: string[]
 }
 
+export const JESTER_ID_PREFIX = 'jester'
+
+export type JesterId = `${typeof JESTER_ID_PREFIX}1${string}`
 type GameStartEvent = NIP01.Event
 type MoveEvent = NIP01.Event
 
@@ -248,10 +251,33 @@ export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] 
 export const gameDisplayNameShort = (gameId: NIP01.EventId, length = 5) => gameId.substring(0, length)
 export const gameDisplayName = (gameId: NIP01.EventId, length = 8) => gameId.substring(0, length)
 export const pubKeyDisplayName = (pubKey: NIP01.PubKey, length = 8) => pubKey.substring(0, length)
-export const gameIdToJesterId = (gameId: NIP01.EventId) => {
+export const gameIdToJesterId = (gameId: NIP01.EventId): JesterId => {
   const words = bech32m.toWords(Buffer.from(gameId, 'hex'))
-  return bech32m.encode('jester', words)
+  const encoded = bech32m.encode(JESTER_ID_PREFIX, words) as JesterId
+  return encoded
 }
-export const gameIdToJesterId64 = (gameId: NIP01.EventId) => {
-  return Buffer.from(gameIdToJesterId(gameId), 'utf8').toString('base64')
+export const jesterIdToGameId = (jesterId: JesterId): NIP01.EventId => {
+  const decoded = bech32m.decode(jesterId)
+  if (decoded.prefix !== JESTER_ID_PREFIX) {
+    throw new Error('Cannot decode jesterId: invalid prefix')
+  }
+
+  const bytes = Buffer.from(bech32.fromWords(decoded.words))
+  return bytes.toString('hex')
+}
+
+export const tryParseJesterId = (possibleJesterId?: unknown): JesterId | null => {
+  if (!possibleJesterId) return null
+
+  const hasValidPrefix = String(possibleJesterId).startsWith(JESTER_ID_PREFIX + '1')
+  if (hasValidPrefix === false) return null
+
+  try {
+    // @ts-ignore
+    const unusedOnPurpose = jesterIdToGameId(possibleJesterId as JesterId)
+    return possibleJesterId as JesterId
+  } catch (e) {
+    console.debug('Could not parse jesterId from given string')
+    return null
+  }
 }

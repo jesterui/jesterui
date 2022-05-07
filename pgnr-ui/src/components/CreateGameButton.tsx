@@ -69,7 +69,7 @@ export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGame
     // TODO: this is a hack so we do not need to watch for gameId changes..
     // please, please please.. try to remove it and immediately
     // navigate to /game/:gameId
-    navigate(`/redirect/game/${gameId}`)
+    navigate(`/redirect/game/${AppUtils.gameIdToJesterId(gameId)}`)
   }
 
   return <CreateGameButton buttonRef={buttonRef} className={className} onGameCreated={onGameCreated} />

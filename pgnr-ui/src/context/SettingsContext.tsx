@@ -1,6 +1,7 @@
 import React, { ProviderProps, createContext, useReducer, useEffect, useContext } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
+import * as JesterUtils from '../util/jester'
 
 const localStorageKey = () => window.APP.SETTINGS_STORE_KEY
 
@@ -15,7 +16,7 @@ export interface AppSettings {
   relays: Relay[]
   identity?: Identity
   botName: string | null
-  currentGameId?: NIP01.EventId
+  currentGameJesterId?: JesterUtils.JesterId
 }
 
 const initialSettings: AppSettings = {

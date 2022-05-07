@@ -303,9 +303,14 @@ function GameboardWithLoader({
   )
 }
 
-export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 | undefined }) {
-  const { gameId: paramsGameId } = useParams<{ gameId: NIP01.Sha256 | undefined }>()
-  const [gameId] = useState<NIP01.Sha256 | undefined>(argGameId || paramsGameId)
+export default function GameById({ jesterId: argJesterId }: { jesterId?: AppUtils.JesterId }) {
+  const { jesterId: paramsJesterId } = useParams<{ jesterId?: AppUtils.JesterId }>()
+
+  const [jesterId] = useState<AppUtils.JesterId | undefined>(
+    AppUtils.tryParseJesterId(argJesterId) || AppUtils.tryParseJesterId(paramsJesterId) || undefined
+  )
+
+  const [gameId] = useState<NIP01.EventId | undefined>((jesterId && AppUtils.jesterIdToGameId(jesterId)) || undefined)
 
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
@@ -339,23 +344,23 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
   /********************** SUBSCRIBE TO GAME */
   const unsubscribeFromCurrentGame = useCallback(() => {
-    settingsDispatch({ currentGameId: undefined } as AppSettings)
+    settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
   }, [settingsDispatch])
 
-  const subscribeToGameId = useCallback(() => {
-    if (!gameId) return
-    settingsDispatch({ currentGameId: gameId } as AppSettings)
-  }, [gameId, settingsDispatch])
+  const subscribeToGame = useCallback(() => {
+    if (!jesterId) return
+    settingsDispatch({ currentGameJesterId: jesterId } as AppSettings)
+  }, [jesterId, settingsDispatch])
 
   useEffect(() => {
-    subscribeToGameId()
+    subscribeToGame()
 
     return () => {
       // TODO: should the gameId be removed when naviating away?
       // This would also close the subscription!
       // unsubscribeFromCurrentGame()
     }
-  }, [subscribeToGameId])
+  }, [subscribeToGame])
 
   /********************** SUBSCRIBE TO GAME - end */
 
@@ -593,7 +598,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
           <div
             style={{
-              filter: settings.currentGameId === gameId ? undefined : 'brightness(0.5)',
+              filter: settings.currentGameJesterId === jesterId ? undefined : 'brightness(0.5)',
             }}
           >
             <GameboardWithLoader
@@ -622,7 +627,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
       {settings.dev && (
         <div className="my-4">
           <div className="my-4">
-            {settings.currentGameId === gameId ? (
+            {settings.currentGameJesterId === jesterId ? (
               <button
                 type="button"
                 className="bg-white bg-opacity-20 rounded px-2 py-1"
@@ -634,7 +639,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
               <button
                 type="button"
                 className="bg-white bg-opacity-20 rounded px-2 py-1"
-                onClick={() => subscribeToGameId()}
+                onClick={() => subscribeToGame()}
               >
                 Subscribe
               </button>
@@ -643,7 +648,7 @@ export default function GameById({ gameId: argGameId }: { gameId?: NIP01.Sha256 
 
           <div className="my-4">
             <pre className="py-4" style={{ overflowX: 'scroll' }}>
-              <div>{`jesterId: ${AppUtils.gameIdToJesterId(gameId)}`}</div>
+              <div>{`jesterId: ${jesterId}`}</div>
               <div>{`gameId: ${gameId}`}</div>
               <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
               <div>{`Moves: ${currentGameMoves.length}`}</div>

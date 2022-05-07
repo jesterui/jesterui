@@ -25,7 +25,7 @@
 - [ ] encode and shorten gameIds
 - [ ] search by fen! games by fen -> send fen as hash in event!
 - [ ] ability to delete data in indexeddb
-- [ ] add ability to watch games next to "currentGameId" aka pinning games
+- [ ] add ability to watch games next to "currentGameJesterId" aka pinning games
 - [x] ability to load game by id
 - [ ] ability to use nos2x (browser extension)
 - [ ] ability for multiple nostr gateways

@@ -68,9 +68,11 @@ export default function GamesOverview() {
 
   const currentGameLiveQuery = useLiveQuery(
     async () => {
-      if (!settings.currentGameId) return null
+      if (!settings.currentGameJesterId) return null
 
-      const event = await gameStore.game_start.get(settings.currentGameId)
+      const currentGameId = AppUtils.jesterIdToGameId(settings.currentGameJesterId)
+
+      const event = await gameStore.game_start.get(currentGameId)
       return event || null
     },
     [settings],
@@ -114,14 +116,14 @@ export default function GamesOverview() {
     }
   }, [listOfStartGamesLiveQuery])
 
-  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => {
+  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => {
     if (e.nativeEvent.isTrusted) {
-      navigate(`/game/${gameId}`)
+      navigate(`/redirect/game/${AppUtils.gameIdToJesterId(gameId)}`)
     }
   }
 
   const unsubscribeFromCurrentGame = useCallback(() => {
-    settingsDispatch({ currentGameId: undefined } as AppSettings)
+    settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
   }, [settingsDispatch])
 
   return (
@@ -139,7 +141,7 @@ export default function GamesOverview() {
               <>
                 <CreateDevelGameButton
                   onGameCreated={(e, gameId) => {
-                    window.alert(`Published game ${gameId}`)
+                    window.alert(`Published game ${AppUtils.gameIdToJesterId(gameId)}`)
                   }}
                 />
                 <CreateMultipleGamesButton amount={21} />
@@ -154,7 +156,7 @@ export default function GamesOverview() {
               {currentGameLiveQuery && (
                 <>
                   <div>
-                    <Link to={`/game/${currentGameLiveQuery.id}`}>
+                    <Link to={`/jester/game/${AppUtils.gameIdToJesterId(currentGameLiveQuery.id)}`}>
                       <>
                         <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery.id)}</span>
                         {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
@@ -196,8 +198,10 @@ export default function GamesOverview() {
             {listOfStartGamesLiveQuery?.map((it) => {
               return (
                 <div key={it.id}>
-                  <Link to={`/game/${it.id}`}>
+                  <Link to={`/game/${AppUtils.gameIdToJesterId(it.id)}`}>
                     <>
+                      {`${AppUtils.gameIdToJesterId(it.id)}`}
+                      <br />
                       <span className="font-mono px-2">{AppUtils.gameDisplayName(it.id)}</span>
                       {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
                       <Small color="gray">

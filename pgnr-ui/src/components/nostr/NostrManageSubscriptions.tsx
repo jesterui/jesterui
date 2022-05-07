@@ -52,8 +52,9 @@ export default function NostrManageSubscriptions() {
   }, [currentGameFilters, updateSubscription])
 
   useEffect(() => {
-    if (settings.currentGameId) {
-      setCurrentGameFilters(AppUtils.createGameFilterByGameId(settings.currentGameId))
+    if (settings.currentGameJesterId) {
+      const currentGameId = AppUtils.jesterIdToGameId(settings.currentGameJesterId)
+      setCurrentGameFilters(AppUtils.createGameFilterByGameId(currentGameId))
     } else {
       setCurrentGameFilters([])
     }

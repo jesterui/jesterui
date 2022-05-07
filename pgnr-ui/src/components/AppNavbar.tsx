@@ -84,7 +84,7 @@ export default function AppNavbar() {
           </NavbarBrand>
           {privateKeyOrNull ? (
             <>
-              {!settings.currentGameId && (
+              {!settings.currentGameJesterId && (
                 <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`} />
               )}
             </>
@@ -112,7 +112,7 @@ export default function AppNavbar() {
 
         <NavbarCollapse open={openMenu}>
           <Nav leftSide>
-            {settings.currentGameId && (
+            {settings.currentGameJesterId && (
               <ReactNavLink to="/current" className={({ isActive }) => (isActive ? '' : '')}>
                 <NavItem ripple="light">
                   <Icon name="language" size="xl" />

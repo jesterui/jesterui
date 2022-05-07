@@ -10,7 +10,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
-import { JESTER_START_GAME_E_REF } from '../util/jester'
+import * as JesterUtils from '../util/jester'
 
 export default function Index() {
   const navigate = useNavigate()
@@ -19,20 +19,32 @@ export default function Index() {
   const [searchResults, setSearchResults] = useState<string[] | null>(null)
 
   const search = (searchInput: string) => {
-    // never subscribe to any short event prefix
-    // accidentially subscribing to "0" or "01" will overflow your connection with events
-    if (!searchInput || searchInput.length < 12) {
+    if (!searchInput) {
       setSearchResults([])
       return
     }
-    // currently, the search value must be an event id
-    if (searchInput.length !== JESTER_START_GAME_E_REF.length) {
+
+    // currently, the search value must be a jester id
+    const indexOfPrefix = searchInput.indexOf(JesterUtils.JESTER_ID_PREFIX + '1')
+    if (indexOfPrefix < 0) {
       setSearchResults([])
-    } else {
-      // at the moment, just redirect to the game - may not exist but thats fine for now
-      setSearchResults(null)
-      navigate(`/redirect/game/${searchInput}`)
+      return
     }
+
+    // try finding a jesterId in the input, e.g. might be an url "https://example.com/jester1abcdef123..."
+    const possibleJesterId = searchInput.substring(indexOfPrefix)
+    console.debug(`Found possible jesterId: ${possibleJesterId}`)
+
+    const jesterId = JesterUtils.tryParseJesterId(possibleJesterId as JesterUtils.JesterId)
+    if (jesterId === null) {
+      console.warn('Could not parse jesterId from search input value')
+      setSearchResults([])
+      return
+    }
+
+    // at the moment, just redirect to the game - may not exist, but thats fine for now
+    setSearchResults(null)
+    navigate(`/redirect/game/${jesterId}`)
   }
 
   const onSearchButtonClicked = () => {
@@ -84,7 +96,7 @@ export default function Index() {
                     <p>
                       <small>
                         e.g. a game id looks like this:{' '}
-                        <code>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</code>
+                        <code>jester13s8c6xzp33n93zn2qmvtgaypncphz585fggggnzvppmxnyamvc4qpu3sdv</code>
                       </small>
                     </p>
                   </>
