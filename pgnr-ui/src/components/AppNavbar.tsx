@@ -110,10 +110,7 @@ export default function AppNavbar() {
         <NavbarCollapse open={openMenu}>
           <Nav leftSide>
             {settings.currentGameId && (
-              <ReactNavLink
-                to="/current"
-                className={({ isActive }) => (isActive ? '' : '')}
-              >
+              <ReactNavLink to="/current" className={({ isActive }) => (isActive ? '' : '')}>
                 <NavItem ripple="light">
                   <Icon name="language" size="xl" />
                   Current Game
