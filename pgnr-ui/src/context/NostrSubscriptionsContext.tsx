@@ -96,17 +96,13 @@ const NostrSubscriptionsProvider = ({ children }: ProviderProps<NostrSubscriptio
     if (!outgoingNostr) return
     if (subscriptionsUpdate === EMPTY_UPDATE) return
 
-    {
-      ;[...subscriptionsUpdate.refresh, ...subscriptionsUpdate.close].forEach((sub) => {
-        outgoingNostr.emit(NIP01.ClientEventType.CLOSE, NIP01.createClientCloseMessage(sub.id))
-      })
-    }
+    subscriptionsUpdate.close.forEach((sub) => {
+      outgoingNostr.emit(NIP01.ClientEventType.CLOSE, NIP01.createClientCloseMessage(sub.id))
+    })
 
-    {
-      ;[...subscriptionsUpdate.refresh, ...subscriptionsUpdate.add].forEach((sub) => {
-        outgoingNostr.emit(NIP01.ClientEventType.REQ, NIP01.createClientReqMessage(sub.id, sub.filters))
-      })
-    }
+    ;[...subscriptionsUpdate.refresh, ...subscriptionsUpdate.add].forEach((sub) => {
+      outgoingNostr.emit(NIP01.ClientEventType.REQ, NIP01.createClientReqMessage(sub.id, sub.filters))
+    })
 
     setSubscriptionsUpdate(EMPTY_UPDATE)
   }, [outgoingNostr, subscriptionsUpdate])
