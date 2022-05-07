@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useState } from 'react'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { CreateGameAndRedirectButton } from './CreateGameButton'
 import { useNavigate } from 'react-router-dom'
 
 // @ts-ignore
@@ -17,6 +16,7 @@ export default function Index() {
   const incomingNostr = useIncomingNostrEvents()
   const [searchInputValue, setSearchInputValue] = useState<string>('')
   const [searchResults, setSearchResults] = useState<string[] | null>(null)
+  const [inputIsJesterId, setInputIsJesterId] = useState<boolean | null>(null)
 
   const search = (searchInput: string) => {
     if (!searchInput) {
@@ -27,6 +27,7 @@ export default function Index() {
     // currently, the search value must be a jester id
     const indexOfPrefix = searchInput.indexOf(JesterUtils.JESTER_ID_PREFIX + '1')
     if (indexOfPrefix < 0) {
+      setInputIsJesterId(false)
       setSearchResults([])
       return
     }
@@ -39,10 +40,12 @@ export default function Index() {
     if (jesterId === null) {
       console.warn('Could not parse jesterId from search input value')
       setSearchResults([])
+      setInputIsJesterId(false)
       return
     }
 
     // at the moment, just redirect to the game - may not exist, but thats fine for now
+    setInputIsJesterId(true)
     setSearchResults(null)
     navigate(`/redirect/game/${jesterId}`)
   }
@@ -53,6 +56,7 @@ export default function Index() {
 
   const onSearchInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchInputValue(e.target.value)
+    setInputIsJesterId(null)
     setSearchResults(null)
   }
 
@@ -65,29 +69,27 @@ export default function Index() {
           <>
             <div className="w-full grid grid-cols-1">
               <div className="flex justify-center">{<Heading1 color="blueGray">chess on nostr</Heading1>}</div>
-              <div className="pb-2 grow">
-                <Input
-                  type="text"
-                  size="lg"
-                  outline={true}
-                  value={searchInputValue}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => onSearchInputChange(e)}
-                  placeholder="Search"
-                  style={{ color: 'currentColor' }}
-                />
-              </div>
+              <form noValidate onSubmit={() => onSearchButtonClicked()}>
+                <div className="pb-2 grow">
+                  <Input
+                    type="text"
+                    size="lg"
+                    outline={true}
+                    value={searchInputValue}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => onSearchInputChange(e)}
+                    placeholder="Search"
+                    style={{ color: 'currentColor' }}
+                    error={inputIsJesterId === false ? ' ' : undefined}
+                    success={inputIsJesterId === true ? ' ' : undefined}
+                  />
+                </div>
 
-              <div className="flex justify-center items-center">
-                <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-5 py-5 mx-1 my-4`} />
-
-                <button
-                  type="button"
-                  className={`bg-white bg-opacity-20 rounded px-5 py-5 mx-1 my-4`}
-                  onClick={() => onSearchButtonClicked()}
-                >
-                  Search
-                </button>
-              </div>
+                <div className="flex justify-center items-center">
+                  <button type="submit" className={`bg-white bg-opacity-20 rounded px-5 py-4 mx-1 my-4`}>
+                    Search
+                  </button>
+                </div>
+              </form>
               <div className="pb-2 grow">
                 {searchResults?.length === 0 && (
                   <>

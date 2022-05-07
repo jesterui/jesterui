@@ -15,7 +15,7 @@ export default function CurrentGame() {
           <div>No connection to nostr</div>
         ) : (
           <>
-            <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-5 py-5 mx-1 my-4`} />
+            <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-5 py-4 mx-1 my-4`} />
           </>
         )}
       </div>

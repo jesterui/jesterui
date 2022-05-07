@@ -234,20 +234,20 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
   }
 
   if (game.in_stalemate()) {
-    return <>Stalemate.</>
+    return <>Stalemate</>
   }
   if (game.in_threefold_repetition()) {
-    return <>Threefold repetition.</>
+    return <>Threefold repetition</>
   }
   if (game.insufficient_material()) {
-    return <>Insufficient material.</>
+    return <>Insufficient material</>
   }
 
   if (game.in_draw()) {
-    return <>Draw.</>
+    return <>Draw</>
   }
 
-  return <>{`${game.turn() === 'b' ? 'White' : 'Black'} won.`}</>
+  return <>{`${game.turn() === 'b' ? 'White' : 'Black'} won`}</>
 }
 
 const ColorMessage = ({ color }: { color: MovableColor }) => {
@@ -309,17 +309,20 @@ function GameboardWithLoader({
 }: GameboardWithLoaderProps) {
   return (
     <>
-      {isLoading && <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />}
-      {game !== null && (
-        <div style={{ display: !isLoading ? 'block' : 'none' }}>
+      {(isLoading || (!isLoading && game === null)) && (
+        <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+      )}
+      {game !== null && (<>
+        {/* it's important that these elements are present in the DOM to avoid flickering */}
+        <div style={{ display: isLoading ? 'none' : 'block' }}>
           <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
             <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
           </div>
-          <div style={{ display: !isSearchingHead ? 'block' : 'none' }}>
+          <div style={{ display: isSearchingHead ? 'none' : 'block' }}>
             <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
           </div>
         </div>
-      )}
+      </>)}
     </>
   )
 }
@@ -580,33 +583,41 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
 
   return (
     <div className="screen-game-by-id">
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center items-center">
         <div>
-          {!isLoading && currentChessInstance === null && (
-            <div>
-              <div>Game not found...</div>
-              <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-5 py-5 mx-5 my-4" />
-            </div>
-          )}
-
-          <div className="my-4">
-            <div className="flex justify-center items-center mx-1">
-              <div>
-                <GameStateMessage isLoading={isLoading || isSearchingHead} game={currentChessInstance} color={color} />
-              </div>
-            </div>
-
-            {!isLoading && !isSearchingHead && currentChessInstance !== null && currentChessInstance.game_over() && (
+          {!isLoading && currentChessInstance === null ? (
+            <div className="my-4">
               <div className="flex justify-between items-center mx-1">
-                <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
-                  <GameOverMessage game={currentChessInstance} />
-                </div>
+                <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">Game not found...</div>
                 <div className="mx-4">
                   <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-2 py-2" />
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="my-4">
+              <div className="flex justify-center items-center mx-1">
+                <div>
+                  <GameStateMessage
+                    isLoading={isLoading || isSearchingHead}
+                    game={currentChessInstance}
+                    color={color}
+                  />
+                </div>
+              </div>
+
+              {!isLoading && !isSearchingHead && currentChessInstance !== null && currentChessInstance.game_over() && (
+                <div className="flex justify-between items-center mx-1">
+                  <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+                    <GameOverMessage game={currentChessInstance} />
+                  </div>
+                  <div className="mx-4">
+                    <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-2 py-2" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div
             style={{
