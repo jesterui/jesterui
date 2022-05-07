@@ -8,7 +8,8 @@ import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 import * as NIP01 from '../util/nostr/nip01'
-import * as AppUtils from '../util/jester'
+import * as JesterUtils from '../util/jester'
+import * as AppUtils from '../util/app'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -70,7 +71,7 @@ export default function GamesOverview() {
     async () => {
       if (!settings.currentGameJesterId) return null
 
-      const currentGameId = AppUtils.jesterIdToGameId(settings.currentGameJesterId)
+      const currentGameId = JesterUtils.jesterIdToGameId(settings.currentGameJesterId)
 
       const event = await gameStore.game_start.get(currentGameId)
       return event || null
@@ -118,7 +119,7 @@ export default function GamesOverview() {
 
   const onGameCreated = (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => {
     if (e.nativeEvent.isTrusted) {
-      navigate(`/redirect/game/${AppUtils.gameIdToJesterId(gameId)}`)
+      navigate(`/redirect/game/${JesterUtils.gameIdToJesterId(gameId)}`)
     }
   }
 
@@ -141,7 +142,7 @@ export default function GamesOverview() {
               <>
                 <CreateDevelGameButton
                   onGameCreated={(e, gameId) => {
-                    window.alert(`Published game ${AppUtils.gameIdToJesterId(gameId)}`)
+                    window.alert(`Published game ${JesterUtils.gameIdToJesterId(gameId)}`)
                   }}
                 />
                 <CreateMultipleGamesButton amount={21} />
@@ -156,9 +157,9 @@ export default function GamesOverview() {
               {currentGameLiveQuery && (
                 <>
                   <div>
-                    <Link to={`/jester/game/${AppUtils.gameIdToJesterId(currentGameLiveQuery.id)}`}>
+                    <Link to={`/jester/game/${JesterUtils.gameIdToJesterId(currentGameLiveQuery.id)}`}>
                       <>
-                        <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery.id)}</span>
+                        <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery)}</span>
                         {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
                         <Small color="green"> with {currentGameMoveCountLiveQuery} events</Small>
                         <Small color="gray">
@@ -198,11 +199,11 @@ export default function GamesOverview() {
             {listOfStartGamesLiveQuery?.map((it) => {
               return (
                 <div key={it.id}>
-                  <Link to={`/game/${AppUtils.gameIdToJesterId(it.id)}`}>
+                  <Link to={`/game/${JesterUtils.gameIdToJesterId(it.id)}`}>
                     <>
-                      {`${AppUtils.gameIdToJesterId(it.id)}`}
+                      {`${JesterUtils.gameIdToJesterId(it.id)}`}
                       <br />
-                      <span className="font-mono px-2">{AppUtils.gameDisplayName(it.id)}</span>
+                      <span className="font-mono px-2">{AppUtils.gameDisplayName(it)}</span>
                       {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
                       <Small color="gray">
                         {' '}

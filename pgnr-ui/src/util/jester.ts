@@ -248,9 +248,6 @@ export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] 
   ]
 }
 
-export const gameDisplayNameShort = (gameId: NIP01.EventId, length = 5) => gameId.substring(0, length)
-export const gameDisplayName = (gameId: NIP01.EventId, length = 8) => gameId.substring(0, length)
-export const pubKeyDisplayName = (pubKey: NIP01.PubKey, length = 8) => pubKey.substring(0, length)
 export const gameIdToJesterId = (gameId: NIP01.EventId): JesterId => {
   const words = bech32m.toWords(Buffer.from(gameId, 'hex'))
   const encoded = bech32m.encode(JESTER_ID_PREFIX, words) as JesterId

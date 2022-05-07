@@ -12,7 +12,8 @@ import { AppSettings, useSettings, useSettingsDispatch } from '../context/Settin
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import * as AppUtils from '../util/jester'
+import * as JesterUtils from '../util/jester'
+import * as AppUtils from '../util/app'
 import { getSession } from '../util/session'
 import { JesterMove, GameStart, GameMove } from '../util/jester'
 import { CreateGameAndRedirectButton } from './CreateGameButton'
@@ -303,14 +304,14 @@ function GameboardWithLoader({
   )
 }
 
-export default function GameById({ jesterId: argJesterId }: { jesterId?: AppUtils.JesterId }) {
-  const { jesterId: paramsJesterId } = useParams<{ jesterId?: AppUtils.JesterId }>()
+export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterUtils.JesterId }) {
+  const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterUtils.JesterId }>()
 
-  const [jesterId] = useState<AppUtils.JesterId | undefined>(
-    AppUtils.tryParseJesterId(argJesterId) || AppUtils.tryParseJesterId(paramsJesterId) || undefined
+  const [jesterId] = useState<JesterUtils.JesterId | undefined>(
+    JesterUtils.tryParseJesterId(argJesterId) || JesterUtils.tryParseJesterId(paramsJesterId) || undefined
   )
 
-  const [gameId] = useState<NIP01.EventId | undefined>((jesterId && AppUtils.jesterIdToGameId(jesterId)) || undefined)
+  const [gameId] = useState<NIP01.EventId | undefined>((jesterId && JesterUtils.jesterIdToGameId(jesterId)) || undefined)
 
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
@@ -335,7 +336,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: AppUtil
 
     const previousTitle = document.title
     let titlePrefix = currentChessInstance && !isSearchingHead ? `${titleMessage(currentChessInstance, color)} – ` : ''
-    document.title = `${titlePrefix}Game ${AppUtils.gameDisplayName(gameId)}`
+    document.title = `${titlePrefix}Game ${AppUtils.gameDisplayNameShort(gameId)}`
 
     return () => {
       document.title = previousTitle
@@ -428,7 +429,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: AppUtil
     return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(async () => {
         try {
-          const event = AppUtils.constructGameMoveEvent(publicKey, startId, headId, chessboard)
+          const event = JesterUtils.constructGameMoveEvent(publicKey, startId, headId, chessboard)
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
@@ -493,13 +494,13 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: AppUtil
     })
   }, [isSearchingHead, currentGameHead])
 
-  const findChildren = useCallback((move: AppUtils.JesterMove, moves: GameMoveEvent[]) => {
+  const findChildren = useCallback((move: JesterUtils.JesterMove, moves: GameMoveEvent[]) => {
     const searchParentMoveId = move.isStart() ? null : move.event().id
     return moves.filter((move) => move.parentMoveId === searchParentMoveId)
   }, [])
 
   const findNextHead = useCallback(
-    (currentHead: AppUtils.JesterMove, moves: GameMoveEvent[]): AppUtils.JesterMove => {
+    (currentHead: JesterUtils.JesterMove, moves: GameMoveEvent[]): JesterUtils.JesterMove => {
       const children = findChildren(currentHead, moves)
 
       if (children.length === 0) {
