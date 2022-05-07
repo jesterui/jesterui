@@ -30,7 +30,7 @@ export default function App() {
         <NostrManageRelays />
         {settings.dev && <NostrLogIncomingRelayEvents />}
       </>
-      <div className="App">
+      <div className="App pb-4">
         <header className="App-header w-full">
           <AppNavbar />
         </header>
