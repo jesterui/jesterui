@@ -82,6 +82,12 @@ code {
   --tw-scale-x: 1.01;
   --tw-scale-y: 1.01;
 }
+.grow {
+  flex-grow: 1;
+}
+.grow-0 {
+  flex-grow: 0;
+}
 
 /* missing tailwind classes from material-tailwind - end */
 

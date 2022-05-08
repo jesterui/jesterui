@@ -18,13 +18,13 @@ import { getSession } from '../util/session'
 import { GameStartEvent } from '../util/app_db'
 
 // @ts-ignore
-import Heading1 from '@material-tailwind/react/Heading1'
-// @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
+// @ts-ignore
+import Icon from '@material-tailwind/react/Icon'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -56,7 +56,6 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
   const redirectToCurrentGameButtonRef = useRef<HTMLButtonElement>(null)
 
   const jesterId = JesterUtils.gameIdToJesterId(game.id)
-  //const displayJesterId = AppUtils.displayJesterIdShort(jesterId)
   const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
 
   const unsubscribeFromCurrentGame = useCallback(() => {
@@ -69,7 +68,26 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
     transform duration-300 hover:transform-scale-103"
     >
       <div className="flex flex-col items-center pb-4 pt-4">
-        <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Current Game</h6>
+        <div className="flex items-center w-full">
+          <div className="flex-none w-14"></div>
+          <div className="grow flex justify-center">
+            <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Current Game</h6>
+          </div>
+          <div className="flex-none w-14">
+            <Button
+              color="blueGray"
+              buttonType="link"
+              size="regular"
+              rounded={false}
+              block={false}
+              iconOnly={true}
+              ripple="light"
+              onClick={unsubscribeFromCurrentGame}
+            >
+              <Icon name="close" size="xl" />
+            </Button>
+          </div>
+        </div>
 
         <div className="flex items-center space-x-2 my-2">
           <img
@@ -102,7 +120,13 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
             </code>
           </div>
         */}
-        <div className="flex my-2 space-x-2 items-center">
+        <span className="mb-1 text-sm text-gray-400">
+          with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
+        </span>
+        <span className="mb-1 text-sm text-gray-400">
+          <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+        </span>
+        <div className="px-4 mt-2 w-full">
           <Button
             color="green"
             buttonType="filled"
@@ -112,30 +136,9 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
             iconOnly={false}
             ripple="dark"
             ref={redirectToCurrentGameButtonRef}
-            className="w-32"
           >
             Play
             <CurrentGameRedirectButtonHook buttonRef={redirectToCurrentGameButtonRef} jesterId={jesterId} />
-          </Button>
-        </div>
-        <span className="mb-1 text-sm text-gray-400">
-          with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
-        </span>
-        <span className="mb-1 text-sm text-gray-400">
-          <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-        </span>
-        <div className="flex mt-1 items-center">
-          <Button
-            color="blueGray"
-            buttonType="link"
-            size="regular"
-            rounded={false}
-            block={true}
-            iconOnly={false}
-            ripple="light"
-            onClick={unsubscribeFromCurrentGame}
-          >
-            Leave game
           </Button>
         </div>
       </div>
@@ -314,7 +317,6 @@ export default function LobbyPage() {
               </>
             )}
           </div>
-
           {
             <div className="my-4">
               <Heading6 color="blueGray">Latest Games</Heading6>
