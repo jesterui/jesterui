@@ -123,7 +123,7 @@ export default function AppNavbar() {
 
             <ReactNavLink
               to="/games"
-              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
                 <Icon name="games" size="xl" />
@@ -134,23 +134,26 @@ export default function AppNavbar() {
           <Nav>
             <ReactNavLink
               to="/search"
-              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
                 <Icon name="search" size="xl" />
+                <span className="lg:hidden">Search</span>
               </NavItem>
             </ReactNavLink>
             <ReactNavLink to="/faq" className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}>
               <NavItem ripple="light">
                 <Icon name="contact_support" size="xl" />
+                <span className="lg:hidden">FAQ</span>
               </NavItem>
             </ReactNavLink>
             <ReactNavLink
               to="/settings"
-              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
                 <Icon name="settings" size="xl" />
+                <span className="lg:hidden">Settings</span>
               </NavItem>
             </ReactNavLink>
             {/*<ReactNavLink
@@ -164,7 +167,7 @@ export default function AppNavbar() {
             </ReactNavLink>*/}
 
             {privateKeyOrNull && publicKeyOrNull && (
-              <>
+              <div className="mx-1 my-1">
                 <Dropdown
                   color="deepOrange"
                   placement="bottom-start"
@@ -185,7 +188,7 @@ export default function AppNavbar() {
                     Forget identity
                   </DropdownItem>
                 </Dropdown>
-              </>
+              </div>
             )}
           </Nav>
         </NavbarCollapse>

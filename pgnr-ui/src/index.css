@@ -14,6 +14,14 @@ code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
+/* missing tailwind classes from material-tailwind */
+/* TODO: integrate plain tailwind and get rif of material-tailwind to remove these classes again */
+.my-1 {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+/* missing tailwind classes from material-tailwind - end */
+
 /* Chessground adaptions */
 cg-board {
   border-radius: 4px;

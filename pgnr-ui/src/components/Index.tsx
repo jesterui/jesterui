@@ -63,17 +63,16 @@ export default function Index() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        {!incomingNostr ? (
-          <div>No connection to nostr</div>
-        ) : (
-          <div className="w-full grid grid-cols-1">
-            <div className="flex justify-center">
-              <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-                Hello, fellow chess player.
-              </h1>
-            </div>
+        <div className="w-full grid grid-cols-1">
+          <div className="flex justify-center">
+            <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">Hello, fellow chess player.</h1>
           </div>
-        )}
+          {!incomingNostr && (
+            <div className="flex justify-center my-4">
+              <div>No connection to nostr</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
