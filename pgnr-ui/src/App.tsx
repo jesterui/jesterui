@@ -42,7 +42,7 @@ export default function App() {
                 path="/current"
                 element={
                   currentGameJesterIdOrNull ? (
-                    <RedirectToGame jesterId={currentGameJesterIdOrNull} />
+                    <RedirectToGame jesterId={currentGameJesterIdOrNull} replace={true} />
                   ) : (
                     <NoCurrentGamePage />
                   )
@@ -51,7 +51,7 @@ export default function App() {
               {settings.dev && <Route path="/no-current-game" element={<NoCurrentGamePage />} />}
               <Route path="/lobby" element={<LobbyPage />} />
               <Route path="/game/:jesterId" element={<GameById />} />
-              <Route path="/redirect/game/:jesterId" element={<RedirectToGame />} />
+              <Route path="/redirect/game/:jesterId" element={<RedirectToGame replace={true} />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/login" element={<Navigate to="/settings" replace={true} />} />

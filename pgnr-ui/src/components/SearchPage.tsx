@@ -121,7 +121,7 @@ export default function SearchPage() {
     setSearchResults(null)
 
     // at the moment, just redirect to the game - may not exist, but thats fine for now
-    navigate(`/redirect/game/${jesterId}`)
+    navigate(`/redirect/game/${jesterId}`, { replace: true })
   }
 
   const onSearchInputChange = () => {

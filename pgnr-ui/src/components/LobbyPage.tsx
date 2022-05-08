@@ -286,9 +286,9 @@ export default function LobbyPage() {
   useEffect(() => {
     const previousTitle = document.title
     if (!listOfStartGamesLiveQuery || listOfStartGamesLiveQuery.length === 0) {
-      document.title = `Overview`
+      document.title = `Lobby`
     } else {
-      document.title = `Overview (${listOfStartGamesLiveQuery.length})`
+      document.title = `Lobby (${listOfStartGamesLiveQuery.length})`
     }
 
     return () => {
