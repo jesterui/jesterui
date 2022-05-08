@@ -27,6 +27,7 @@ import Input from '@material-tailwind/react/Input'
 import { displayKey } from '../util/app'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
+export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
 
 type PubKey = string | null
 type PrivKey = string | null
@@ -53,6 +54,7 @@ function TestNostrConnectionButton() {
               authors: [publicKeyOrNull],
               since: since,
               '#e': [TEST_MESSAGE_REF],
+              kinds: [TEST_MESSAGE_KIND],
             },
           ]
         : []
@@ -119,11 +121,11 @@ function TestNostrConnectionButton() {
       const privateKey = privateKeyOrNull!
 
       const eventParts = NostrEvents.blankEvent()
-      eventParts.kind = 1 // text_note
+      eventParts.kind = TEST_MESSAGE_KIND
       eventParts.pubkey = publicKey
       eventParts.tags = [['e', TEST_MESSAGE_REF]]
       eventParts.created_at = Math.floor(Date.now() / 1000)
-      eventParts.content = 'Hello World'
+      eventParts.content = ''
       const event = NostrEvents.constructEvent(eventParts)
       const signedEvent = await NostrEvents.signEvent(event, privateKey)
 

@@ -13,8 +13,24 @@ export const VALID_JESTER_ID_EXAMPLE = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3c
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const JESTER_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))
 
+export const JESTER_MESSAGE_KIND: NIP01.Kind = 30 // fiatjaf said so.. "please do chess on kind 30"
+
 export const JESTER_START_GAME_FILTER: NIP01.Filter = {
   '#e': [JESTER_START_GAME_E_REF],
+  kinds: [JESTER_MESSAGE_KIND],
+}
+
+export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] => {
+  return [
+    {
+      ids: [gameId],
+      kinds: [JESTER_MESSAGE_KIND],
+    },
+    {
+      '#e': [gameId],
+      kinds: [JESTER_MESSAGE_KIND],
+    },
+  ]
 }
 
 export enum KindEnum {
@@ -158,7 +174,7 @@ export class GameMove extends AbstractGameMove {
 
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
-  eventParts.kind = NIP01.KindEnum.EventTextNote
+  eventParts.kind = JESTER_MESSAGE_KIND
   eventParts.tags = [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]
   return eventParts
 })()
@@ -188,7 +204,7 @@ export const constructGameMoveEvent = (
   const latestMove = (history && history[history.length - 1]) || null
 
   const eventParts = NostrEvents.blankEvent()
-  eventParts.kind = NIP01.KindEnum.EventTextNote
+  eventParts.kind = JESTER_MESSAGE_KIND
   eventParts.pubkey = pubkey
   eventParts.created_at = Math.floor(Date.now() / 1000)
   eventParts.content = JSON.stringify({
@@ -217,7 +233,7 @@ export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   return (
     !!event &&
-    event.kind === NIP01.KindEnum.EventTextNote &&
+    event.kind === JESTER_MESSAGE_KIND &&
     arrayEquals(event.tags, [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]) &&
     json &&
     json.kind === KindEnum.Start &&
@@ -229,7 +245,7 @@ export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
   return (
     !!event &&
     // must be a text note
-    event.kind === NIP01.KindEnum.EventTextNote &&
+    event.kind === JESTER_MESSAGE_KIND &&
     json &&
     json.kind === KindEnum.Move &&
     Array.isArray(json.history) &&
@@ -237,17 +253,6 @@ export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
     // it must refer to at least two other events (start_event, previous_move)
     event.tags.filter((t) => t[0] === NIP01.TagEnum.e).length === 2
   )
-}
-
-export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] => {
-  return [
-    {
-      ids: [gameId],
-    },
-    {
-      '#e': [gameId],
-    },
-  ]
 }
 
 export const gameIdToJesterId = (gameId: NIP01.EventId): JesterId => {

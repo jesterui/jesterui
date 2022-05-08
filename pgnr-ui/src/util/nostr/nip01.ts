@@ -32,7 +32,7 @@ type EventRecommendServer = 2
 
 type OtherEventType = number
 
-type Kind = EventSetMetadata | EventTextNote | EventRecommendServer | OtherEventType
+export type Kind = EventSetMetadata | EventTextNote | EventRecommendServer | OtherEventType
 
 // The <recommended relay URL> item present on the "e" and "p" tags is an
 // optional (could be set to "") URL of a relay the client could attempt
