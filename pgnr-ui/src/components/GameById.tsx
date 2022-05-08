@@ -45,6 +45,8 @@ import PopoverBody from '@material-tailwind/react/PopoverBody'
 import Tooltips from '@material-tailwind/react/Tooltips'
 // @ts-ignore
 import TooltipsContent from '@material-tailwind/react/TooltipsContent'
+// @ts-ignore
+import Small from '@material-tailwind/react/Small'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -124,24 +126,29 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
 
 const CopyGameUrlInput = ({ value }: { value: string }) => {
   return (
-    <div className="flex">
-      <Input
-        type="text"
-        color="lightBlue"
-        size="md"
-        outline={true}
-        value={value}
-        placeholder="Link to Game"
-        readOnly={true}
-        style={{ color: 'currentColor' }}
-      />
-      <CopyButtonWithConfirmation
-        className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-        value={value}
-        text="Copy"
-        successText="Copied"
-        disabled={!value}
-      />
+    <div>
+      <div className="flex items-center">
+        <Input
+          type="text"
+          color="lightBlue"
+          size="md"
+          outline={true}
+          value={value}
+          placeholder="Link to Game"
+          readOnly={true}
+          style={{ color: 'currentColor' }}
+        />
+        <CopyButtonWithConfirmation
+          className="h-11 mx-1 px-4 flex items-center justify-center gap-1 font-bold outline-none uppercase tracking-wider focus:outline-none focus:shadow-none transition-all duration-300 rounded-lg text-xs leading-normal text-white bg-blue-gray-500 hover:bg-blue-gray-700 focus:bg-blue-gray-400 active:bg-blue-gray-800 shadow-md-blue-gray hover:shadow-lg-blue-gray"
+          value={value}
+          text="Copy"
+          successText="Copied"
+          disabled={!value}
+        />
+      </div>
+      <div className="flex justify-center my-1">
+        <Small color="amber">Share this link with anyone to join in!</Small>
+      </div>
     </div>
   )
 }
@@ -437,7 +444,7 @@ function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey: boolea
       ) : (
         <>
           <Button
-            color="lightBlue"
+            color="deepOrange"
             buttonType="filled"
             size="regular"
             rounded={false}

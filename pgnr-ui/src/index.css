@@ -20,6 +20,10 @@ code {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
+.py-3\.5 {
+  padding-top: 0.825rem;
+  padding-bottom: 0.825rem;
+}
 /* missing tailwind classes from material-tailwind - end */
 
 /* quick fix for material-tailwind oddities */
@@ -40,9 +44,20 @@ cg-board {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
-.cg-wrap coords.files {
-  /* prevent gap on the right when stretching board to 100% width */
-  left: unset !important;
-  padding-left: 24px;
+/* prevent gap on the right when stretching board to 100% width */
+.cg-wrap coords.ranks {
+  top: unset !important;
 }
+.cg-wrap coords.ranks coord {
+  transform: unset !important;
+}
+
+.cg-wrap coords.files {
+  left: unset !important;
+}
+.cg-wrap coords.files coord {
+  transform: translateX(39%);
+}
+/* prevent gap on the right when stretching board to 100% width - end */
+
 /* Chessground adaptions - end */

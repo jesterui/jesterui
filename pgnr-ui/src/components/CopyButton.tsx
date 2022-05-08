@@ -14,6 +14,7 @@ function Copyable({ value, onError, onSuccess, className, children, ...props }: 
   return (
     <>
       <button
+        type="button"
         className={className}
         {...props}
         onClick={() => copyToClipboard(value, valueFallbackInputRef.current!).then(onSuccess, onError)}

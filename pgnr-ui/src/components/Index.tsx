@@ -35,7 +35,7 @@ function CreateIdentityStep() {
       </div>
       <div className="flex justify-center">
         <Button
-          color="lightBlue"
+          color="deepOrange"
           buttonType="filled"
           size="regular"
           rounded={false}
