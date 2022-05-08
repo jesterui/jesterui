@@ -22,6 +22,15 @@ code {
 }
 /* missing tailwind classes from material-tailwind - end */
 
+/* quick fix for material-tailwind oddities */
+.App-header button.capitalize {
+  text-transform: unset !important;
+}
+.App-header .uppercase {
+  text-transform: unset !important;
+}
+/* quick fix for material-tailwind oddities - end */
+
 /* Chessground adaptions */
 cg-board {
   border-radius: 4px;

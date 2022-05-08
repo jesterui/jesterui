@@ -10,10 +10,67 @@ import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
 import * as JesterUtils from '../util/jester'
+import { Identity, useSettings } from '../context/SettingsContext'
+import { getSession } from '../util/session'
+import { pubKeyDisplayName } from '../util/app'
+
+function CreateIdentityStep() {
+  return (
+    <>
+      <div className="flex justify-center">
+        <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">Hello, fellow chess player.</h1>
+      </div>
+    </>
+  )
+}
+
+function LoginIdentityStep() {
+  const settings = useSettings()
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
+  return (
+    <div className="flex justify-center">
+      <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+        {`Welcome back, ${publicKeyOrNull}.`}
+      </h1>
+    </div>
+  )
+}
+
+function IdentityStep() {
+  const settings = useSettings()
+
+  const publicKeyOrNull = settings.identity?.pubkey || null
+
+  if (publicKeyOrNull === null) {
+    return CreateIdentityStep()
+  } else {
+    return LoginIdentityStep()
+  }
+}
+
+function SetupCompleteStep({ identity }: { identity: Identity }) {
+  const settings = useSettings()
+
+  return (
+    <div className="flex justify-center">
+      <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+        {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
+      </h1>
+    </div>
+  )
+}
 
 export default function Index() {
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
+  const settings = useSettings()
+
+  const identity = settings.identity || null
+  const privateKeyOrNull = getSession()?.privateKey || null
+
+  const showIdentityStep = identity === null || privateKeyOrNull === null
+  /*
   const [searchInputValue, setSearchInputValue] = useState<string>('')
   const [searchResults, setSearchResults] = useState<string[] | null>(null)
   const [inputIsJesterId, setInputIsJesterId] = useState<boolean | null>(null)
@@ -58,20 +115,18 @@ export default function Index() {
     setSearchInputValue(e.target.value)
     setInputIsJesterId(null)
     setSearchResults(null)
-  }
+  }*/
 
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
         <div className="w-full grid grid-cols-1">
-          <div className="flex justify-center">
-            <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">Hello, fellow chess player.</h1>
-          </div>
           {!incomingNostr && (
             <div className="flex justify-center my-4">
               <div>No connection to nostr</div>
             </div>
           )}
+          {showIdentityStep ? <IdentityStep /> : <SetupCompleteStep identity={identity} />}
         </div>
       </div>
     </div>

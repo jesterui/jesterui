@@ -7,7 +7,7 @@ const localStorageKey = () => window.APP.SETTINGS_STORE_KEY
 
 // TODO: add {read: true, write: true} to relay
 type Relay = string
-type Identity = {
+export type Identity = {
   pubkey: string
 }
 

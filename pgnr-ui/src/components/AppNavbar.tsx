@@ -30,7 +30,8 @@ import DropdownItem from '@material-tailwind/react/DropdownItem'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 
-import { displayKey } from '../util/app'
+import { pubKeyDisplayName } from '../util/app'
+import { GenerateRandomIdentityButton } from './IdentityButtons'
 
 export default function AppNavbar() {
   const settings = useSettings()
@@ -98,12 +99,7 @@ export default function AppNavbar() {
                   Login
                 </button>
               ) : (
-                <button
-                  className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`}
-                  onClick={() => newIdentityButtonClicked()}
-                >
-                  New identity
-                </button>
+                <GenerateRandomIdentityButton />
               )}
             </>
           )}
@@ -171,7 +167,7 @@ export default function AppNavbar() {
                 <Dropdown
                   color="deepOrange"
                   placement="bottom-start"
-                  buttonText={displayKey(publicKeyOrNull)}
+                  buttonText={pubKeyDisplayName(publicKeyOrNull)}
                   buttonType="filled"
                   size="regular"
                   rounded={false}

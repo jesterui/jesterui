@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
+import { bytesToHex, randomBytes } from '@noble/hashes/utils'
+
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
-import { WebsocketIndicator } from '../components/WebsocketIndicator'
-import { SelectedBot, BotSelector } from '../components/BotSelector'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import { useUpdateSubscription } from '../context/NostrSubscriptionsContext'
-import { bytesToHex, randomBytes } from '@noble/hashes/utils'
+
+import { WebsocketIndicator } from '../components/WebsocketIndicator'
+import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
+import { SelectedBot, BotSelector } from '../components/BotSelector'
 
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
-import * as Nostr from '../util/nostr/identity'
 import * as NostrEvents from '../util/nostr/events'
 import * as Bot from '../util/bot'
 import { DEFAULT_RELAYS } from '../util/app_nostr'
@@ -230,14 +232,6 @@ const KeyPairForm = () => {
     return () => abortCtrl.abort()
   }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, updatePubKey])
 
-  const newIdentityButtonClicked = () => {
-    const privateKey = Nostr.generatePrivateKey()
-    const publicKey = Nostr.publicKey(privateKey)
-
-    updatePrivKey(privateKey)
-    updatePubKey(publicKey)
-  }
-
   const deleteIdentityButtonClicked = () => {
     updatePrivKey(null)
     updatePubKey(null)
@@ -274,9 +268,7 @@ const KeyPairForm = () => {
         </div>
       </div>
       <div className="py-1">
-        <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={newIdentityButtonClicked}>
-          New
-        </button>
+        <GenerateRandomIdentityButton text="New" className="bg-white bg-opacity-20 rounded px-2 py-1" />
         <button
           type="button"
           className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"

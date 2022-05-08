@@ -15,7 +15,6 @@ import GamesOverview from './components/GamesOverview'
 import GameById from './components/GameById'
 import Layout from './Layout'
 
-import * as JesterUtils from './util/jester'
 import './App.css'
 import SearchPage from './components/SearchPage'
 
