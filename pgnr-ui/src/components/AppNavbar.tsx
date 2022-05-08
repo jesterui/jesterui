@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
 import { NavLink as ReactNavLink, useNavigate } from 'react-router-dom'
 
-import { WebsocketIndicator } from '../components/WebsocketIndicator'
-import { CreateGameAndRedirectButton } from './CreateGameButton'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+
+import { WebsocketIndicator } from '../components/WebsocketIndicator'
+import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
+
+import { pubKeyDisplayName } from '../util/app'
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NostrIdentity from '../util/nostr/identity'
 
@@ -29,9 +32,6 @@ import Dropdown from '@material-tailwind/react/Dropdown'
 import DropdownItem from '@material-tailwind/react/DropdownItem'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
-
-import { pubKeyDisplayName } from '../util/app'
-import { GenerateRandomIdentityButton } from './IdentityButtons'
 
 export default function AppNavbar() {
   const settings = useSettings()
@@ -91,15 +91,13 @@ export default function AppNavbar() {
             </>
           ) : (
             <>
-              {publicKeyOrNull ? (
+              {publicKeyOrNull && (
                 <button
                   className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`}
                   onClick={() => onLoginButtonClicked()}
                 >
                   Login
                 </button>
-              ) : (
-                <GenerateRandomIdentityButton />
               )}
             </>
           )}

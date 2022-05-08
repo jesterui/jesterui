@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useState, useRef } from 'react'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useNavigate } from 'react-router-dom'
@@ -9,43 +9,62 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
-import * as JesterUtils from '../util/jester'
+// @ts-ignore
+import Button from '@material-tailwind/react/Button'
+// @ts-ignore
+import LeadText from '@material-tailwind/react/LeadText'
+
 import { Identity, useSettings } from '../context/SettingsContext'
 import { getSession } from '../util/session'
 import { pubKeyDisplayName } from '../util/app'
+import { GenerateRandomIdentityButton } from './IdentityButtons'
 
 function CreateIdentityStep() {
+  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <div className="flex justify-center">
-        <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">Hello, fellow chess player.</h1>
+        <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+          Hello, fellow chess player.
+        </h1>
+      </div>
+      <div className="flex justify-center">
+        <LeadText color="">Wanna start playing immediately? Let's go!</LeadText>
+      </div>
+      <div className="flex justify-center">
+        <Button
+          color="lightBlue"
+          buttonType="filled"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          ref={generateRandomIdentityButtonRef}
+        >
+          New Identity
+        </Button>
+        <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
       </div>
     </>
   )
 }
 
-function LoginIdentityStep() {
-  const settings = useSettings()
-
-  const publicKeyOrNull = settings.identity?.pubkey || null
+function LoginIdentityStep({ identity }: { identity: Identity }) {
   return (
     <div className="flex justify-center">
-      <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-        {`Welcome back, ${publicKeyOrNull}.`}
+      <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+        {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
       </h1>
     </div>
   )
 }
 
-function IdentityStep() {
-  const settings = useSettings()
-
-  const publicKeyOrNull = settings.identity?.pubkey || null
-
-  if (publicKeyOrNull === null) {
+function IdentityStep({ identity }: { identity: Identity | null }) {
+  if (identity === null) {
     return CreateIdentityStep()
   } else {
-    return LoginIdentityStep()
+    return LoginIdentityStep({ identity })
   }
 }
 
@@ -54,7 +73,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
 
   return (
     <div className="flex justify-center">
-      <h1 className="text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+      <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
         {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
       </h1>
     </div>
@@ -126,7 +145,7 @@ export default function Index() {
               <div>No connection to nostr</div>
             </div>
           )}
-          {showIdentityStep ? <IdentityStep /> : <SetupCompleteStep identity={identity} />}
+          {showIdentityStep ? <IdentityStep identity={identity} /> : <SetupCompleteStep identity={identity} />}
         </div>
       </div>
     </div>

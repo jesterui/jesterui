@@ -1,4 +1,4 @@
-import React, { RefObject } from 'react'
+import React, { RefObject, useEffect } from 'react'
 
 import { AppSettings, Identity, useSettingsDispatch } from '../context/SettingsContext'
 import { setSessionAttribute } from '../util/session'
@@ -32,12 +32,25 @@ export function GenerateRandomIdentityButton({
     }
   }
 
+  const onClick = () => newIdentityButtonClicked()
+
+  useEffect(() => {
+    if (!buttonRef) return
+    if (!buttonRef.current) return
+
+    buttonRef.current.onclick = onClick
+  }, [buttonRef])
+
+  if (buttonRef) {
+    return <></>
+  }
+
   return (
     <button
       ref={buttonRef}
       type="button"
       className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1 mx-1 my-1'}`}
-      onClick={() => newIdentityButtonClicked()}
+      onClick={onClick}
     >
       {text}
     </button>
