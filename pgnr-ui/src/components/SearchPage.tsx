@@ -1,7 +1,9 @@
 import React, { ChangeEvent, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { useNavigate } from 'react-router-dom'
+
+import * as JesterUtils from '../util/jester'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -9,7 +11,9 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
-import * as JesterUtils from '../util/jester'
+// @ts-ignore
+import Button from '@material-tailwind/react/Button'
+import JesterId from './JesterId'
 
 export default function SearchPage() {
   const navigate = useNavigate()
@@ -63,50 +67,65 @@ export default function SearchPage() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        {!incomingNostr ? (
-          <div>No connection to nostr</div>
-        ) : (
-          <>
-            <div className="w-full grid grid-cols-1">
-              <div className="flex justify-center">{<Heading1 color="blueGray">chess on nostr</Heading1>}</div>
-              <form noValidate onSubmit={() => onSearchButtonClicked()}>
-                <div className="pb-2 grow">
-                  <Input
-                    type="text"
-                    size="lg"
-                    outline={true}
-                    value={searchInputValue}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => onSearchInputChange(e)}
-                    placeholder="Search"
-                    style={{ color: 'currentColor' }}
-                    error={inputIsJesterId === false ? ' ' : undefined}
-                    success={inputIsJesterId === true ? ' ' : undefined}
-                  />
-                </div>
+        <div className="w-full lg:w-8/12">
+          {!incomingNostr ? (
+            <div>No connection to nostr</div>
+          ) : (
+            <>
+              <div className="w-full grid grid-cols-1">
+                <div className="flex justify-center">{<Heading1 color="blueGray">chess on nostr</Heading1>}</div>
+                <form noValidate onSubmit={() => onSearchButtonClicked()}>
+                  <div className="pb-2 grow">
+                    <div className="flex justify-center">
+                      <div className="w-full">
+                        <Input
+                          type="text"
+                          size="lg"
+                          outline={true}
+                          value={searchInputValue}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => onSearchInputChange(e)}
+                          placeholder="Search"
+                          style={{ color: 'currentColor' }}
+                          error={inputIsJesterId === false ? ' ' : undefined}
+                          success={inputIsJesterId === true ? ' ' : undefined}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="flex justify-center items-center">
-                  <button type="submit" className={`bg-white bg-opacity-20 rounded px-5 py-4 mx-1 my-4`}>
-                    Search
-                  </button>
+                  <div className="flex justify-center items-center">
+                    <Button
+                      type="submit"
+                      color="deepOrange"
+                      buttonType="filled"
+                      size="lg"
+                      rounded={false}
+                      block={false}
+                      iconOnly={false}
+                      ripple="light"
+                    >
+                      Search
+                    </Button>
+                  </div>
+                </form>
+                <div className="pb-2 grow">
+                  {searchResults?.length === 0 && (
+                    <>
+                      <Heading6 color="blueGray">No results found. </Heading6>
+                      <p>Are you sure this is a game id?</p>
+                      <p>
+                        <small>
+                          e.g. a game id looks like this:{' '}
+                          <JesterId jesterId="jester13s8c6xzp33n93zn2qmvtgaypncphz585fggggnzvppmxnyamvc4qpu3sdv" />
+                        </small>
+                      </p>
+                    </>
+                  )}
                 </div>
-              </form>
-              <div className="pb-2 grow">
-                {searchResults?.length === 0 && (
-                  <>
-                    <Heading6 color="blueGray">No results found. </Heading6>
-                    <p>Are you sure this is a game id?</p>
-                    <p>
-                      <small>
-                        e.g. a game id looks like this:{' '}
-                        <code>jester13s8c6xzp33n93zn2qmvtgaypncphz585fggggnzvppmxnyamvc4qpu3sdv</code>
-                      </small>
-                    </p>
-                  </>
-                )}
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

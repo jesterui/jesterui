@@ -6,12 +6,6 @@ import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 import { CreateGameAndRedirectButton, CurrentGameRedirectButtonHook } from '../components/CreateGameButton'
 
 // @ts-ignore
-import Heading1 from '@material-tailwind/react/Heading1'
-// @ts-ignore
-import Heading6 from '@material-tailwind/react/Heading6'
-// @ts-ignore
-import Input from '@material-tailwind/react/Input'
-// @ts-ignore
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import LeadText from '@material-tailwind/react/LeadText'
@@ -44,8 +38,8 @@ function CreateIdentityStep() {
           ref={generateRandomIdentityButtonRef}
         >
           New Identity
+          <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
         </Button>
-        <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
       </div>
     </>
   )
@@ -89,7 +83,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
       <div className="flex justify-center">
         <LeadText color="">Join another player or start your own game.</LeadText>
       </div>
-      <div className="flex justify-center items-center space-x-2 my-4">
+      <div className="flex justify-center items-center space-x-4 my-4">
         {settings.currentGameJesterId && (
           <>
             <Button
