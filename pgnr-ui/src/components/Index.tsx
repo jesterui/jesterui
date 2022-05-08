@@ -23,14 +23,14 @@ function CreateIdentityStep() {
           Hello, fellow chess player.
         </h1>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center text-center">
         <LeadText color="">Wanna start playing immediately? Let's go!</LeadText>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center items-center space-x-4 my-4">
         <Button
           color="deepOrange"
           buttonType="filled"
-          size="regular"
+          size="lg"
           rounded={false}
           block={false}
           iconOnly={false}
@@ -46,12 +46,54 @@ function CreateIdentityStep() {
 }
 
 function LoginIdentityStep({ identity }: { identity: Identity }) {
+  const navigate = useNavigate()
+  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
+
+  const loginButtonClicked = () => navigate(`/login`)
+
   return (
     <>
       <div className="flex justify-center">
         <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
           {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
         </h1>
+      </div>
+      <div className="flex justify-center text-center">
+        <LeadText color="" className="">
+          Since nos2x is not yet supported, provide your private key or simply create a new identity.
+        </LeadText>
+      </div>
+      <div className="flex justify-center items-center space-x-4 my-4">
+        <Button
+          color="blueGray"
+          buttonType="filled"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          className="w-40"
+          onClick={loginButtonClicked}
+        >
+          Login
+        </Button>
+
+        <div>or</div>
+
+        <Button
+          color="deepOrange"
+          buttonType="outline"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          ref={generateRandomIdentityButtonRef}
+          className="w-40"
+        >
+          New Identity
+          <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+        </Button>
       </div>
     </>
   )
@@ -80,7 +122,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           {`Hello, ${pubKeyDisplayName(identity.pubkey)}.`}
         </h1>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center text-center">
         <LeadText color="">Join another player or start your own game.</LeadText>
       </div>
       <div className="flex justify-center items-center space-x-4 my-4">
@@ -96,7 +138,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
               ripple="dark"
               ref={redirectToCurrentGameButtonRef}
               disabled={!settings.currentGameJesterId}
-              className="w-32"
+              className="px-1 w-40"
             >
               Keep playing
               <CurrentGameRedirectButtonHook
@@ -118,7 +160,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           iconOnly={false}
           ripple="light"
           ref={createNewGameButtonRef}
-          className={settings.currentGameJesterId ? 'w-32' : 'w-48'}
+          className={`px-1 ${settings.currentGameJesterId ? 'w-40' : 'w-48'}`}
         >
           Start a new game
           <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />

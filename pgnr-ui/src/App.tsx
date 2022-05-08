@@ -54,6 +54,7 @@ export default function App() {
               <Route path="/redirect/game/:jesterId" element={<RedirectToGame />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/login" element={<Navigate to="/settings" replace={true} />} />
               <Route path="/faq" element={<Faq />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />
             </Route>

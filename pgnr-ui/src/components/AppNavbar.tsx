@@ -35,27 +35,14 @@ import Icon from '@material-tailwind/react/Icon'
 export default function AppNavbar() {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
-  const navigate = useNavigate()
   const [openMenu, setOpenMenu] = useState(false)
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const newIdentityButtonClicked = () => {
-    const privateKey = NostrIdentity.generatePrivateKey()
-    const publicKey = NostrIdentity.publicKey(privateKey)
-
-    setSessionAttribute({ privateKey })
-    settingsDispatch({ identity: { pubkey: publicKey } } as AppSettings)
-  }
-
   const deleteIdentityButtonClicked = () => {
     setSessionAttribute({ privateKey: null })
     settingsDispatch({ identity: undefined } as AppSettings)
-  }
-
-  const onLoginButtonClicked = () => {
-    navigate(`/settings`)
   }
 
   /*const onProfileButtonClicked = () => {
@@ -82,18 +69,6 @@ export default function AppNavbar() {
               </span>
             )}
           </NavbarBrand>
-          {!privateKeyOrNull && (
-            <>
-              {publicKeyOrNull && (
-                <button
-                  className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`}
-                  onClick={() => onLoginButtonClicked()}
-                >
-                  Login
-                </button>
-              )}
-            </>
-          )}
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
 
@@ -168,9 +143,6 @@ export default function AppNavbar() {
                   {/*<DropdownItem color="blueGray" ripple="light" onClick={() => onProfileButtonClicked()}>
             Profile
             </DropdownItem>*/}
-                  <DropdownItem color="blueGray" ripple="light" onClick={() => newIdentityButtonClicked()}>
-                    Create new identity
-                  </DropdownItem>
                   <DropdownItem color="red" ripple="light" onClick={() => deleteIdentityButtonClicked()}>
                     Forget identity
                   </DropdownItem>
