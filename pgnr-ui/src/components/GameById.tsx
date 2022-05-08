@@ -427,7 +427,7 @@ function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey: boolea
       {hasPrivateKey ? (
         <>
           <Button
-            color="lightBlue"
+            color="green"
             buttonType="filled"
             size="regular"
             rounded={false}

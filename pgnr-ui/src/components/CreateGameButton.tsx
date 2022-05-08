@@ -1,4 +1,4 @@
-import React, { MouseEvent, RefObject, useEffect } from 'react'
+import React, { RefObject, useEffect } from 'react'
 
 import { useSettings } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -93,4 +93,24 @@ export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGame
   }
 
   return <CreateGameButton buttonRef={buttonRef} className={className} onGameCreated={onGameCreated} />
+}
+
+interface CurrentGameRedirectButtonHookProps {
+  buttonRef: RefObject<HTMLButtonElement>
+  jesterId: JesterUtils.JesterId
+}
+
+export function CurrentGameRedirectButtonHook({ buttonRef, jesterId }: CurrentGameRedirectButtonHookProps) {
+  const navigate = useNavigate()
+
+  const onClick = () => navigate(`/redirect/game/${jesterId}`)
+
+  useEffect(() => {
+    if (!buttonRef) return
+    if (!buttonRef.current) return
+
+    buttonRef.current.onclick = onClick
+  }, [buttonRef, onClick])
+
+  return <></>
 }

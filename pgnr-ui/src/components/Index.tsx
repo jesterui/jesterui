@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
-import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
+import { CreateGameAndRedirectButton, CurrentGameRedirectButtonHook } from '../components/CreateGameButton'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -19,7 +19,6 @@ import LeadText from '@material-tailwind/react/LeadText'
 import { Identity, useSettings } from '../context/SettingsContext'
 import { getSession } from '../util/session'
 import { pubKeyDisplayName } from '../util/app'
-import * as JesterUtils from '../util/jester'
 
 function CreateIdentityStep() {
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
@@ -74,30 +73,76 @@ function IdentityStep({ identity }: { identity: Identity | null }) {
 
 function SetupCompleteStep({ identity }: { identity: Identity }) {
   const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
+  const redirectToCurrentGameButtonRef = useRef<HTMLButtonElement>(null)
+  const settings = useSettings()
+  const navigate = useNavigate()
+
+  const viewAllGamesButtonClicked = () => navigate(`/games`)
 
   return (
     <>
       <div className="flex justify-center">
         <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-          {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
+          {`Hello, ${pubKeyDisplayName(identity.pubkey)}.`}
         </h1>
       </div>
       <div className="flex justify-center">
-        <LeadText color="">Join another player or create your own game.</LeadText>
+        <LeadText color="">Join another player or start your own game.</LeadText>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center items-center space-x-4 my-4">
+        {settings.currentGameJesterId && (
+          <>
+            <Button
+              color="green"
+              buttonType="filled"
+              size="regular"
+              rounded={false}
+              block={false}
+              iconOnly={false}
+              ripple="dark"
+              ref={redirectToCurrentGameButtonRef}
+              disabled={!settings.currentGameJesterId}
+              className="w-48"
+            >
+              Keep playing
+              <CurrentGameRedirectButtonHook
+                buttonRef={redirectToCurrentGameButtonRef}
+                jesterId={settings.currentGameJesterId}
+              />
+            </Button>
+
+            <div>or</div>
+          </>
+        )}
+
         <Button
-          color="lightBlue"
-          buttonType="filled"
+          color="green"
+          buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
           size="regular"
           rounded={false}
           block={false}
           iconOnly={false}
           ripple="light"
           ref={createNewGameButtonRef}
+          className="w-48"
         >
-          Create Game
+          Start A new game
           <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
+        </Button>
+      </div>
+      <div className="flex justify-center items-center space-x-4 my-4">
+        <Button
+          color="blueGray"
+          buttonType="link"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          className="w-48"
+          onClick={viewAllGamesButtonClicked}
+        >
+          Browse all games
         </Button>
       </div>
     </>
