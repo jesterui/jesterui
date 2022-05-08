@@ -71,7 +71,6 @@ export default function AppNavbar() {
           </NavbarBrand>
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
-
         <NavbarCollapse open={openMenu}>
           <Nav leftSide>
             {settings.currentGameJesterId && (
@@ -118,36 +117,53 @@ export default function AppNavbar() {
                 <span className="lg:hidden">Settings</span>
               </NavItem>
             </ReactNavLink>
-            {/*<ReactNavLink
-              to="/profile"
-              className={({ isActive }) => (isActive ? 'bg-white bg-opacity-20 rounded-lg' : '')}
-            >
-              <NavItem ripple="light">
-                <Icon name="account_circle" size="xl" />
-                Profile
-              </NavItem>
-            </ReactNavLink>*/}
 
             {privateKeyOrNull && publicKeyOrNull && (
-              <div className="mx-1 my-1">
-                <Dropdown
-                  color="deepOrange"
-                  placement="bottom-start"
-                  buttonText={pubKeyDisplayName(publicKeyOrNull)}
-                  buttonType="filled"
-                  size="regular"
-                  rounded={false}
-                  block={true}
-                  ripple="light"
-                >
-                  {/*<DropdownItem color="blueGray" ripple="light" onClick={() => onProfileButtonClicked()}>
+              <ReactNavLink to="/" className={({ isActive }) => `hidden lg:block mx-1 my-1 ${isActive ? '' : ''}`}>
+                <img
+                  className="w-6 h-6 rounded-full shadow-lg-gray bg-blue-gray-500"
+                  src={`https://robohash.org/${publicKeyOrNull}`}
+                  title={publicKeyOrNull}
+                />
+                <span className="lg:hidden">Profile</span>
+              </ReactNavLink>
+            )}
+            {/*privateKeyOrNull && publicKeyOrNull && (<ReactNavLink
+              to="/settings"
+              className={({ isActive }) => `lg:hidden mx-1 my-1 ${isActive ? '' : ''}`}
+            >
+            <NavItem ripple="light">
+              <img
+                className="w-5 h-5 rounded-full shadow-lg-gray bg-blue-gray-500"
+                src={`https://robohash.org/${publicKeyOrNull}`}
+                alt={publicKeyOrNull}
+              />
+                <span className="lg:hidden">Profile</span>
+              </NavItem>
+            </ReactNavLink>)*/}
+
+            {privateKeyOrNull && publicKeyOrNull && (
+              <>
+                <div className="mx-1 my-1">
+                  <Dropdown
+                    color="deepOrange"
+                    placement="bottom-start"
+                    buttonText={pubKeyDisplayName(publicKeyOrNull)}
+                    buttonType="filled"
+                    size="regular"
+                    rounded={false}
+                    block={true}
+                    ripple="light"
+                  >
+                    {/*<DropdownItem color="blueGray" ripple="light" onClick={() => onProfileButtonClicked()}>
             Profile
             </DropdownItem>*/}
-                  <DropdownItem color="red" ripple="light" onClick={() => deleteIdentityButtonClicked()}>
-                    Forget identity
-                  </DropdownItem>
-                </Dropdown>
-              </div>
+                    <DropdownItem color="red" ripple="light" onClick={() => deleteIdentityButtonClicked()}>
+                      Forget identity
+                    </DropdownItem>
+                  </Dropdown>
+                </div>
+              </>
             )}
           </Nav>
         </NavbarCollapse>
