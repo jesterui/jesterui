@@ -39,7 +39,7 @@ const createGameOverviewFilter = (now: Date) => {
   } as GamesFilter
 }
 
-export default function GamesOverview() {
+export default function LobbyPage() {
   const renderedAt = new Date()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()

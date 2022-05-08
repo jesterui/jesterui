@@ -77,7 +77,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
   const settings = useSettings()
   const navigate = useNavigate()
 
-  const viewAllGamesButtonClicked = () => navigate(`/games`)
+  const viewLobbyButtonClicked = () => navigate(`/lobby`)
 
   return (
     <>
@@ -89,7 +89,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
       <div className="flex justify-center">
         <LeadText color="">Join another player or start your own game.</LeadText>
       </div>
-      <div className="flex justify-center items-center space-x-4 my-4">
+      <div className="flex justify-center items-center space-x-2 my-4">
         {settings.currentGameJesterId && (
           <>
             <Button
@@ -102,7 +102,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
               ripple="dark"
               ref={redirectToCurrentGameButtonRef}
               disabled={!settings.currentGameJesterId}
-              className="w-48"
+              className="w-32"
             >
               Keep playing
               <CurrentGameRedirectButtonHook
@@ -124,13 +124,13 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           iconOnly={false}
           ripple="light"
           ref={createNewGameButtonRef}
-          className="w-48"
+          className={settings.currentGameJesterId ? 'w-32' : 'w-48'}
         >
-          Start A new game
+          Start a new game
           <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
         </Button>
       </div>
-      <div className="flex justify-center items-center space-x-4 my-4">
+      <div className="flex justify-center items-center space-x-4 my-1">
         <Button
           color="blueGray"
           buttonType="link"
@@ -140,7 +140,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           iconOnly={false}
           ripple="light"
           className="w-48"
-          onClick={viewAllGamesButtonClicked}
+          onClick={viewLobbyButtonClicked}
         >
           Browse all games
         </Button>

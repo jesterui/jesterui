@@ -109,12 +109,12 @@ export default function AppNavbar() {
             )}
 
             <ReactNavLink
-              to="/games"
+              to="/lobby"
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
                 <Icon name="games" size="xl" />
-                Play
+                Lobby
               </NavItem>
             </ReactNavLink>
           </Nav>
