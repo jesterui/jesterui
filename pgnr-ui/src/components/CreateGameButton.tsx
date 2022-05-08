@@ -59,7 +59,10 @@ export default function CreateGameButton({
     if (!buttonRef) return
     if (!buttonRef.current) return
 
-    buttonRef.current.onclick = onClick
+    buttonRef.current.onclick = (e) => {
+      e.preventDefault()
+      onClick()
+    }
   }, [buttonRef, onClick])
 
   if (buttonRef) {
@@ -109,7 +112,10 @@ export function CurrentGameRedirectButtonHook({ buttonRef, jesterId }: CurrentGa
     if (!buttonRef) return
     if (!buttonRef.current) return
 
-    buttonRef.current.onclick = onClick
+    buttonRef.current.onclick = (e) => {
+      e.preventDefault()
+      onClick()
+    }
   }, [buttonRef, onClick])
 
   return <></>

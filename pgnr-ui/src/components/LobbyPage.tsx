@@ -63,47 +63,51 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
   }, [settingsDispatch])
 
   return (
-    <div
-      className="w-full max-w-sm rounded-lg border border-gray-800 shadow-sm hover:shadow-xl 
+    <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
+      <div
+        className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl 
     transform duration-300 hover:transform-scale-103"
-    >
-      <div className="flex flex-col items-center pb-4 pt-4">
-        <div className="flex items-center w-full">
-          <div className="flex-none w-14"></div>
-          <div className="grow flex justify-center">
-            <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Current Game</h6>
+      >
+        <div className="flex flex-col items-center pb-4 pt-4">
+          <div className="flex items-center w-full">
+            <div className="flex-none w-14"></div>
+            <div className="grow flex justify-center">
+              <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Current Game</h6>
+            </div>
+            <div className="flex-none w-14">
+              <Button
+                color="gray"
+                buttonType="link"
+                size="regular"
+                rounded={false}
+                block={false}
+                iconOnly={true}
+                ripple="light"
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault()
+                  unsubscribeFromCurrentGame()
+                }}
+              >
+                <Icon name="close" size="xl" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-none w-14">
-            <Button
-              color="blueGray"
-              buttonType="link"
-              size="regular"
-              rounded={false}
-              block={false}
-              iconOnly={true}
-              ripple="light"
-              onClick={unsubscribeFromCurrentGame}
-            >
-              <Icon name="close" size="xl" />
-            </Button>
+
+          <div className="flex items-center space-x-2 my-2">
+            <img
+              className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+              src={`https://robohash.org/${game.pubkey}`}
+              alt={displayPubKey}
+            />
+            <div className="text-xl font-medium">vs.</div>
+            <img
+              className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+              src={`https://robohash.org/${game.id}`}
+              alt={displayPubKey}
+            />
           </div>
-        </div>
 
-        <div className="flex items-center space-x-2 my-2">
-          <img
-            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-            src={`https://robohash.org/${game.pubkey}`}
-            alt={displayPubKey}
-          />
-          <div className="text-xl font-medium">vs.</div>
-          <img
-            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-            src={`https://robohash.org/${game.id}`}
-            alt={displayPubKey}
-          />
-        </div>
-
-        {/*
+          {/*
           <h6 className="mb-1 text-xl font-medium">{displayPubKey}</h6>
           <span className="mb-1 text-sm text-gray-400">
             with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
@@ -113,36 +117,37 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
           </span>
         */}
 
-        {/*
+          {/*
           <div className="mb-1">
             <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
               {displayJesterId}
             </code>
           </div>
         */}
-        <span className="mb-1 text-sm text-gray-400">
-          with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
-        </span>
-        <span className="mb-1 text-sm text-gray-400">
-          <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-        </span>
-        <div className="px-4 mt-2 w-full">
-          <Button
-            color="green"
-            buttonType="filled"
-            size="regular"
-            rounded={false}
-            block={true}
-            iconOnly={false}
-            ripple="dark"
-            ref={redirectToCurrentGameButtonRef}
-          >
-            Play
-            <CurrentGameRedirectButtonHook buttonRef={redirectToCurrentGameButtonRef} jesterId={jesterId} />
-          </Button>
+          <span className="mb-1 text-sm text-gray-400">
+            with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
+          </span>
+          <span className="mb-1 text-sm text-gray-400">
+            <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+          </span>
+          <div className="px-4 mt-2 w-full">
+            <Button
+              color="green"
+              buttonType="filled"
+              size="regular"
+              rounded={false}
+              block={true}
+              iconOnly={false}
+              ripple="dark"
+              ref={redirectToCurrentGameButtonRef}
+            >
+              Play
+              <CurrentGameRedirectButtonHook buttonRef={redirectToCurrentGameButtonRef} jesterId={jesterId} />
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
