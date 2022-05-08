@@ -9,8 +9,7 @@ import { useGameStore } from '../context/GameEventStoreContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { SelectedBot } from '../components/BotSelector'
-import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
-import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
+import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
 import { ChessInstance } from '../components/ChessJsTypes'
 
 import * as NIP01 from '../util/nostr/nip01'
@@ -412,50 +411,6 @@ function GameboardWithLoader({
               <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
             </div>
           </div>
-        </>
-      )}
-    </>
-  )
-}
-
-function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey: boolean }) {
-  const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
-  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
-
-  return (
-    <>
-      {hasPrivateKey ? (
-        <>
-          <Button
-            color="green"
-            buttonType="filled"
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            ref={createNewGameButtonRef}
-            disabled={!hasPrivateKey}
-          >
-            Start new game
-            <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button
-            color="deepOrange"
-            buttonType="filled"
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            ref={generateRandomIdentityButtonRef}
-          >
-            New Identity
-            <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
-          </Button>
         </>
       )}
     </>

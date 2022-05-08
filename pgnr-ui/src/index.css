@@ -29,6 +29,22 @@ code {
   padding-bottom: 0.825rem;
 }
 
+.border-opacity-50 {
+  --tw-border-opacity: 0.5;
+}
+
+.border-gray-700 {
+  --tw-border-opacity: 1;
+  border-color: rgba(97, 97, 97, var(--tw-border-opacity));
+}
+.border-gray-800 {
+  --tw-border-opacity: 1;
+  border-color: rgba(66, 66, 66, var(--tw-border-opacity));
+}
+.border-gray-900 {
+  --tw-border-opacity: 1;
+  border-color: rgba(33, 33, 33, var(--tw-border-opacity));
+}
 .space-x-4 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(1rem * var(--tw-space-x-reverse));
@@ -39,6 +55,34 @@ code {
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
+
+.hover\:shadow-xl:hover {
+  --tw-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.opacity-95 {
+  opacity: 0.95;
+}
+.hover\:opacity-100:hover {
+  opacity: 1;
+}
+
+.hover\:-translate-y-1:hover {
+  --tw-translate-y: -0.25rem;
+}
+.hover\:-translate-x-1:hover {
+  --tw-translate-x: -0.25rem;
+}
+.hover\:transform-scale-103:hover {
+  --tw-scale-x: 1.03;
+  --tw-scale-y: 1.03;
+}
+.hover\:transform-scale-101:hover {
+  --tw-scale-x: 1.01;
+  --tw-scale-y: 1.01;
+}
+
 /* missing tailwind classes from material-tailwind - end */
 
 /* quick fix for material-tailwind oddities */

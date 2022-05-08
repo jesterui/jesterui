@@ -1,14 +1,21 @@
-import React, { useEffect, useState, MouseEvent, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-
+import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import CreateGameButton from './CreateGameButton'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
+
+import { CurrentGameRedirectButtonHook } from '../components/CreateGameButton'
+import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
+import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
+import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
+import JesterId from '../components/JesterId'
+
 import * as JesterUtils from '../util/jester'
 import * as AppUtils from '../util/app'
+import { getSession } from '../util/session'
+import { GameStartEvent } from '../util/app_db'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -16,9 +23,8 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import CreateDevelGameButton from './devel/CreateDevelGameButton'
-import CreateMultipleGamesButton from './devel/CreateMultipleGamesButton'
-import JesterId from './JesterId'
+// @ts-ignore
+import Button from '@material-tailwind/react/Button'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -40,14 +46,179 @@ const createGameOverviewFilter = (now: Date) => {
   } as GamesFilter
 }
 
+interface CurrentGameCardProps {
+  game: GameStartEvent
+  moveCount: number | null
+}
+
+function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
+  const settingsDispatch = useSettingsDispatch()
+  const redirectToCurrentGameButtonRef = useRef<HTMLButtonElement>(null)
+
+  const jesterId = JesterUtils.gameIdToJesterId(game.id)
+  //const displayJesterId = AppUtils.displayJesterIdShort(jesterId)
+  const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
+
+  const unsubscribeFromCurrentGame = useCallback(() => {
+    settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
+  }, [settingsDispatch])
+
+  return (
+    <div
+      className="w-full max-w-sm rounded-lg border border-gray-800 shadow-sm hover:shadow-xl 
+    transform duration-300 hover:transform-scale-103"
+    >
+      <div className="flex flex-col items-center pb-4 pt-4">
+        <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Current Game</h6>
+
+        <div className="flex items-center space-x-2 my-2">
+          <img
+            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+            src={`https://robohash.org/${game.pubkey}`}
+            alt={displayPubKey}
+          />
+          <div className="text-xl font-medium">vs.</div>
+          <img
+            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+            src={`https://robohash.org/${game.id}`}
+            alt={displayPubKey}
+          />
+        </div>
+
+        {/*
+          <h6 className="mb-1 text-xl font-medium">{displayPubKey}</h6>
+          <span className="mb-1 text-sm text-gray-400">
+            with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
+          </span>
+          <span className="mb-1 text-sm text-gray-400">
+            <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+          </span>
+        */}
+
+        {/*
+          <div className="mb-1">
+            <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
+              {displayJesterId}
+            </code>
+          </div>
+        */}
+        <div className="flex my-2 space-x-2 items-center">
+          <Button
+            color="green"
+            buttonType="filled"
+            size="regular"
+            rounded={false}
+            block={true}
+            iconOnly={false}
+            ripple="dark"
+            ref={redirectToCurrentGameButtonRef}
+            className="w-32"
+          >
+            Play
+            <CurrentGameRedirectButtonHook buttonRef={redirectToCurrentGameButtonRef} jesterId={jesterId} />
+          </Button>
+        </div>
+        <span className="mb-1 text-sm text-gray-400">
+          with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
+        </span>
+        <span className="mb-1 text-sm text-gray-400">
+          <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+        </span>
+        <div className="flex mt-1 items-center">
+          <Button
+            color="blueGray"
+            buttonType="link"
+            size="regular"
+            rounded={false}
+            block={true}
+            iconOnly={false}
+            ripple="light"
+            onClick={unsubscribeFromCurrentGame}
+          >
+            Leave game
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface GameListEntryProps {
+  game: GameStartEvent
+}
+
+function GameListEntry({ game }: GameListEntryProps) {
+  const jesterId = JesterUtils.gameIdToJesterId(game.id)
+  const displayGameName = AppUtils.displayGameName(game)
+  const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
+
+  return (
+    <Link to={`/game/${jesterId}`}>
+      <div className="flex items-center space-x-4">
+        <div className="flex-shrink-0">
+          <img
+            className="w-16 h-16 rounded-full shadow-lg-gray bg-blue-gray-500"
+            src={`https://robohash.org/${game.pubkey}`}
+            alt="Neil image"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">
+            <JesterId jesterId={jesterId} />
+          </p>
+          <p className="text-sm text-gray-500 truncate">{displayPubKey}</p>
+          <p className="text-sm text-gray-500 truncate">
+            <Small color="yellow"> started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+          </p>
+        </div>
+        <div className="inline-flex items-center text-base font-semibold"></div>
+      </div>
+    </Link>
+  )
+}
+
+interface GameListProps {
+  games: GameStartEvent[]
+}
+
+function GameList(props: GameListProps) {
+  return (
+    <>
+      {/*<div className=" max-w-md rounded-lg border border-gray-900 shadow-md p-4 ">*/}
+      <div className="max-w-md rounded-lg ">
+        <div className="flow-root">
+          <ul role="list">
+            {props.games.map((game) => {
+              return (
+                <li
+                  key={game.id}
+                  className="px-4 py-3 mb-2 
+                  rounded border border-gray-800 border-opacity-50 
+                  shadow-sm hover:shadow-xl 
+                  opacity-95 hover:opacity-100 
+                  transform  duration-300
+                  hover:-translate-y-1 hover:-translate-x-1
+                  hover:transform-scale-101"
+                >
+                  <GameListEntry game={game} />
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function LobbyPage() {
   const renderedAt = new Date()
   const settings = useSettings()
-  const settingsDispatch = useSettingsDispatch()
-  const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
   const [gameStartEventFilter, setGameStartEventFilter] = useState(createGameOverviewFilter(new Date()))
+
+  const privateKeyOrNull = getSession()?.privateKey || null
 
   const [tick, setTick] = useState<number>(Date.now())
 
@@ -117,24 +288,20 @@ export default function LobbyPage() {
     }
   }, [listOfStartGamesLiveQuery])
 
-  const onGameCreated = (jesterId: JesterUtils.JesterId) => {
-    navigate(`/redirect/game/${jesterId}`)
-  }
-
-  const unsubscribeFromCurrentGame = useCallback(() => {
-    settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
-  }, [settingsDispatch])
-
   return (
     <div className="screen-games-overview">
-      <Heading1 color="blueGray">Games</Heading1>
-
-      <div>{/*JSON.stringify(listOfStartGamesLiveQuery)*/}</div>
-
       {!incomingNostr ? (
         <div>No connection to nostr</div>
       ) : (
         <>
+          <div className="flex justify-center my-4">
+            {!currentGameLiveQuery ? (
+              <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+            ) : (
+              <CurrentGameCard game={currentGameLiveQuery} moveCount={currentGameMoveCountLiveQuery} />
+            )}
+          </div>
+
           <div className="my-4">
             {settings.dev && (
               <>
@@ -150,42 +317,6 @@ export default function LobbyPage() {
 
           {
             <div className="my-4">
-              <Heading6 color="blueGray">Current Game</Heading6>
-              {!currentGameLiveQuery && <CreateGameButton onGameCreated={onGameCreated} />}
-              {currentGameLiveQuery && (
-                <>
-                  <div>
-                    <Link to={`/game/${JesterUtils.gameIdToJesterId(currentGameLiveQuery.id)}`}>
-                      <>
-                        <span className="font-mono px-2">{AppUtils.displayGameName(currentGameLiveQuery)}</span>
-                        {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
-                        <Small color="green"> with {currentGameMoveCountLiveQuery} events</Small>
-                        <Small color="gray">
-                          {' '}
-                          started by{' '}
-                          <span className="font-mono">{AppUtils.pubKeyDisplayName(currentGameLiveQuery.pubkey)}</span>
-                        </Small>
-                        <Small color="yellow">
-                          {' '}
-                          at {new Date(currentGameLiveQuery.created_at * 1_000).toLocaleString()}
-                        </Small>
-                      </>
-                    </Link>
-                    <button
-                      type="button"
-                      className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-                      onClick={() => unsubscribeFromCurrentGame()}
-                    >
-                      Unsubscribe
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          }
-
-          {
-            <div className="my-4">
               <Heading6 color="blueGray">Latest Games</Heading6>
               {listOfStartGamesLiveQuery?.length || 0} games available
               <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
@@ -195,29 +326,7 @@ export default function LobbyPage() {
           }
 
           <div className="my-4">
-            {listOfStartGamesLiveQuery?.map((it) => {
-              const jesterId = JesterUtils.gameIdToJesterId(it.id)
-              const displayGameName = AppUtils.displayGameName(it)
-              const displayPubKey = AppUtils.pubKeyDisplayName(it.pubkey)
-
-              return (
-                <div key={it.id}>
-                  <Link to={`/game/${jesterId}`}>
-                    <>
-                      <JesterId jesterId={jesterId} />
-                      <br />
-                      <span className="font-mono px-2">{displayGameName}</span>
-                      {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
-                      <Small color="gray">
-                        {' '}
-                        started by <span className="font-mono">{displayPubKey}</span>
-                      </Small>
-                      <Small color="yellow"> at {new Date(it.created_at * 1_000).toLocaleString()}</Small>
-                    </>
-                  </Link>
-                </div>
-              )
-            })}
+            <GameList games={listOfStartGamesLiveQuery || []} />
           </div>
         </>
       )}
