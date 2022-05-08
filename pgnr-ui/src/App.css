@@ -4,6 +4,10 @@
   color: white;
 }
 
+.App-header > nav {
+  border-bottom: 0px solid rgba(255, 255, 255, 0.05);
+}
+
 .App-container {
   display: flex;
   flex-direction: column;

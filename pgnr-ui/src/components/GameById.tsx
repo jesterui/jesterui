@@ -496,7 +496,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
 
     const previousTitle = document.title
     let titlePrefix = currentChessInstance && !isSearchingHead ? `${titleMessage(currentChessInstance, color)} – ` : ''
-    document.title = `${titlePrefix}Game ${AppUtils.gameDisplayNameShort(gameId)}`
+    document.title = `${titlePrefix}Game ${AppUtils.displayGameNameShort(gameId)}`
 
     return () => {
       document.title = previousTitle

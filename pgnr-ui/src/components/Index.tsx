@@ -201,7 +201,7 @@ export default function Index() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        <div className="w-full grid grid-cols-1">
+        <div className="w-full grid grid-cols-1 mt-16">
           {!incomingNostr && (
             <div className="flex justify-center my-4">
               <div>No connection to nostr</div>

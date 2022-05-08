@@ -67,7 +67,7 @@ export default function SearchPage() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        <div className="w-full lg:w-8/12">
+        <div className="w-full grid grid-cols-1 mt-16 lg:w-8/12">
           {!incomingNostr ? (
             <div>No connection to nostr</div>
           ) : (
@@ -96,7 +96,7 @@ export default function SearchPage() {
                   <div className="flex justify-center items-center">
                     <Button
                       type="submit"
-                      color="deepOrange"
+                      color="teal"
                       buttonType="filled"
                       size="lg"
                       rounded={false}

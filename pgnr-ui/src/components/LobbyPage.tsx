@@ -18,6 +18,7 @@ import Heading6 from '@material-tailwind/react/Heading6'
 import Small from '@material-tailwind/react/Small'
 import CreateDevelGameButton from './devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from './devel/CreateMultipleGamesButton'
+import JesterId from './JesterId'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -154,9 +155,9 @@ export default function LobbyPage() {
               {currentGameLiveQuery && (
                 <>
                   <div>
-                    <Link to={`/jester/game/${JesterUtils.gameIdToJesterId(currentGameLiveQuery.id)}`}>
+                    <Link to={`/game/${JesterUtils.gameIdToJesterId(currentGameLiveQuery.id)}`}>
                       <>
-                        <span className="font-mono px-2">{AppUtils.gameDisplayName(currentGameLiveQuery)}</span>
+                        <span className="font-mono px-2">{AppUtils.displayGameName(currentGameLiveQuery)}</span>
                         {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
                         <Small color="green"> with {currentGameMoveCountLiveQuery} events</Small>
                         <Small color="gray">
@@ -192,19 +193,24 @@ export default function LobbyPage() {
               <Small color="gray"> to {gameStartEventFilter.until.toLocaleString()}</Small>
             </div>
           }
+
           <div className="my-4">
             {listOfStartGamesLiveQuery?.map((it) => {
+              const jesterId = JesterUtils.gameIdToJesterId(it.id)
+              const displayGameName = AppUtils.displayGameName(it)
+              const displayPubKey = AppUtils.pubKeyDisplayName(it.pubkey)
+
               return (
                 <div key={it.id}>
-                  <Link to={`/game/${JesterUtils.gameIdToJesterId(it.id)}`}>
+                  <Link to={`/game/${jesterId}`}>
                     <>
-                      {`${JesterUtils.gameIdToJesterId(it.id)}`}
+                      <JesterId jesterId={jesterId} />
                       <br />
-                      <span className="font-mono px-2">{AppUtils.gameDisplayName(it)}</span>
+                      <span className="font-mono px-2">{displayGameName}</span>
                       {/*it.refCount > 0 && <Small color="lightGreen"> with {it.refCount} events</Small>*/}
                       <Small color="gray">
                         {' '}
-                        started by <span className="font-mono">{AppUtils.pubKeyDisplayName(it.pubkey)}</span>
+                        started by <span className="font-mono">{displayPubKey}</span>
                       </Small>
                       <Small color="yellow"> at {new Date(it.created_at * 1_000).toLocaleString()}</Small>
                     </>
