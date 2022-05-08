@@ -143,13 +143,11 @@ export default function SearchPage() {
                   <Heading1 color="blueGray">Search</Heading1>
                 </div>
 
-                <div className="flex">
-                  <div className="mx-1">
-                    <Small color="">
-                      Search for games, <span style={{ textDecoration: 'line-through' }}>players and other stuff.</span>
-                    </Small>
-                    <Small color="orange"> not quite yet... Coming soon!</Small>
-                  </div>
+                <div className="my-1">
+                  <Small color="">
+                    Search for games, <span style={{ textDecoration: 'line-through' }}>players and other stuff.</span>
+                  </Small>
+                  <Small color="orange"> not quite yet... Coming soon!</Small>
                 </div>
 
                 <SearchFrom

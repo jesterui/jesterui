@@ -20,6 +20,10 @@ code {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
+.my-2 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
 .py-3\.5 {
   padding-top: 0.825rem;
   padding-bottom: 0.825rem;

@@ -277,7 +277,7 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
 const ColorMessage = ({ color }: { color: MovableColor }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+      <h6 className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
         {`You are ${color.length === 0 ? 'in watch-only mode' : color}`}
       </h6>
     </div>
@@ -295,7 +295,7 @@ const GameStateMessage = ({
 }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+      <h6 className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
         {isLoading && game === null && 'Loading...'}
         {isLoading && game !== null && 'Loading...'}
         {!isLoading && game !== null && titleMessage(game, color)}
@@ -721,17 +721,17 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
       <div className="flex justify-center items-center">
         <div>
           {!isLoading && currentChessInstance === null ? (
-            <div className="my-4">
+            <div className="mb-2">
               <div className="flex justify-between items-center mx-1">
-                <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">Game not found...</div>
+                <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">Game not found...</div>
                 <div className="mx-4">
                   <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
                 </div>
               </div>
             </div>
           ) : (
-            <div className="my-4">
-              <div className="flex justify-center items-center mx-1">
+            <div className="mb-2">
+              <div className="flex justify-center items-center mx-1 mb-2">
                 <div>
                   <GameStateMessage
                     isLoading={isLoading || isSearchingHead}
@@ -743,7 +743,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
 
               {!isLoading && !isSearchingHead && currentChessInstance !== null && currentChessInstance.game_over() && (
                 <div className="flex justify-between items-center mx-1">
-                  <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">
+                  <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
                     <GameOverMessage game={currentChessInstance} />
                   </div>
                   <div className="mx-4">
@@ -769,74 +769,80 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
           </div>
 
           {currentChessInstance !== null && (
-            <div className="my-4">
-              <div className="my-4 flex justify-center items-center">
+            <div className="my-2">
+              <div className="mb-2 flex justify-center items-center">
                 <div>
                   <ColorMessage color={color} />
                 </div>
               </div>
-              {color.length > 0 && currentChessInstance !== null && !currentChessInstance.game_over() && (
-                <div className="my-4 flex justify-center items-center">
-                  <div>
-                    <ProposeTakebackButton disabled={isLoading || isSearchingHead} />
-                  </div>
-                  <div>
-                    <OfferDrawButton disabled={isLoading || isSearchingHead} />
-                  </div>
-                  <div>
-                    <ResignButton disabled={isLoading || isSearchingHead} />
-                  </div>
-                </div>
-              )}
 
-              <div style={{ display: 'none' }}>
+              <div className="mb-4 flex justify-center items-center">
+                {color.length > 0 && currentChessInstance !== null && !currentChessInstance.game_over() && (
+                  <>
+                    <div>
+                      <ProposeTakebackButton disabled={isLoading || isSearchingHead} />
+                    </div>
+                    <div>
+                      <OfferDrawButton disabled={isLoading || isSearchingHead} />
+                    </div>
+                    <div>
+                      <ResignButton disabled={isLoading || isSearchingHead} />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="mb-2" style={{ display: 'none' }}>
                 <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
               </div>
 
-              <div className="my-4">
-                {currentChessInstance !== null && <CopyGameUrlInput value={window.location.href} />}
-              </div>
+              {currentChessInstance !== null && (
+                <div className="mb-2">
+                  <CopyGameUrlInput value={window.location.href} />
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      <div style={{ margin: '2.5rem 0' }}></div>
-
       {settings.dev && (
-        <div className="my-4">
+        <>
+          <div style={{ margin: '2.5rem 0' }}></div>
           <div className="my-4">
-            {settings.currentGameJesterId === jesterId ? (
-              <button
-                type="button"
-                className="bg-white bg-opacity-20 rounded px-2 py-1"
-                onClick={() => unsubscribeFromCurrentGame()}
-              >
-                Unsubscribe
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="bg-white bg-opacity-20 rounded px-2 py-1"
-                onClick={() => subscribeToGame()}
-              >
-                Subscribe
-              </button>
-            )}
-          </div>
+            <div className="mb-4">
+              {settings.currentGameJesterId === jesterId ? (
+                <button
+                  type="button"
+                  className="bg-white bg-opacity-20 rounded px-2 py-1"
+                  onClick={() => unsubscribeFromCurrentGame()}
+                >
+                  Unsubscribe
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="bg-white bg-opacity-20 rounded px-2 py-1"
+                  onClick={() => subscribeToGame()}
+                >
+                  Subscribe
+                </button>
+              )}
+            </div>
 
-          <div className="my-4">
-            <pre className="py-4" style={{ overflowX: 'scroll' }}>
-              <div>{`jesterId: ${jesterId}`}</div>
-              <div>{`gameId: ${gameId}`}</div>
-              <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
-              <div>{`Moves: ${currentGameMoves.length}`}</div>
-              <div>{`isLoading: ${isLoading}`}</div>
-              <div>{`isSearchingHead: ${isSearchingHead}`}</div>
-              <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
-            </pre>
+            <div>
+              <pre className="py-4" style={{ overflowX: 'scroll' }}>
+                <div>{`jesterId: ${jesterId}`}</div>
+                <div>{`gameId: ${gameId}`}</div>
+                <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
+                <div>{`Moves: ${currentGameMoves.length}`}</div>
+                <div>{`isLoading: ${isLoading}`}</div>
+                <div>{`isSearchingHead: ${isSearchingHead}`}</div>
+                <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
+              </pre>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
