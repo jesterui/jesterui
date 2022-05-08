@@ -7,7 +7,6 @@ import CreateGameButton from './CreateGameButton'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
-import * as NIP01 from '../util/nostr/nip01'
 import * as JesterUtils from '../util/jester'
 import * as AppUtils from '../util/app'
 
@@ -117,10 +116,8 @@ export default function GamesOverview() {
     }
   }, [listOfStartGamesLiveQuery])
 
-  const onGameCreated = (e: MouseEvent<HTMLButtonElement>, jesterId: JesterUtils.JesterId) => {
-    if (e.nativeEvent.isTrusted) {
-      navigate(`/redirect/game/${jesterId}`)
-    }
+  const onGameCreated = (jesterId: JesterUtils.JesterId) => {
+    navigate(`/redirect/game/${jesterId}`)
   }
 
   const unsubscribeFromCurrentGame = useCallback(() => {

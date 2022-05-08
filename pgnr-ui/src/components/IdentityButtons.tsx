@@ -39,7 +39,7 @@ export function GenerateRandomIdentityButton({
     if (!buttonRef.current) return
 
     buttonRef.current.onclick = onClick
-  }, [buttonRef])
+  }, [buttonRef, onClick])
 
   if (buttonRef) {
     return <></>

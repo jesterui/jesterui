@@ -1,4 +1,4 @@
-import React, { MouseEvent, RefObject } from 'react'
+import React, { MouseEvent, RefObject, useEffect } from 'react'
 
 import { useSettings } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -8,20 +8,27 @@ import { getSession } from '../util/session'
 import * as JesterUtils from '../util/jester'
 import { useNavigate } from 'react-router-dom'
 
+// TODO: extract functionality in a "CreateGameButtonHook" or something..
 interface CreateGameButtonProps {
-  onGameCreated: (e: MouseEvent<HTMLButtonElement>, jesterId: JesterUtils.JesterId) => void
+  onGameCreated: (jesterId: JesterUtils.JesterId) => void
   buttonRef?: RefObject<HTMLButtonElement>
   className?: string
+  text?: string
 }
 
-export default function CreateGameButton({ buttonRef, className, onGameCreated }: CreateGameButtonProps) {
+export default function CreateGameButton({
+  buttonRef,
+  className,
+  onGameCreated,
+  text = 'Start new game',
+}: CreateGameButtonProps) {
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
 
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const onStartGameButtonClicked = async (e: MouseEvent<HTMLButtonElement>) => {
+  const onStartGameButtonClicked = async () => {
     // TODO: do not use window.alert..
     if (!outgoingNostr) {
       window.alert('Nostr EventBus not ready..')
@@ -43,7 +50,20 @@ export default function CreateGameButton({ buttonRef, className, onGameCreated }
     const signedEvent = await NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
-    onGameCreated(e, JesterUtils.gameIdToJesterId(signedEvent.id))
+    onGameCreated(JesterUtils.gameIdToJesterId(signedEvent.id))
+  }
+
+  const onClick = () => onStartGameButtonClicked()
+
+  useEffect(() => {
+    if (!buttonRef) return
+    if (!buttonRef.current) return
+
+    buttonRef.current.onclick = onClick
+  }, [buttonRef, onClick])
+
+  if (buttonRef) {
+    return <></>
   }
 
   return (
@@ -51,9 +71,9 @@ export default function CreateGameButton({ buttonRef, className, onGameCreated }
       ref={buttonRef}
       type="button"
       className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1'}`}
-      onClick={(e: MouseEvent<HTMLButtonElement>) => onStartGameButtonClicked(e)}
+      onClick={onClick}
     >
-      Start new game
+      {text}
     </button>
   )
 }
@@ -65,7 +85,7 @@ interface CreateGameAndRedirectButtonProps {
 export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGameAndRedirectButtonProps) {
   const navigate = useNavigate()
 
-  const onGameCreated = async (e: MouseEvent<HTMLButtonElement>, jesterId: JesterUtils.JesterId) => {
+  const onGameCreated = async (jesterId: JesterUtils.JesterId) => {
     // TODO: this is a hack so we do not need to watch for gameId changes..
     // please, please please.. try to remove it and immediately
     // navigate to /game/:gameId

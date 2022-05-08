@@ -39,7 +39,7 @@ export default function CreateMultipleGamesButton({ className, amount = 10 }: Cr
   }
 
   const __dev_createMultipleGames = (amount: number) => {
-    const chunks = 10
+    const chunks = 3
 
     if (amount <= chunks) {
       for (let i = 0; i < amount; i++) {
@@ -54,6 +54,7 @@ export default function CreateMultipleGamesButton({ className, amount = 10 }: Cr
   return (
     <>
       <div style={{ display: 'none' }}>
+        <button type="button" ref={createGameButtonRef}></button>
         <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={NOOP} />
       </div>
 

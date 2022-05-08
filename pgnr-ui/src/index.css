@@ -29,6 +29,9 @@ code {
 .App-header .uppercase {
   text-transform: unset !important;
 }
+.App button:disabled {
+  filter: brightness(0.9) grayscale(); /*grayscale()*/
+}
 /* quick fix for material-tailwind oddities - end */
 
 /* Chessground adaptions */

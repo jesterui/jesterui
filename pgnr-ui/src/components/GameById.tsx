@@ -1,22 +1,31 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Chessboard from '../components/chessground/Chessground'
-import PgnTable from '../components/chessground/PgnTable'
-import { SelectedBot } from '../components/BotSelector'
-import * as Bot from '../util/bot'
-import { useGameStore } from '../context/GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
+import { useGameStore } from '../context/GameEventStoreContext'
+
+import Chessboard from '../components/chessground/Chessground'
+import PgnTable from '../components/chessground/PgnTable'
+import { SelectedBot } from '../components/BotSelector'
+import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
+import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
+import { ChessInstance } from '../components/ChessJsTypes'
+
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
-import * as AppUtils from '../util/app'
-import { getSession } from '../util/session'
 import { JesterMove, GameStart, GameMove } from '../util/jester'
-import { CreateGameAndRedirectButton } from './CreateGameButton'
+import * as AppUtils from '../util/app'
+import * as Bot from '../util/bot'
+import { getSession } from '../util/session'
+// @ts-ignore
+import * as Chess from 'chess.js'
+import * as cg from 'chessground/types'
+import { GameMoveEvent } from '../util/app_db'
+import { CopyButtonWithConfirmation } from './CopyButton'
+import useWindowDimensions from '../hooks/WindowDimensions'
 
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
@@ -36,14 +45,6 @@ import PopoverBody from '@material-tailwind/react/PopoverBody'
 import Tooltips from '@material-tailwind/react/Tooltips'
 // @ts-ignore
 import TooltipsContent from '@material-tailwind/react/TooltipsContent'
-
-// @ts-ignore
-import * as Chess from 'chess.js'
-import * as cg from 'chessground/types'
-import { ChessInstance } from '../components/ChessJsTypes'
-import { GameMoveEvent } from '../util/app_db'
-import { CopyButtonWithConfirmation } from './CopyButton'
-import useWindowDimensions from '../hooks/WindowDimensions'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -410,6 +411,50 @@ function GameboardWithLoader({
   )
 }
 
+function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey: boolean }) {
+  const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
+  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
+
+  return (
+    <>
+      {hasPrivateKey ? (
+        <>
+          <Button
+            color="lightBlue"
+            buttonType="filled"
+            size="regular"
+            rounded={false}
+            block={false}
+            iconOnly={false}
+            ripple="light"
+            ref={createNewGameButtonRef}
+            disabled={!hasPrivateKey}
+          >
+            Start new game
+            <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            color="lightBlue"
+            buttonType="filled"
+            size="regular"
+            rounded={false}
+            block={false}
+            iconOnly={false}
+            ripple="light"
+            ref={generateRandomIdentityButtonRef}
+          >
+            New Identity
+            <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+          </Button>
+        </>
+      )}
+    </>
+  )
+}
+
 export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterUtils.JesterId }) {
   const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterUtils.JesterId }>()
 
@@ -673,7 +718,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
               <div className="flex justify-between items-center mx-1">
                 <div className="text-blue-gray-500 text-3xl font-serif font-bold mt-0 mb-0">Game not found...</div>
                 <div className="mx-4">
-                  <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-2 py-2" />
+                  <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
                 </div>
               </div>
             </div>
@@ -695,7 +740,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
                     <GameOverMessage game={currentChessInstance} />
                   </div>
                   <div className="mx-4">
-                    <CreateGameAndRedirectButton className="bg-white bg-opacity-20 rounded px-2 py-2" />
+                    <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
                   </div>
                 </div>
               )}
@@ -723,7 +768,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
                   <ColorMessage color={color} />
                 </div>
               </div>
-              {currentChessInstance !== null && !currentChessInstance.game_over() && (
+              {color.length > 0 && currentChessInstance !== null && !currentChessInstance.game_over() && (
                 <div className="my-4 flex justify-center items-center">
                   <div>
                     <ProposeTakebackButton disabled={isLoading || isSearchingHead} />

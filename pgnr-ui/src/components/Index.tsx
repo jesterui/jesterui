@@ -1,7 +1,9 @@
-import React, { ChangeEvent, useState, useRef } from 'react'
+import React, { MouseEvent, ChangeEvent, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { useNavigate } from 'react-router-dom'
+import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
+import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
@@ -17,7 +19,7 @@ import LeadText from '@material-tailwind/react/LeadText'
 import { Identity, useSettings } from '../context/SettingsContext'
 import { getSession } from '../util/session'
 import { pubKeyDisplayName } from '../util/app'
-import { GenerateRandomIdentityButton } from './IdentityButtons'
+import * as JesterUtils from '../util/jester'
 
 function CreateIdentityStep() {
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
@@ -52,11 +54,13 @@ function CreateIdentityStep() {
 
 function LoginIdentityStep({ identity }: { identity: Identity }) {
   return (
-    <div className="flex justify-center">
-      <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-        {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
-      </h1>
-    </div>
+    <>
+      <div className="flex justify-center">
+        <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+          {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
+        </h1>
+      </div>
+    </>
   )
 }
 
@@ -69,19 +73,38 @@ function IdentityStep({ identity }: { identity: Identity | null }) {
 }
 
 function SetupCompleteStep({ identity }: { identity: Identity }) {
-  const settings = useSettings()
+  const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <div className="flex justify-center">
-      <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-        {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
-      </h1>
-    </div>
+    <>
+      <div className="flex justify-center">
+        <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
+          {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
+        </h1>
+      </div>
+      <div className="flex justify-center">
+        <LeadText color="">Join another player or create your own game.</LeadText>
+      </div>
+      <div className="flex justify-center">
+        <Button
+          color="lightBlue"
+          buttonType="filled"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          ref={createNewGameButtonRef}
+        >
+          Create Game
+          <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
+        </Button>
+      </div>
+    </>
   )
 }
 
 export default function Index() {
-  const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
   const settings = useSettings()
 

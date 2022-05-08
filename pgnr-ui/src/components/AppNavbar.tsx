@@ -4,7 +4,6 @@ import { NavLink as ReactNavLink, useNavigate } from 'react-router-dom'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
-import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
 
 import { pubKeyDisplayName } from '../util/app'
 import { getSession, setSessionAttribute } from '../util/session'
@@ -83,13 +82,7 @@ export default function AppNavbar() {
               </span>
             )}
           </NavbarBrand>
-          {privateKeyOrNull ? (
-            <>
-              {!settings.currentGameJesterId && (
-                <CreateGameAndRedirectButton className={`bg-white bg-opacity-20 rounded px-3 py-1 mx-1`} />
-              )}
-            </>
-          ) : (
+          {!privateKeyOrNull && (
             <>
               {publicKeyOrNull && (
                 <button
