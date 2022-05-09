@@ -21,6 +21,7 @@ import { ChessInstance } from '../components/ChessJsTypes'
 // @ts-ignore
 import * as Chess from 'chess.js'
 import { historyToMinimalPgn } from '../util/chess'
+import useBotSuggestion from '../hooks/BotMoveSuggestion'
 
 export const hashWithSha256 = (val: string): NIP01.Sha256 => {
   let eventHash = sha256
@@ -47,16 +48,7 @@ const optionalBotName = (pubkey: NIP01.PubKey | null, bot: Bot.InitialisedBot | 
   return `${bot?.name}(${pubkey ? pubKeyDisplayName(pubkey) : 'no key'})`
 }
 
-
-interface MoveAndFen {
-  move: Bot.ShortMove
-  fen: Bot.Fen
-}
-
-interface BotMoveSuggestion {
-    isThinking: boolean
-    move: MoveAndFen | null
-}
+/*
 const useBotSuggestion = (selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion => {
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
@@ -135,7 +127,7 @@ const useBotSuggestion = (selectedBot: SelectedBot, game: ChessInstance | null):
   }, [selectedBot, thinkingFens, isThinking])
 
   return suggestion
-}
+}*/
 
 type KeyPair = {
   publicKey: NIP01.PubKey
@@ -148,10 +140,8 @@ interface JesterBotContextEntry {
 
 const JesterBotContext = createContext<JesterBotContextEntry | undefined>(undefined)
 
-// TODO: in its current form, the bot will watch a game started by the user
-// in the future, the bot should open a private game to the users whenever 
-// there is none played or the last game is over - a user should always be able
-// to play regardless if other users are online
+// TODO: currently, the bot can only be white
+// TODO: whenever the current game changes, see if the bot started the game and activate!    
 const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | undefined>) => {
   const wtfUseBot = useBot
 
@@ -168,13 +158,9 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
 
   const botMoveSuggestion = useBotSuggestion(selectedBot, currentChessInstance)
-  const [currentBotMoveSuggestion, setCurrentBotMoveSuggestion] = useState<BotMoveSuggestion>(botMoveSuggestion)
-
+  const [currentBotMoveSuggestion, setCurrentBotMoveSuggestion] = useState(botMoveSuggestion)
 
   const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent | null>(null)
-  
-
-
   const allGamesCreatedByBot = useLiveQuery(
     async () => {
       if (!botKeyPair) {
@@ -318,32 +304,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     console.error(`[Bot TODO] '${selectedBot?.name}': I have a purpose now - watching`, watchGameId)
   }, [watchGameId])
 
-    // TODO: whenever the current game changes, see if the bot started the game and activate!    
-
-  /*useEffect(() => {
-    console.debug(`[Bot] '${selectedBot?.name}' changed watch game to`, watchGameStartEventRef)
-    if (!watchGameStartEventRef) return
-
-
-    db.transaction('r', db.game_start, db.game_move, () => {
-      db.game_start.where()
-        .then((val) => {
-          console.debug('added event', val)
-          return val
-        })
-        .then((_) => {
-          const targetEventRefs = nostrEvent.tags.filter((t) => t && t[0] === 'e').map((t) => t[1] as NIP01.EventId)
-          const nostrEventRefs: NostrEventRef = { sourceId: nostrEvent.id, targetIds: targetEventRefs }
-          return db.nostr_event_refs.put(nostrEventRefs)
-        })
-        .then((val) => {
-          console.debug('added event refs', val)
-          return val
-        })
-        .catch((e) => console.debug('error while adding event - might already exist', e))
-    })
-
-  }, [watchGameStartEventRef])*/
 
 
   useEffect(() => {
@@ -480,7 +440,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   )
 }
 
-
 const useJesterBot = () => {
   const context = useContext(JesterBotContext)
   if (context === undefined) {
@@ -489,105 +448,5 @@ const useJesterBot = () => {
 
   return context.bot
 }
-
-/*
-const BotMoveSuggestions = () => {
-  // { game }: { game: ChessInstance | null }
-  const settings = useSettings()
-
-  const [selectedBot] = useState<SelectedBot>(
-    (() => {
-      if (settings.botName && Bot.Bots[settings.botName]) {
-        return {
-          name: settings.botName,
-          move: Bot.Bots[settings.botName](),
-        }
-      }
-      return null
-    })()
-  )
-
-  const [isThinking, setIsThinking] = useState(false)
-  const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
-  const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
-  const [move, setMove] = useState<Bot.ShortMove | null>(null)
-  const [gameOver, setGameOver] = useState<boolean>(game?.game_over() || false)
-
-  useEffect(() => {
-    if (game === null) return
-
-    if (game.game_over()) {
-      setGameOver(true)
-      return
-    }
-
-    const currentFen = game.fen()
-    setThinkingFens((currentFens) => {
-      if (currentFens[currentFens.length - 1] === currentFen) {
-        return currentFens
-      }
-      return [...currentFens, currentFen]
-    })
-  }, [game])
-
-  useEffect(() => {
-    if (!selectedBot) return
-    if (isThinking) return
-    if (thinkingFens.length === 0) return
-
-    const thinkingFen = thinkingFens[thinkingFens.length - 1]
-
-    const timer = setTimeout(() => {
-      const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
-      if (inBetweenUpdate) return
-
-      setIsThinking(true)
-      setLatestThinkingFen(thinkingFen)
-      console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
-
-      selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
-        console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
-
-        setMove({ from, to })
-
-        setIsThinking(false)
-        setThinkingFens((currentFens) => {
-          const i = currentFens.indexOf(thinkingFen)
-          if (i < 0) {
-            return currentFens
-          }
-
-          const copy = [...currentFens]
-          // remove all thinking fens that came before this
-          copy.splice(0, i + 1)
-          return copy
-        })
-      })
-    }, 100)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [selectedBot, thinkingFens, isThinking])
-
-  if (!selectedBot) {
-    return <>No bot selected.</>
-  }
-
-  return (
-    <>
-      {`${selectedBot.name}`}
-      {gameOver ? (
-        ` is ready for the next game.`
-      ) : (
-        <>
-          {!isThinking && !move && thinkingFens.length === 0 && ` is idle...`}
-          {isThinking && thinkingFens.length > 0 && ` is thinking (${thinkingFens.length})...`}
-          {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
-        </>
-      )}
-    </>
-  )
-}*/
 
 export { JesterBotContext, JesterBotProvider, useJesterBot }
