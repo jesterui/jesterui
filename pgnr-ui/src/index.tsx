@@ -13,6 +13,7 @@ import { NostrEventsProvider } from './context/NostrEventsContext'
 import { NostrStoreProvider } from './context/NostrStoreContext'
 import { NostrSubscriptionsProvider } from './context/NostrSubscriptionsContext'
 import { GameEventStoreProvider } from './context/GameEventStoreContext'
+import { JesterBotProvider } from './context/JesterBotContext'
 
 declare global {
   interface AppGlobal {
@@ -36,6 +37,7 @@ ReactDOM.render(
             <NostrStoreProvider value={undefined}>
               <GameEventStoreProvider value={undefined}>
                 <NostrSubscriptionsProvider value={undefined}>
+                  <JesterBotProvider value={undefined}></JesterBotProvider>
                   <App />
                 </NostrSubscriptionsProvider>
               </GameEventStoreProvider>

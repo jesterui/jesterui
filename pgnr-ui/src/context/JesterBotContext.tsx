@@ -1,11 +1,27 @@
 import React, { useState, createContext, useContext, ProviderProps, useEffect } from 'react'
+import * as secp256k1 from '@alephium/noble-secp256k1'
+import { sha256 } from '@noble/hashes/sha256'
+import { Buffer } from 'buffer'
 
-import * as NIP01 from '../util/nostr/nip01'
-import { AppDexie, GameStartEvent, db } from '../util/app_db'
-import * as Bot from '../util/bot'
 import { AppSettings, useSettings } from './SettingsContext'
 import { SelectedBot } from '../components/BotSelector'
 
+import * as NIP01 from '../util/nostr/nip01'
+import * as NostrEvents from '../util/nostr/events'
+import { AppDexie, GameStartEvent, db } from '../util/app_db'
+import * as Bot from '../util/bot'
+import { getSession } from '../util/session'
+import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
+import { useGameStore } from './GameEventStoreContext'
+import { useLiveQuery } from 'dexie-react-hooks'
+
+export const hashWithSha256 = (val: string): NIP01.Sha256 => {
+  let eventHash = sha256
+    .init()
+    .update(Buffer.from(val))
+    .digest()
+  return Buffer.from(eventHash).toString('hex')
+}
 
 const useBot = (botName: string | null): SelectedBot | null => {
   if (botName && Bot.Bots[botName]) {
@@ -17,6 +33,11 @@ const useBot = (botName: string | null): SelectedBot | null => {
   return null
 }
 
+type KeyPair = {
+  publicKey: NIP01.PubKey
+  privateKey: NostrEvents.PrivKey
+}
+
 interface JesterBotContextEntry {
   bot: string
 }
@@ -24,27 +45,65 @@ interface JesterBotContextEntry {
 const JesterBotContext = createContext<JesterBotContextEntry | undefined>(undefined)
 
 const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | undefined>) => {
+  const wtfUseBot = useBot
 
   const settings = useSettings()
+  const gameStore = useGameStore()
+  const [watchGameStartEventRef, setWatchGameStartEventRef] = useState<NIP01.EventId | null>(null)
+  const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(wtfUseBot(settings.botName))
+  const [botKeyPair, setBotKeyPair] = useState<KeyPair | null>(null)
 
-  const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(useBot(settings.botName))
+  const listOfStartGamesLiveQuery = useLiveQuery(
+    async () => {
+      const events = await gameStore.game_start
+        .where('pubkey')
+        .equals()
+        .limit(MAX_AMOUNT_OF_GAMES)
+        .toArray()
+
+      return events
+    },
+    [gameStartEventFilter],
+    null
+  )
 
   useEffect(() => {
+    const bot = wtfUseBot(settings.botName)
     setSelectedBot((current) => {
       if (current && current.name === settings.botName) {
         return current
       }
-      return useBot(settings.botName)
+      return bot
     })
-  }, [settings])
 
-  console.log('selectedBot --------------------------------------------------------------- ' + selectedBot?.name)
+    const userPrivateKeyOrNull = getSession()?.privateKey || null
+    if (!userPrivateKeyOrNull) {
+      setBotKeyPair(null)
+    } else {
+      const hashOrNull = hashWithSha256(userPrivateKeyOrNull)
+      const botPrivateKey = hashToPrivateKey(hashOrNull + hashOrNull)
+      setBotKeyPair({
+        privateKey: botPrivateKey,
+        publicKey: publicKey(botPrivateKey)
+      })
+    }
+  }, [settings])
 
   useEffect(() => {
     if (!selectedBot) return
 
+  }, [selectedBot])
+
+  useEffect(() => {
+    const eventIdOrNull = botKeyPair ? hashWithSha256(botKeyPair.publicKey) : null
+    setWatchGameStartEventRef(eventIdOrNull)
+  }, [botKeyPair])
+
+  useEffect(() => {
+    if (!watchGameStartEventRef) return
+
     db.transaction('r', db.game_start, db.game_move, () => {
-      /*db.game_start.where()
+      db.game_start.where()
         .then((val) => {
           console.debug('added event', val)
           return val
@@ -60,7 +119,8 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
         })
         .catch((e) => console.debug('error while adding event - might already exist', e))*/
     })
-  }, [selectedBot])
+
+  }, [watchGameStartEventRef])
 
   return (
     <>
@@ -79,7 +139,7 @@ const useJesterBot = () => {
   return context.bot
 }
 
-
+/*
 const BotMoveSuggestions = () => {
   // { game }: { game: ChessInstance | null }
   const settings = useSettings()
@@ -173,11 +233,10 @@ const BotMoveSuggestions = () => {
           {!isThinking && !move && thinkingFens.length === 0 && ` is idle...`}
           {isThinking && thinkingFens.length > 0 && ` is thinking (${thinkingFens.length})...`}
           {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
-          {/*Latest Thinking Fen: {latestThinkingFen}*/}
         </>
       )}
     </>
   )
-}
+}*/
 
 export { JesterBotContext, JesterBotProvider, useJesterBot }
