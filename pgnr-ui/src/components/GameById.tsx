@@ -748,7 +748,7 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
               </div>
 
               <div className="mb-2" style={{ display: 'none' }}>
-                <BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />
+                {/*<BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />*/}
               </div>
 
               {currentChessInstance !== null && (

@@ -274,7 +274,6 @@ export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   return (
     !!event &&
-    // must be a text note
     event.kind === JESTER_MESSAGE_KIND &&
     json &&
     json.kind === KindEnum.Move &&

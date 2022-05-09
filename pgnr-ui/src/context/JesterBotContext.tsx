@@ -18,6 +18,9 @@ import * as JesterUtils from '../util/jester'
 import { displayKey, pubKeyDisplayName } from '../util/app'
 import { useOutgoingNostrEvents } from './NostrEventsContext'
 import { ChessInstance } from '../components/ChessJsTypes'
+// @ts-ignore
+import * as Chess from 'chess.js'
+import { historyToMinimalPgn } from '../util/chess'
 
 export const hashWithSha256 = (val: string): NIP01.Sha256 => {
   let eventHash = sha256
@@ -45,14 +48,28 @@ const optionalBotName = (pubkey: NIP01.PubKey | null, bot: Bot.InitialisedBot | 
 }
 
 
+interface MoveAndFen {
+  move: Bot.ShortMove
+  fen: Bot.Fen
+}
 
-const useBotSuggestion = ({ selectedBot, game }: { selectedBot: SelectedBot, game: ChessInstance | null }) => {
+interface BotMoveSuggestion {
+    isThinking: boolean
+    move: MoveAndFen | null
+}
+const useBotSuggestion = (selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion => {
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
   const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
-  const [move, setMove] = useState<Bot.ShortMove | null>(null)
-  const [moveFen, setMoveFen] = useState<Bot.Fen | null>(null)
+  //const [move, setMove] = useState<Bot.ShortMove | null>(null)
+  //const [moveFen, setMoveFen] = useState<Bot.Fen | null>(null)
   const [gameOver, setGameOver] = useState<boolean>(game?.game_over() || false)
+
+  const [suggestion, setSuggestion] = useState<BotMoveSuggestion>({
+    isThinking: false,
+    move: null
+  });
+
 
   useEffect(() => {
     if (game === null) return
@@ -89,10 +106,15 @@ const useBotSuggestion = ({ selectedBot, game }: { selectedBot: SelectedBot, gam
       selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
         console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
 
-        setMoveFen(thinkingFen)
-        setMove({ from, to })
-
         setIsThinking(false)
+        setSuggestion({
+          isThinking: false,
+          move: {
+            fen: thinkingFen,
+            move: { from, to }
+          }
+        })
+
         setThinkingFens((currentFens) => {
           const i = currentFens.indexOf(thinkingFen)
           if (i < 0) {
@@ -112,19 +134,7 @@ const useBotSuggestion = ({ selectedBot, game }: { selectedBot: SelectedBot, gam
     }
   }, [selectedBot, thinkingFens, isThinking])
 
-  if (!selectedBot) {
-    return {}
-  }
-
-  if (gameOver) {
-    return {}
-  }
-
-  return {
-    isThinking,
-    moveFen,
-    move
-  }
+  return suggestion
 }
 
 type KeyPair = {
@@ -156,7 +166,15 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   const currentGameJesterId = settings.currentGameJesterId
   const [watchGameId, setWatchGameId] = useState<NIP01.EventId | null>(null)
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
+
+  const botMoveSuggestion = useBotSuggestion(selectedBot, currentChessInstance)
+  const [currentBotMoveSuggestion, setCurrentBotMoveSuggestion] = useState<BotMoveSuggestion>(botMoveSuggestion)
+
+
+  const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent | null>(null)
   
+
+
   const allGamesCreatedByBot = useLiveQuery(
     async () => {
       if (!botKeyPair) {
@@ -223,6 +241,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   }, [selectedBot])
 
   useEffect(() => {
+    if (!selectedBot) return
     if (!botKeyPair) return
     if (!outgoingNostr) return
     if (!userPublicKeyOrNull) return
@@ -269,7 +288,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     return () => {
       abortCtrl.abort()
     }
-  }, [allGamesCreatedByBot, userPublicKeyOrNull, botKeyPair, outgoingNostr])
+  }, [selectedBot, allGamesCreatedByBot, userPublicKeyOrNull, botKeyPair, outgoingNostr])
 
   useEffect(() => {
     if (allGamesCreatedByBot === null || allGamesCreatedByBot.length === 0) {
@@ -328,8 +347,131 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
 
 
   useEffect(() => {
-    console.log('--------------------------------', currentWatchGameMoves)
+    if (!currentWatchGameStartEvent) {
+      setCurrentGameHead(null)
+      return
+    }
+    // TODO:::::::::: search game head
+
+    if (currentWatchGameMoves.length > 0) {
+      setCurrentGameHead(currentWatchGameMoves[currentWatchGameMoves.length - 1])
+    }
+    /*const chessInstance = new Chess.Chess()
+
+    if (currentWatchGameMoves.length === 0) {
+      
+    }
+
+    setCurrentGameHead(chessInstance)*/
   }, [currentWatchGameStartEvent, currentWatchGameMoves])
+
+  useEffect(() => {
+    if (currentGameHead === null) {
+      setCurrentChessInstance(new Chess.Chess())
+      return
+    }
+    
+    const chessInstance = new Chess.Chess()
+    const content: JesterUtils.JesterProtoContent = JSON.parse(currentGameHead.content)
+
+    const pgn = historyToMinimalPgn(content.history)
+    const validPgn = chessInstance.load_pgn(pgn)
+    if (!validPgn) {
+      return 
+    }
+    setCurrentChessInstance(chessInstance)
+  }, [currentGameHead])
+
+  
+
+  useEffect(() => {
+    setCurrentBotMoveSuggestion((current) => {
+      console.log('CURRENT BOT MOVE SUGGESTION CHANGED', current, botMoveSuggestion)
+      if (current.move?.fen === botMoveSuggestion.move?.fen) {
+        return current
+      }
+      return botMoveSuggestion
+    })
+  }, [botMoveSuggestion])
+
+  useEffect(() => {
+    if (!outgoingNostr) return
+    if (!currentBotMoveSuggestion || !currentBotMoveSuggestion.move)  {
+      
+      console.log('----------------------------------------------- No Bot move suggestion')
+      return
+    }
+    if (!currentChessInstance) {
+      
+      console.log('----------------------------------------------- No Bot CHess Instance')
+      return
+    }
+    if (!botKeyPair) return
+    if (!currentWatchGameStartEvent) return
+
+    // TODO: currently, the bot is always white - this means a user cannot challenge a bot at the moment
+    if (currentChessInstance.turn() !== 'w') return
+    if (currentChessInstance.fen() !== currentBotMoveSuggestion.move.fen) return
+
+    const abortCtrl = new AbortController()
+    const parentMoveId = currentGameHead?.id || currentWatchGameStartEvent.id
+    const isGameStart = parentMoveId === currentWatchGameStartEvent.id
+
+    if (isGameStart && currentChessInstance.fen() !== JesterUtils.FEN_START_POSITION) {
+      console.error('Something is very wrong.. refrain from doing anything..');
+      return
+    }
+
+    const chessboardWithNewMove = new Chess.Chess()
+    if (!isGameStart) {
+      // load pgn does not work when the game has no moves - only load pgn if it is not game start!
+      if (!chessboardWithNewMove.load_pgn(currentChessInstance.pgn())) {
+        console.error('The current chessboard is not valid.. wtf?');
+        return
+      }
+    }
+    const successfulMove = chessboardWithNewMove.move(currentBotMoveSuggestion.move.move)
+    if (!successfulMove) {
+      console.error('The move the bot suggested is somehow invalid?!');
+      return
+    }
+
+    const moveEvent = JesterUtils.constructGameMoveEvent(botKeyPair.publicKey, currentWatchGameStartEvent.id, parentMoveId, chessboardWithNewMove)
+
+
+    NostrEvents.signEvent(
+      moveEvent,
+      botKeyPair.privateKey
+    ).then((signedEvent) => {
+      if (abortCtrl.signal.aborted) return
+      return new Promise<NIP01.Event>(function (resolve, reject) {
+        setTimeout(() => {
+          if (abortCtrl.signal.aborted) {
+            reject(new Error('State has been aborted'))
+          } else {
+            try {
+              outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+              resolve(signedEvent)
+            } catch (e) {
+              reject(e)
+            }
+          }
+        }, 1)
+      })
+    }).then((e) => {
+      console.info('[Bot] Sent event', e)
+    }).catch((e) => {
+      console.error('[Bot] Could not send nostr event', e)
+    })
+
+    console.log('---------currentBotMoveSuggestddddddddddion-----------------------', currentBotMoveSuggestion)
+
+    return () => {
+      abortCtrl.abort()
+    }
+  }, [outgoingNostr, currentBotMoveSuggestion, currentChessInstance, botKeyPair, currentWatchGameStartEvent, currentGameHead])
+
+  
 
   return (
     <>
