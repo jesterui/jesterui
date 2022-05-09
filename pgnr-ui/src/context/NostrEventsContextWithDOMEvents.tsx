@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
 
 import * as NIP01 from '../util/nostr/nip01'
-import * as NostrEvents from '../util/nostr/events'
+import * as NostrDOMEvents from '../util/nostr/events'
 import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
 import { once } from '../util/utils'
 
@@ -46,7 +46,7 @@ export class EventBus<DetailType = any> {
   }
 }
 
-interface NostrEventsEntry {
+interface NostrDOMEventsEntry {
   incoming: EventBus<NIP01.RelayMessage> | null
   outgoing: EventBus<NIP01.ClientMessage> | null
   incomingBuffer: NostrEventBuffer
@@ -101,7 +101,7 @@ class NostrEventBufferImpl implements NostrEventBuffer {
   }
 }
 
-const NostrEventsContext = createContext<NostrEventsEntry | undefined>(undefined)
+const NostrDOMEventsContext = createContext<NostrDOMEventsEntry | undefined>(undefined)
 
 const createEventTarget = <T extends NIP01.RelayMessage | NIP01.ClientMessage>(node: Node) => {
   return new EventBus<T>(node)
@@ -113,7 +113,7 @@ const createOutgoing = (node: Node) => {
   return createEventTarget<NIP01.ClientMessage>(node)
 }
 
-const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | undefined>) => {
+const NostrDOMEventsProvider = ({ children }: ProviderProps<NostrDOMEventsEntry | undefined>) => {
   const websocket = useWebsocket()
   const [incoming, setIncoming] = useState<EventBus<NIP01.RelayMessage> | null>(null)
   const [outgoing, setOutgoing] = useState<EventBus<NIP01.ClientMessage> | null>(null)
@@ -150,7 +150,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
 
           const nostrEvent = data[2] as NIP01.Event
 
-          const isValidEvent = NostrEvents.validateEvent(nostrEvent) && (await NostrEvents.verifySignature(nostrEvent))
+          const isValidEvent = NostrDOMEvents.validateEvent(nostrEvent) && (await NostrDOMEvents.verifySignature(nostrEvent))
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
             return
@@ -189,7 +189,7 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
 
           const signedEvent = req[1]
           const isValidEvent =
-            NostrEvents.validateEvent(signedEvent) && (await NostrEvents.verifySignature(signedEvent))
+            NostrDOMEvents.validateEvent(signedEvent) && (await NostrDOMEvents.verifySignature(signedEvent))
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid outgoing event from internal event bus - wont emit to relay')
             return
@@ -253,44 +253,44 @@ const NostrEventsProvider = ({ children }: ProviderProps<NostrEventsEntry | unde
     <>
       <div id="nostr-incoming-events" ref={incomingRef} style={{ display: 'none' }}></div>
       <div id="nostr-outgoing-events" ref={outgoingRef} style={{ display: 'none' }}></div>
-      <NostrEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>
+      <NostrDOMEventsContext.Provider value={{ incoming, outgoing, incomingBuffer }}>
         {children}
-      </NostrEventsContext.Provider>
+      </NostrDOMEventsContext.Provider>
     </>
   )
 }
 
-const useIncomingNostrEvents = () => {
-  const context = useContext(NostrEventsContext)
+const useIncomingNostrDOMEvents = () => {
+  const context = useContext(NostrDOMEventsContext)
   if (context === undefined) {
-    throw new Error('useIncomingNostrEvents must be used within a NostrEventsProvider')
+    throw new Error('useIncomingNostrDOMEvents must be used within a NostrDOMEventsProvider')
   }
 
   return context.incoming
 }
 
-const useIncomingNostrEventsBuffer = () => {
-  const context = useContext(NostrEventsContext)
+const useIncomingNostrDOMEventsBuffer = () => {
+  const context = useContext(NostrDOMEventsContext)
   if (context === undefined) {
-    throw new Error('useIncomingNostrEventsBuffer must be used within a NostrEventsProvider')
+    throw new Error('useIncomingNostrDOMEventsBuffer must be used within a NostrDOMEventsProvider')
   }
 
   return context.incomingBuffer
 }
 
-const useOutgoingNostrEvents = () => {
-  const context = useContext(NostrEventsContext)
+const useOutgoingNostrDOMEvents = () => {
+  const context = useContext(NostrDOMEventsContext)
   if (context === undefined) {
-    throw new Error('useOutgoingNostrEvents must be used within a NostrEventsProvider')
+    throw new Error('useOutgoingNostrDOMEvents must be used within a NostrDOMEventsProvider')
   }
 
   return context.outgoing
 }
 
 export {
-  NostrEventsContext,
-  NostrEventsProvider,
-  useIncomingNostrEvents,
-  useOutgoingNostrEvents,
-  useIncomingNostrEventsBuffer,
+  NostrDOMEventsContext,
+  NostrDOMEventsProvider,
+  useIncomingNostrDOMEvents,
+  useOutgoingNostrDOMEvents,
+  useIncomingNostrDOMEventsBuffer,
 }

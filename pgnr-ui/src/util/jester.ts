@@ -21,11 +21,15 @@ export const JESTER_START_GAME_FILTER: NIP01.Filter = {
   kinds: [JESTER_MESSAGE_KIND],
 }
 
-export const createPrivateGameStartFilter = (publicKey: NIP01.PubKey): NIP01.Filter => {
+
+export const jesterPrivateStartGameRef = (publicKey: NIP01.PubKey) => {
   const publicKeyHashed = hashWithSha256(publicKey)
-  const jesterPrivateGameStartRef = hashWithSha256(publicKeyHashed + JESTER_START_GAME_E_REF)
+  return hashWithSha256(publicKeyHashed + JESTER_START_GAME_E_REF)
+}
+
+export const createPrivateGameStartFilter = (publicKey: NIP01.PubKey): NIP01.Filter => {
   return {
-    '#e': [jesterPrivateGameStartRef],
+    '#e': [jesterPrivateStartGameRef(publicKey)],
     kinds: [JESTER_MESSAGE_KIND],
   }
 }
@@ -189,9 +193,16 @@ const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   return eventParts
 })()
 
-export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEvent => {
+const jesterPrivateGameEventParts = (opponentPubKey: NIP01.PubKey): NIP01.EventInConstruction => {
+  const eventParts = NostrEvents.blankEvent()
+  eventParts.kind = JESTER_MESSAGE_KIND
+  eventParts.tags = [[NIP01.TagEnum.e, jesterPrivateStartGameRef(opponentPubKey)]]
+  return eventParts
+}
+
+const _constructStartGameEventWithParts = (pubkey: NIP01.PubKey, parts: NIP01.EventInConstruction): NIP01.UnsignedEvent => {
   const eventParts = {
-    ...START_GAME_EVENT_PARTS,
+    ...parts,
     created_at: Math.floor(Date.now() / 1000),
     content: JSON.stringify({
       version: '0',
@@ -202,6 +213,14 @@ export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEve
     pubkey,
   } as NIP01.EventParts
   return NostrEvents.constructEvent(eventParts)
+}
+
+export const constructPrivateStartGameEvent = (pubkey: NIP01.PubKey, opponentPubKey: NIP01.PubKey): NIP01.UnsignedEvent => {
+  return _constructStartGameEventWithParts(pubkey, jesterPrivateGameEventParts(opponentPubKey))
+}
+
+export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEvent => {
+  return _constructStartGameEventWithParts(pubkey, START_GAME_EVENT_PARTS)
 }
 
 export const constructGameMoveEvent = (
@@ -244,12 +263,13 @@ export const isStartGameEvent = (event?: NIP01.Event): boolean => {
   return (
     !!event &&
     event.kind === JESTER_MESSAGE_KIND &&
-    arrayEquals(event.tags, [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]) &&
+    //arrayEquals(event.tags, [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]) &&
     json &&
     json.kind === KindEnum.Start &&
     arrayEquals(json.history, [])
   )
 }
+
 export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   return (

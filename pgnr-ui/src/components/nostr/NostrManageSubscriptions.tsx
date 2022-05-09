@@ -12,6 +12,7 @@ const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NI
   if (!publicKey) {
     return []
   }
+  
   return publicKey ? [{
     ...JesterUtils.createPrivateGameStartFilter(publicKey),
     since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
@@ -42,7 +43,6 @@ export default function NostrManageSubscriptions() {
 
   const currentGameJesterId = settings.currentGameJesterId
   const publicKeyOrNull = settings.identity?.pubkey || null
-  const privateKeyOrNull = getSession()?.privateKey || null
 
   const [gameStartFilters] = useState<NIP01.Filter[]>([
     {
