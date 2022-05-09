@@ -14,6 +14,7 @@ import { getSession } from '../util/session'
 import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
 import { useGameStore } from './GameEventStoreContext'
 import { useLiveQuery } from 'dexie-react-hooks'
+import * as JesterUtils from '../util/jester'
 
 export const hashWithSha256 = (val: string): NIP01.Sha256 => {
   let eventHash = sha256
@@ -53,7 +54,8 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(wtfUseBot(settings.botName))
   const [botKeyPair, setBotKeyPair] = useState<KeyPair | null>(null)
 
-  const listOfStartGamesLiveQuery = useLiveQuery(
+  const userPrivateKeyOrNull = getSession()?.privateKey || null
+  /*const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
       const events = await gameStore.game_start
         .where('pubkey')
@@ -65,7 +67,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     },
     [gameStartEventFilter],
     null
-  )
+  )*/
 
   useEffect(() => {
     const bot = wtfUseBot(settings.botName)
@@ -75,8 +77,9 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       }
       return bot
     })
+  }, [settings])
 
-    const userPrivateKeyOrNull = getSession()?.privateKey || null
+  useEffect(() => {
     if (!userPrivateKeyOrNull) {
       setBotKeyPair(null)
     } else {
@@ -87,22 +90,34 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
         publicKey: publicKey(botPrivateKey)
       })
     }
-  }, [settings])
+  }, [userPrivateKeyOrNull])
 
   useEffect(() => {
+    console.debug(`[Bot] Bot changed to`, selectedBot?.name)
+
     if (!selectedBot) return
 
   }, [selectedBot])
 
   useEffect(() => {
-    const eventIdOrNull = botKeyPair ? hashWithSha256(botKeyPair.publicKey) : null
-    setWatchGameStartEventRef(eventIdOrNull)
+    console.debug(`[Bot] '${selectedBot?.name}' pubkey changed to`, botKeyPair?.publicKey)
+
+    setWatchGameStartEventRef(() => {
+      if (!botKeyPair) {
+        return null
+      }
+      const botPublicKeyHashed = hashWithSha256(botKeyPair.publicKey)
+      const eventId = hashWithSha256(botPublicKeyHashed + JesterUtils.JESTER_START_GAME_E_REF)
+      return eventId
+    })
   }, [botKeyPair])
 
   useEffect(() => {
+    console.debug(`[Bot] '${selectedBot?.name}' changed watch game to`, watchGameStartEventRef)
     if (!watchGameStartEventRef) return
 
-    db.transaction('r', db.game_start, db.game_move, () => {
+
+    /*db.transaction('r', db.game_start, db.game_move, () => {
       db.game_start.where()
         .then((val) => {
           console.debug('added event', val)
@@ -117,8 +132,8 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
           console.debug('added event refs', val)
           return val
         })
-        .catch((e) => console.debug('error while adding event - might already exist', e))*/
-    })
+        .catch((e) => console.debug('error while adding event - might already exist', e))
+    })*/
 
   }, [watchGameStartEventRef])
 

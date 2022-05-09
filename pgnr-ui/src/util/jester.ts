@@ -7,6 +7,7 @@ import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from './chess'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { Buffer } from 'buffer'
 import { bech32m, bech32 } from 'bech32'
+import { hashWithSha256 } from '../context/JesterBotContext'
 
 export const VALID_JESTER_ID_EXAMPLE = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
 
@@ -18,6 +19,15 @@ export const JESTER_MESSAGE_KIND: NIP01.Kind = 30 // fiatjaf said so.. "please d
 export const JESTER_START_GAME_FILTER: NIP01.Filter = {
   '#e': [JESTER_START_GAME_E_REF],
   kinds: [JESTER_MESSAGE_KIND],
+}
+
+export const createPrivateGameStartFilter = (publicKey: NIP01.PubKey): NIP01.Filter => {
+  const publicKeyHashed = hashWithSha256(publicKey)
+  const jesterPrivateGameStartRef = hashWithSha256(publicKeyHashed + JESTER_START_GAME_E_REF)
+  return {
+    '#e': [jesterPrivateGameStartRef],
+    kinds: [JESTER_MESSAGE_KIND],
+  }
 }
 
 export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] => {

@@ -4,8 +4,20 @@ import { useSettings } from '../../context/SettingsContext'
 import { useUpdateSubscription } from '../../context/NostrSubscriptionsContext'
 import * as NIP01 from '../../util/nostr/nip01'
 import * as JesterUtils from '../../util/jester'
+import { getSession } from '../../util/session'
 
 const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 5 : 2
+
+const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NIP01.Filter[] => {
+  if (!publicKey) {
+    return []
+  }
+  return publicKey ? [{
+    ...JesterUtils.createPrivateGameStartFilter(publicKey),
+    since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
+  },
+  ] : []
+}
 
 export const createSinceFilterValue = (minutesBack: number) => {
   const now = new Date()
@@ -28,12 +40,20 @@ export default function NostrManageSubscriptions() {
   const settings = useSettings()
   const updateSubscription = useUpdateSubscription()
 
+  const currentGameJesterId = settings.currentGameJesterId
+  const publicKeyOrNull = settings.identity?.pubkey || null
+  const privateKeyOrNull = getSession()?.privateKey || null
+
   const [gameStartFilters] = useState<NIP01.Filter[]>([
     {
       ...JesterUtils.JESTER_START_GAME_FILTER,
       since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
     },
   ])
+
+  const [privateGameStartFilters, setPrivateGameStartFilters] = useState<NIP01.Filter[]>(
+    createPrivateGameStartFilterOrEmpty(publicKeyOrNull)
+  )
 
   const [currentGameFilters, setCurrentGameFilters] = useState<NIP01.Filter[]>([])
 
@@ -43,6 +63,14 @@ export default function NostrManageSubscriptions() {
       filters: gameStartFilters,
     })
   }, [gameStartFilters, updateSubscription])
+  
+  // todo: maybe try to incooporate into "game_start"
+  useEffect(() => {
+    updateSubscription({
+      id: 'game_start2',
+      filters: privateGameStartFilters,
+    })
+  }, [privateGameStartFilters, updateSubscription])
 
   useEffect(() => {
     updateSubscription({
@@ -52,13 +80,19 @@ export default function NostrManageSubscriptions() {
   }, [currentGameFilters, updateSubscription])
 
   useEffect(() => {
-    if (settings.currentGameJesterId) {
-      const currentGameId = JesterUtils.jesterIdToGameId(settings.currentGameJesterId)
+    if (currentGameJesterId) {
+      const currentGameId = JesterUtils.jesterIdToGameId(currentGameJesterId)
       setCurrentGameFilters(JesterUtils.createGameFilterByGameId(currentGameId))
     } else {
       setCurrentGameFilters([])
     }
-  }, [settings])
+  }, [currentGameJesterId])
+
+  useEffect(() => {
+    const newFilterOrEmpty = createPrivateGameStartFilterOrEmpty(publicKeyOrNull)
+    setPrivateGameStartFilters(newFilterOrEmpty)
+  }, [publicKeyOrNull])
+
 
   return <></>
 }
