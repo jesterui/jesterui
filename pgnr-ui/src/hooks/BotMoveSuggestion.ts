@@ -18,7 +18,6 @@ interface BotMoveSuggestion {
 export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion {
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
-  //const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
 
   const [suggestion, setSuggestion] = useState<BotMoveSuggestion>({
     isThinking: false,
