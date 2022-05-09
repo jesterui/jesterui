@@ -57,7 +57,7 @@ export default function AppNavbar() {
             <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
               jester
               <span
-                style={{ whiteSpace: 'nowrap',  }}
+                style={{ whiteSpace: 'nowrap' }}
                 className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded dark:bg-green-200 dark:text-green-900"
               >
                 beta
@@ -82,43 +82,53 @@ export default function AppNavbar() {
             {settings.currentGameJesterId && (
               <ReactNavLink to="/current" className={({ isActive }) => `mx-1 my-1 ${isActive ? '' : ''}`}>
                 <NavItem ripple="light">
-                <div className="w-6 flex justify-center">
-                  <Icon name="language" size="xl" />
-                </div>
+                  <div className="w-6 flex justify-center">
+                    <Icon name="language" size="xl" />
+                  </div>
                   Current Game
                 </NavItem>
               </ReactNavLink>
             )}
 
-            <ReactNavLink to="/lobby"className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
+            <ReactNavLink
+              to="/lobby"
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
                 <div className="w-6 flex justify-center">
-                <Icon name="games" size="xl" />
+                  <Icon name="games" size="xl" />
                 </div>
                 Lobby
               </NavItem>
             </ReactNavLink>
           </Nav>
           <Nav>
-            <ReactNavLink to="/search" className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
+            <ReactNavLink
+              to="/search"
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
                 <div className="w-6 flex justify-center">
-                <Icon name="search" size="xl" />
+                  <Icon name="search" size="xl" />
                 </div>
                 <span className="lg:hidden">Search</span>
               </NavItem>
             </ReactNavLink>
-            <ReactNavLink to="/faq" className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}>
+            <ReactNavLink
+              to="/faq"
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
+            >
               <NavItem ripple="light">
                 <div className="w-6 flex justify-center">
-                <Icon name="contact_support" size="xl" />
+                  <Icon name="contact_support" size="xl" />
                 </div>
                 <span className="lg:hidden">FAQ</span>
               </NavItem>
             </ReactNavLink>
-            <ReactNavLink to="/settings" className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}>
+            <ReactNavLink
+              to="/settings"
+              className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
+            >
               <NavItem ripple="light">
                 <div className="w-6 flex justify-center">
                   <Icon name="settings" size="xl" />
