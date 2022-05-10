@@ -11,8 +11,8 @@ interface MoveAndFen {
 }
 
 interface BotMoveSuggestion {
-    isThinking: boolean
-    move: MoveAndFen | null
+  isThinking: boolean
+  move: MoveAndFen | null
 }
 
 export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion {
@@ -21,16 +21,16 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
 
   const [suggestion, setSuggestion] = useState<BotMoveSuggestion>({
     isThinking: false,
-    move: null
+    move: null,
   })
 
   useEffect(() => {
     setThinkingFens((currentFens) => {
-        if (game === null || game.game_over()) {
-            return []
-        }
+      if (game === null || game.game_over()) {
+        return []
+      }
 
-        const currentFen = game.fen()
+      const currentFen = game.fen()
 
       if (currentFens[currentFens.length - 1] === currentFen) {
         return currentFens
@@ -47,11 +47,11 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
     const thinkingFen = thinkingFens[thinkingFens.length - 1]
 
     const abortCtrl = new AbortController()
-    const timer = setTimeout(() => {        
-        if (abortCtrl.signal.aborted) {
-            console.warn(`Bot ${selectedBot.name} wanted to search for ${thinkingFen} - but operation was aborted.`)
-            return
-        }
+    const timer = setTimeout(() => {
+      if (abortCtrl.signal.aborted) {
+        console.warn(`Bot ${selectedBot.name} wanted to search for ${thinkingFen} - but operation was aborted.`)
+        return
+      }
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
@@ -70,8 +70,8 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
           isThinking: false,
           move: {
             fen: thinkingFen,
-            move: { from, to }
-          }
+            move: { from, to },
+          },
         })
 
         setThinkingFens((currentFens) => {

@@ -24,21 +24,8 @@ import { historyToMinimalPgn } from '../util/chess'
 import useBotSuggestion from '../hooks/BotMoveSuggestion'
 
 export const hashWithSha256 = (val: string): NIP01.Sha256 => {
-  let eventHash = sha256
-    .init()
-    .update(Buffer.from(val))
-    .digest()
+  let eventHash = sha256.init().update(Buffer.from(val)).digest()
   return Buffer.from(eventHash).toString('hex')
-}
-
-const useBot = (botName: string | null): SelectedBot | null => {
-  if (botName && Bot.Bots[botName]) {
-    return {
-      name: botName,
-      move: Bot.Bots[botName](),
-    }
-  }
-  return null
 }
 
 const botName = (pubkey: NIP01.PubKey, bot: Bot.InitialisedBot) => {
@@ -46,6 +33,16 @@ const botName = (pubkey: NIP01.PubKey, bot: Bot.InitialisedBot) => {
 }
 const optionalBotName = (pubkey: NIP01.PubKey | null, bot: Bot.InitialisedBot | null) => {
   return `${bot?.name}(${pubkey ? pubKeyDisplayName(pubkey) : 'no key'})`
+}
+
+const instantiateBotByName = (botName: string | null): SelectedBot | null => {
+  if (botName && Bot.Bots[botName]) {
+    return {
+      name: botName,
+      move: Bot.Bots[botName](),
+    }
+  }
+  return null
 }
 
 type KeyPair = {
@@ -60,26 +57,27 @@ interface JesterBotContextEntry {
 const JesterBotContext = createContext<JesterBotContextEntry | undefined>(undefined)
 
 // TODO: currently, the bot can only be white
-// TODO: whenever the current game changes, see if the bot started the game and activate!    
+// TODO: whenever the current game changes, see if the bot started the game and activate!
 const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | undefined>) => {
-  const wtfUseBot = useBot
-
   const settings = useSettings()
   const gameStore = useGameStore()
   const outgoingNostr = useOutgoingNostrEvents()
-  const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(wtfUseBot(settings.botName))
-  const [botKeyPair, setBotKeyPair] = useState<KeyPair | null>(null)
 
   const userPublicKeyOrNull = settings.identity?.pubkey || null
   const userPrivateKeyOrNull = getSession()?.privateKey || null
+
   const currentGameJesterId = settings.currentGameJesterId
+  const selectedBotName = settings.botName
+
+  const [botKeyPair, setBotKeyPair] = useState<KeyPair | null>(null)
+  const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(null)
   const [watchGameId, setWatchGameId] = useState<NIP01.EventId | null>(null)
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
+  const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent | null>(null)
 
   const botMoveSuggestion = useBotSuggestion(selectedBot, currentChessInstance)
   const [currentBotMoveSuggestion, setCurrentBotMoveSuggestion] = useState(botMoveSuggestion)
 
-  const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent | null>(null)
   const allGamesCreatedByBot = useLiveQuery(
     async () => {
       if (!botKeyPair) {
@@ -116,14 +114,14 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   )
 
   useEffect(() => {
-    const bot = wtfUseBot(settings.botName)
     setSelectedBot((current) => {
-      if (current && current.name === settings.botName) {
+      if (current && current.name === selectedBotName) {
         return current
       }
-      return bot
+
+      return instantiateBotByName(selectedBotName)
     })
-  }, [settings])
+  }, [selectedBotName])
 
   useEffect(() => {
     if (!userPrivateKeyOrNull) {
@@ -133,7 +131,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       const botPrivateKey = hashToPrivateKey(hashOrNull + hashOrNull)
       setBotKeyPair({
         privateKey: botPrivateKey,
-        publicKey: publicKey(botPrivateKey)
+        publicKey: publicKey(botPrivateKey),
       })
     }
   }, [userPrivateKeyOrNull])
@@ -142,7 +140,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     console.debug(`[Bot] Bot changed to`, selectedBot?.name)
 
     if (!selectedBot) return
-
   }, [selectedBot])
 
   useEffect(() => {
@@ -158,15 +155,13 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     const abortCtrl = new AbortController()
     if (allGamesCreatedByBot.length === 0) {
       console.error(`[Bot TODO] '${selectedBot?.name}': I have not created any games..`)
-      
-      // TODO: create one
-        NostrEvents.signEvent(
-          JesterUtils.constructPrivateStartGameEvent(botKeyPair.publicKey, userPublicKeyOrNull),
-          botKeyPair.privateKey
-        ).then((signedEvent) => {
-          if(abortCtrl.signal.aborted) return
 
-          console.error('--------------------------- WOULD SEND VIA NOSTR: ', signedEvent)
+      NostrEvents.signEvent(
+        JesterUtils.constructPrivateStartGameEvent(botKeyPair.publicKey, userPublicKeyOrNull),
+        botKeyPair.privateKey
+      ).then((signedEvent) => {
+          if (abortCtrl.signal.aborted) return
+
           return new Promise<NIP01.Event>(function (resolve, reject) {
             setTimeout(() => {
               if (abortCtrl.signal.aborted) {
@@ -181,12 +176,14 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
               }
             }, 1)
           })
-        }).then((event) => {
+        })
+        .then((event) => {
           console.info('[Bot] Sent event via nostr..', event?.id)
-        }).catch((e) => {
+        })
+        .catch((e) => {
           console.warn('[Bot] Error while sending start event..', e)
         })
-    } else  if (allGamesCreatedByBot.length > 0) {
+    } else if (allGamesCreatedByBot.length > 0) {
       console.error(`[Bot TODO] '${selectedBot?.name}': I am watching ${allGamesCreatedByBot.length} games...`)
     }
 
@@ -201,13 +198,13 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       return
     }
 
-    // TODO: whenever the current game changes, see if the bot started the game and activate!    
-    console.error(`[Bot TODO] '${selectedBot?.name}': I saw game id or my games change - should I chime in?`)
+    // TODO: whenever the current game changes, see if the bot started the game and activate!
+    console.error(`[Bot TODO] '${selectedBot?.name}': I saw game id or my games changed - should I chime in?`)
 
     setWatchGameId((current) => {
       if (!currentGameJesterId) {
         return null
-      }    
+      }
       const currentGameId = JesterUtils.jesterIdToGameId(currentGameJesterId)
       if (current === currentGameId) {
         return current
@@ -220,10 +217,11 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   }, [currentGameJesterId, allGamesCreatedByBot])
 
   useEffect(() => {
-    console.error(`[Bot TODO] '${selectedBot?.name}': I have a purpose now - watching`, watchGameId)
+    if (!watchGameId) return
+    if (!selectedBot) return
+
+    console.info(`[Bot] '${selectedBot.name}': I have a purpose now - playing game `, watchGameId)
   }, [watchGameId])
-
-
 
   useEffect(() => {
     setCurrentGameHead((_) => {
@@ -239,18 +237,17 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       setCurrentChessInstance(new Chess.Chess())
       return
     }
-    
+
     const chessInstance = new Chess.Chess()
     const content: JesterUtils.JesterProtoContent = JSON.parse(currentGameHead.content)
 
     const pgn = historyToMinimalPgn(content.history)
     const validPgn = chessInstance.load_pgn(pgn)
     if (!validPgn) {
-      return 
+      return
     }
     setCurrentChessInstance(chessInstance)
   }, [currentGameHead])
-
 
   useEffect(() => {
     setCurrentBotMoveSuggestion((current) => {
@@ -280,51 +277,63 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     if (!isGameStart) {
       // load pgn does not work when the game has no moves - only load pgn if it is not game start!
       if (!chessboardWithNewMove.load_pgn(currentChessInstance.pgn())) {
-        console.error('The current chessboard is not valid.. wtf?');
+        console.error('The current chessboard is not valid.. wtf?')
         return
       }
     }
     const successfulMove = chessboardWithNewMove.move(currentBotMoveSuggestion.move.move)
     if (!successfulMove) {
-      console.error('The move the bot suggested is somehow invalid?!');
+      console.error('The move the bot suggested is somehow invalid?!')
       return
     }
 
     // no matter which bot is selected, add a random wait time to every move
     const botWaitTimeInMillis = ((min, max) => min + Math.round(Math.random() * (max - min)))(2000, 10_000)
 
-    const moveEvent = JesterUtils.constructGameMoveEvent(botKeyPair.publicKey, currentWatchGameStartEvent.id, parentMoveId, chessboardWithNewMove)
+    const moveEvent = JesterUtils.constructGameMoveEvent(
+      botKeyPair.publicKey,
+      currentWatchGameStartEvent.id,
+      parentMoveId,
+      chessboardWithNewMove
+    )
 
-    NostrEvents.signEvent(
-      moveEvent,
-      botKeyPair.privateKey
-    ).then((signedEvent) => {
-      if (abortCtrl.signal.aborted) return
+    NostrEvents.signEvent(moveEvent, botKeyPair.privateKey)
+      .then((signedEvent) => {
+        if (abortCtrl.signal.aborted) return
 
-      return new Promise<NIP01.Event>(function (resolve, reject) {
-        setTimeout(() => {
-          if (abortCtrl.signal.aborted) {
-            reject(new Error('State has been aborted'))
-          } else {
-            try {
-              outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-              resolve(signedEvent)
-            } catch (e) {
-              reject(e)
+        return new Promise<NIP01.Event>(function (resolve, reject) {
+          setTimeout(() => {
+            if (abortCtrl.signal.aborted) {
+              reject(new Error('State has been aborted'))
+            } else {
+              try {
+                outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+                resolve(signedEvent)
+              } catch (e) {
+                reject(e)
+              }
             }
-          }
-        }, botWaitTimeInMillis)
+          }, botWaitTimeInMillis)
+        })
       })
-    }).then((e) => {
-      console.info('[Bot] Sent event', e)
-    }).catch((e) => {
-      console.error('[Bot] Could not send nostr event', e)
-    })
+      .then((e) => {
+        console.info('[Bot] Sent event', e)
+      })
+      .catch((e) => {
+        console.error('[Bot] Could not send nostr event', e)
+      })
 
     return () => {
       abortCtrl.abort()
     }
-  }, [outgoingNostr, currentBotMoveSuggestion, currentChessInstance, botKeyPair, currentWatchGameStartEvent, currentGameHead])
+  }, [
+    outgoingNostr,
+    currentBotMoveSuggestion,
+    currentChessInstance,
+    botKeyPair,
+    currentWatchGameStartEvent,
+    currentGameHead,
+  ])
 
   return (
     <>

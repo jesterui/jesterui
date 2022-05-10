@@ -21,7 +21,6 @@ export const JESTER_START_GAME_FILTER: NIP01.Filter = {
   kinds: [JESTER_MESSAGE_KIND],
 }
 
-
 export const jesterPrivateStartGameRef = (publicKey: NIP01.PubKey) => {
   const publicKeyHashed = hashWithSha256(publicKey)
   return hashWithSha256(publicKeyHashed + JESTER_START_GAME_E_REF)
@@ -200,7 +199,10 @@ const jesterPrivateGameEventParts = (opponentPubKey: NIP01.PubKey): NIP01.EventI
   return eventParts
 }
 
-const _constructStartGameEventWithParts = (pubkey: NIP01.PubKey, parts: NIP01.EventInConstruction): NIP01.UnsignedEvent => {
+const _constructStartGameEventWithParts = (
+  pubkey: NIP01.PubKey,
+  parts: NIP01.EventInConstruction
+): NIP01.UnsignedEvent => {
   const eventParts = {
     ...parts,
     created_at: Math.floor(Date.now() / 1000),
@@ -215,7 +217,10 @@ const _constructStartGameEventWithParts = (pubkey: NIP01.PubKey, parts: NIP01.Ev
   return NostrEvents.constructEvent(eventParts)
 }
 
-export const constructPrivateStartGameEvent = (pubkey: NIP01.PubKey, opponentPubKey: NIP01.PubKey): NIP01.UnsignedEvent => {
+export const constructPrivateStartGameEvent = (
+  pubkey: NIP01.PubKey,
+  opponentPubKey: NIP01.PubKey
+): NIP01.UnsignedEvent => {
   return _constructStartGameEventWithParts(pubkey, jesterPrivateGameEventParts(opponentPubKey))
 }
 

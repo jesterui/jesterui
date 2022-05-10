@@ -12,12 +12,15 @@ const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NI
   if (!publicKey) {
     return []
   }
-  
-  return publicKey ? [{
-    ...JesterUtils.createPrivateGameStartFilter(publicKey),
-    since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
-  },
-  ] : []
+
+  return publicKey
+    ? [
+        {
+          ...JesterUtils.createPrivateGameStartFilter(publicKey),
+          since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
+        },
+      ]
+    : []
 }
 
 export const createSinceFilterValue = (minutesBack: number) => {
@@ -63,7 +66,7 @@ export default function NostrManageSubscriptions() {
       filters: gameStartFilters,
     })
   }, [gameStartFilters, updateSubscription])
-  
+
   // todo: maybe try to incooporate into "game_start"
   useEffect(() => {
     updateSubscription({
@@ -92,7 +95,6 @@ export default function NostrManageSubscriptions() {
     const newFilterOrEmpty = createPrivateGameStartFilterOrEmpty(publicKeyOrNull)
     setPrivateGameStartFilters(newFilterOrEmpty)
   }, [publicKeyOrNull])
-
 
   return <></>
 }

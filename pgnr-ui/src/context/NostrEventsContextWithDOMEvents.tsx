@@ -150,7 +150,8 @@ const NostrDOMEventsProvider = ({ children }: ProviderProps<NostrDOMEventsEntry 
 
           const nostrEvent = data[2] as NIP01.Event
 
-          const isValidEvent = NostrDOMEvents.validateEvent(nostrEvent) && (await NostrDOMEvents.verifySignature(nostrEvent))
+          const isValidEvent =
+            NostrDOMEvents.validateEvent(nostrEvent) && (await NostrDOMEvents.verifySignature(nostrEvent))
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
             return
