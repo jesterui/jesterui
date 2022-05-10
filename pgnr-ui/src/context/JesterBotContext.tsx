@@ -283,10 +283,10 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     }
 
     // no matter which bot is selected, add a random wait time to every move
-    const botWaitTimeInMillis = randomNumberBetween(
-      randomNumberBetween(2_000, 6_000),
-      randomNumberBetween(10_000, 21_000)
-    )
+    const minMillisWaitTime = randomNumberBetween(2_000, 6_000)
+    const maxMillisWaitTime = randomNumberBetween(10_000, 21_000)
+    const isFirstFewMoves = chessboardWithNewMove.history().length <= randomNumberBetween(5, 10)
+    const botWaitTimeInMillis = isFirstFewMoves ? minMillisWaitTime : randomNumberBetween(minMillisWaitTime, maxMillisWaitTime)
 
     const moveEvent = JesterUtils.constructGameMoveEvent(
       botKeyPair.publicKey,
