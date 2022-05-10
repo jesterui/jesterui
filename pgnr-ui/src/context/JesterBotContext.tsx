@@ -15,7 +15,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
 import { GameMoveEvent } from '../util/app_db'
-import { pubKeyDisplayName, randomNumberBetween } from '../util/app'
+import { randomNumberBetween } from '../util/app'
 import { getSession } from '../util/session'
 import { historyToMinimalPgn } from '../util/chess'
 import * as Bot from '../util/bot'
@@ -23,10 +23,17 @@ import * as Bot from '../util/bot'
 // @ts-ignore
 import * as Chess from 'chess.js'
 
+const DEFAULT_BOT: SelectedBot | null = ((name) => {
+  try {
+    return {
+      name: name,
+      move: Bot.Bots[name](),
+    }
+  } catch(e) {
+    return null
+  }
+})('Alice')
 
-const botName = (pubkey: NIP01.PubKey, bot: Bot.InitialisedBot) => {
-  return `${bot.name}(${pubKeyDisplayName(pubkey)})`
-}
 const instantiateBotByName = (botName: string | null): SelectedBot | null => {
   if (botName && Bot.Bots[botName]) {
     return {
@@ -34,7 +41,7 @@ const instantiateBotByName = (botName: string | null): SelectedBot | null => {
       move: Bot.Bots[botName](),
     }
   }
-  return null
+  return DEFAULT_BOT
 }
 
 type KeyPair = {

@@ -10,21 +10,21 @@ export type SelectedBot = {
 interface BotSelectorProps {
   playerName: string
   availableBots: AvailableBots
-  selectedBot: SelectedBot
-  setSelectedBot: (bot: SelectedBot) => void
+  selectedBotName: string | null
+  setSelectedBotName: (botName: string | null) => void
   disabled: boolean
 }
 
-export const BotSelector = ({ playerName, availableBots, selectedBot, setSelectedBot, disabled }: BotSelectorProps) => {
+export const BotSelector = ({ playerName, availableBots, selectedBotName, setSelectedBotName, disabled }: BotSelectorProps) => {
   const handleChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const name = e.target.value
-    setSelectedBot(name ? { name, move: availableBots[name]() } : null)
+    setSelectedBotName(name || null)
   }
 
   return (
     <div className={styles.BotSelector}>
       <label>{playerName}</label>
-      <select value={selectedBot?.name} onChange={handleChange} disabled={disabled}>
+      <select value={selectedBotName || undefined} onChange={handleChange} disabled={disabled}>
         <option value="" key="User">
           User
         </option>

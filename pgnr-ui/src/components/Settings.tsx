@@ -8,7 +8,7 @@ import { useUpdateSubscription } from '../context/NostrSubscriptionsContext'
 
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
-import { SelectedBot, BotSelector } from '../components/BotSelector'
+import { BotSelector } from '../components/BotSelector'
 
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
@@ -297,22 +297,11 @@ export default function Settings() {
     }
   }, [])
 
-  const [selectedBot, setSelectedBot] = useState<SelectedBot>(
-    (() => {
-      if (settings.botName && Bot.Bots[settings.botName]) {
-        return {
-          name: settings.botName,
-          move: Bot.Bots[settings.botName](),
-        }
-      }
+  const [selectedBotName, setSelectedBotName] = useState<string | null>(settings.botName)
 
-      return null
-    })()
-  )
-
-  const updateSelectedBot = (bot: SelectedBot) => {
-    setSelectedBot(selectedBot)
-    settingsDispatch({ botName: bot?.name || null } as AppSettings)
+  const updateSelectedBotName = (botName: string | null) => {
+    setSelectedBotName(botName)
+    settingsDispatch({ botName } as AppSettings)
   }
 
   const onRelayClicked = (relay: string) => {
@@ -351,13 +340,15 @@ export default function Settings() {
         <TestNostrConnectionButton />
       </div>
 
-      <BotSelector
-        playerName="Your Bot"
-        availableBots={Bot.Bots}
-        selectedBot={selectedBot}
-        setSelectedBot={updateSelectedBot}
-        disabled={false}
-      />
+      <div style={{ display: 'block'}}>
+        <BotSelector
+          playerName="Your Bot"
+          availableBots={Bot.Bots}
+          selectedBotName={selectedBotName}
+          setSelectedBotName={updateSelectedBotName}
+          disabled={false}
+        />
+      </div>
 
       {/*
       <Heading2 color="blueGray">Subscriptions</Heading2>
