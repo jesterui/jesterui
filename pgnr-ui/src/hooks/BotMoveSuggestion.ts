@@ -106,3 +106,102 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
 
   return suggestion
 }
+
+/*
+const BotMoveSuggestions = ({ game }: { game: ChessInstance | null }) => {
+  const settings = useSettings()
+
+  const [selectedBot] = useState<SelectedBot>(
+    (() => {
+      if (settings.botName && Bot.Bots[settings.botName]) {
+        return {
+          name: settings.botName,
+          move: Bot.Bots[settings.botName](),
+        }
+      }
+      return null
+    })()
+  )
+
+  const [isThinking, setIsThinking] = useState(false)
+  const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
+  const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
+  const [move, setMove] = useState<Bot.ShortMove | null>(null)
+  const [gameOver, setGameOver] = useState<boolean>(game?.game_over() || false)
+
+  useEffect(() => {
+    if (game === null) return
+
+    if (game.game_over()) {
+      setGameOver(true)
+      return
+    }
+
+    const currentFen = game.fen()
+    setThinkingFens((currentFens) => {
+      if (currentFens[currentFens.length - 1] === currentFen) {
+        return currentFens
+      }
+      return [...currentFens, currentFen]
+    })
+  }, [game])
+
+  useEffect(() => {
+    if (!selectedBot) return
+    if (isThinking) return
+    if (thinkingFens.length === 0) return
+
+    const thinkingFen = thinkingFens[thinkingFens.length - 1]
+
+    const timer = setTimeout(() => {
+      const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
+      if (inBetweenUpdate) return
+
+      setIsThinking(true)
+      setLatestThinkingFen(thinkingFen)
+      console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
+
+      selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
+        console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
+
+        setMove({ from, to })
+
+        setIsThinking(false)
+        setThinkingFens((currentFens) => {
+          const i = currentFens.indexOf(thinkingFen)
+          if (i < 0) {
+            return currentFens
+          }
+
+          const copy = [...currentFens]
+          // remove all thinking fens that came before this
+          copy.splice(0, i + 1)
+          return copy
+        })
+      })
+    }, 100)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [selectedBot, thinkingFens, isThinking])
+
+  if (!selectedBot) {
+    return <>No bot selected.</>
+  }
+
+  return (
+    <>
+      {`${selectedBot.name}`}
+      {gameOver ? (
+        ` is ready for the next game.`
+      ) : (
+        <>
+          {!isThinking && !move && thinkingFens.length === 0 && ` is idle...`}
+          {isThinking && thinkingFens.length > 0 && ` is thinking (${thinkingFens.length})...`}
+          {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
+        </>
+      )}
+    </>
+  )
+}*/

@@ -8,7 +8,6 @@ import { useGameStore } from '../context/GameEventStoreContext'
 
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
-import { SelectedBot } from '../components/BotSelector'
 import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
 import { ChessInstance } from '../components/ChessJsTypes'
 
@@ -17,7 +16,6 @@ import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
 import { JesterMove, GameStart, GameMove } from '../util/jester'
 import * as AppUtils from '../util/app'
-import * as Bot from '../util/bot'
 import { getSession } from '../util/session'
 // @ts-ignore
 import * as Chess from 'chess.js'
@@ -149,105 +147,6 @@ const CopyGameUrlInput = ({ value }: { value: string }) => {
         <Small color="amber">Share this link with anyone to join in!</Small>
       </div>
     </div>
-  )
-}
-
-const BotMoveSuggestions = ({ game }: { game: ChessInstance | null }) => {
-  const settings = useSettings()
-
-  const [selectedBot] = useState<SelectedBot>(
-    (() => {
-      if (settings.botName && Bot.Bots[settings.botName]) {
-        return {
-          name: settings.botName,
-          move: Bot.Bots[settings.botName](),
-        }
-      }
-      return null
-    })()
-  )
-
-  const [isThinking, setIsThinking] = useState(false)
-  const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
-  const [latestThinkingFen, setLatestThinkingFen] = useState<Bot.Fen | null>(null)
-  const [move, setMove] = useState<Bot.ShortMove | null>(null)
-  const [gameOver, setGameOver] = useState<boolean>(game?.game_over() || false)
-
-  useEffect(() => {
-    if (game === null) return
-
-    if (game.game_over()) {
-      setGameOver(true)
-      return
-    }
-
-    const currentFen = game.fen()
-    setThinkingFens((currentFens) => {
-      if (currentFens[currentFens.length - 1] === currentFen) {
-        return currentFens
-      }
-      return [...currentFens, currentFen]
-    })
-  }, [game])
-
-  useEffect(() => {
-    if (!selectedBot) return
-    if (isThinking) return
-    if (thinkingFens.length === 0) return
-
-    const thinkingFen = thinkingFens[thinkingFens.length - 1]
-
-    const timer = setTimeout(() => {
-      const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
-      if (inBetweenUpdate) return
-
-      setIsThinking(true)
-      setLatestThinkingFen(thinkingFen)
-      console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
-
-      selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
-        console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
-
-        setMove({ from, to })
-
-        setIsThinking(false)
-        setThinkingFens((currentFens) => {
-          const i = currentFens.indexOf(thinkingFen)
-          if (i < 0) {
-            return currentFens
-          }
-
-          const copy = [...currentFens]
-          // remove all thinking fens that came before this
-          copy.splice(0, i + 1)
-          return copy
-        })
-      })
-    }, 100)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [selectedBot, thinkingFens, isThinking])
-
-  if (!selectedBot) {
-    return <>No bot selected.</>
-  }
-
-  return (
-    <>
-      {`${selectedBot.name}`}
-      {gameOver ? (
-        ` is ready for the next game.`
-      ) : (
-        <>
-          {!isThinking && !move && thinkingFens.length === 0 && ` is idle...`}
-          {isThinking && thinkingFens.length > 0 && ` is thinking (${thinkingFens.length})...`}
-          {!isThinking && move && ` suggests ${JSON.stringify(move)}`}
-          {/*Latest Thinking Fen: {latestThinkingFen}*/}
-        </>
-      )}
-    </>
   )
 }
 
@@ -745,10 +644,6 @@ export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterU
                     </div>
                   </>
                 )}
-              </div>
-
-              <div className="mb-2" style={{ display: 'none' }}>
-                {/*<BotMoveSuggestions game={isLoading || isSearchingHead ? null : currentChessInstance} />*/}
               </div>
 
               {currentChessInstance !== null && (
