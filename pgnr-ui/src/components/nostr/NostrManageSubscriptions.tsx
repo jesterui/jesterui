@@ -27,10 +27,10 @@ const uniqueRandomStrings = (amount: number, maxStringLength: number) => {
 }
 
 const UNIQUE_RANDOM_STRINGS = uniqueRandomStrings(4, 10)
-const RANDOMIZE_SUB_IDS = true // process.env.NODE_ENV === 'development'
-const GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? 'game_start' : UNIQUE_RANDOM_STRINGS[0]
-const PRIVATE_GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? 'private_game_start' : UNIQUE_RANDOM_STRINGS[1]
-const CURRENT_GAME_SUB_ID = RANDOMIZE_SUB_IDS ? 'current_game' : UNIQUE_RANDOM_STRINGS[2]
+const RANDOMIZE_SUB_IDS = process.env.NODE_ENV !== 'development'
+const GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[0] : 'game_start'
+const PRIVATE_GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[1] : 'private_game_start'
+const CURRENT_GAME_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[2] : 'current_game'
 
 const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NIP01.Filter[] => {
   if (!publicKey) {
