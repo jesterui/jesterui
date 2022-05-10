@@ -15,6 +15,16 @@ interface BotMoveSuggestion {
   move: MoveAndFen | null
 }
 
+const botConsole =
+  process.env.NODE_ENV === 'development'
+    ? console
+    : {
+        debug: () => {},
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+      }
+
 export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion {
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
@@ -49,21 +59,21 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) {
-        console.warn(`Bot ${selectedBot.name} wanted to search for ${thinkingFen} - but operation was aborted.`)
+        botConsole.warn(`Bot ${selectedBot.name} wanted to search for ${thinkingFen} - but operation was aborted.`)
         return
       }
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
       setIsThinking(true)
-      console.log(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
+      botConsole.info(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
 
       selectedBot.move(thinkingFen).then(({ from, to }: Bot.ShortMove) => {
         /*if (abortCtrl.signal.aborted) {
             console.warn(`Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`)
             return
         }*/
-        console.log(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
+        botConsole.info(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
 
         setIsThinking(false)
         setSuggestion({
