@@ -1,7 +1,7 @@
 import React, { useState, createContext, useContext, ProviderProps, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import {  useSettings } from './SettingsContext'
+import { useSettings } from './SettingsContext'
 import useBotSuggestion from '../hooks/BotMoveSuggestion'
 
 import { SelectedBot } from '../components/BotSelector'
@@ -29,7 +29,7 @@ const DEFAULT_BOT: SelectedBot | null = ((name) => {
       name: name,
       move: Bot.Bots[name](),
     }
-  } catch(e) {
+  } catch (e) {
     return null
   }
 })('Alice')
@@ -92,6 +92,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       }
 
       // TODO: filter for stopped games (e.g. game_over) => should this be added to the game event db?
+      // TODO: This will only ever generate one bot game per identity..
       const gameStartEventsCreatedByBot = await gameStore.game_start
         .where('pubkey')
         .equals(botKeyPair.publicKey)
@@ -200,9 +201,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       return
     }
 
-    // TODO: whenever the current game changes, see if the bot started the game and activate!
-    botConsole.error(`[Bot TODO] '${selectedBot?.name}': I saw game id or my games changed - should I chime in?`)
-
     setWatchGameId((current) => {
       if (!currentGameJesterId) {
         return null
@@ -223,7 +221,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     if (!selectedBot) return
 
     botConsole.info(`[Bot] '${selectedBot.name}': I have a purpose now - playing game `, watchGameId)
-  }, [watchGameId])
+  }, [selectedBot, watchGameId])
 
   useEffect(() => {
     setCurrentGameHead((_) => {
@@ -294,8 +292,12 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     const minMillisWaitTime = randomNumberBetween(2_000, 6_000)
     const maxMillisWaitTime = randomNumberBetween(10_000, 21_000)
     const isFirstFewMoves = moveCount <= randomNumberBetween(10, 20)
-    const botWaitTimeInMillis = moveCount === 1 ? randomNumberBetween(1, 2_000) : 
-      (isFirstFewMoves ? minMillisWaitTime : randomNumberBetween(minMillisWaitTime, maxMillisWaitTime))
+    const botWaitTimeInMillis =
+      moveCount === 1
+        ? randomNumberBetween(1, 2_000)
+        : isFirstFewMoves
+        ? minMillisWaitTime
+        : randomNumberBetween(minMillisWaitTime, maxMillisWaitTime)
 
     const moveEvent = JesterUtils.constructGameMoveEvent(
       botKeyPair.publicKey,

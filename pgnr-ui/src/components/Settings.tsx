@@ -340,7 +340,7 @@ export default function Settings() {
         <TestNostrConnectionButton />
       </div>
 
-      <div style={{ display: 'none'}}>
+      <div style={{ display: 'none' }}>
         <BotSelector
           playerName="Your Bot"
           availableBots={Bot.Bots}

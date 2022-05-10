@@ -46,7 +46,7 @@ const randomMove: UninitialisedBot = () => (fen) =>
 
 // https://ucichessengine.wordpress.com/2011/03/16/description-of-uci-protocol/
 export const Bots: AvailableBots = {
-  // Random: randomMove,
+  Random: randomMove,
   Alice: uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1',
     'setoption name Style value Risky',

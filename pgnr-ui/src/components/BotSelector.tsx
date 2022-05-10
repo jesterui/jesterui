@@ -15,7 +15,13 @@ interface BotSelectorProps {
   disabled: boolean
 }
 
-export const BotSelector = ({ playerName, availableBots, selectedBotName, setSelectedBotName, disabled }: BotSelectorProps) => {
+export const BotSelector = ({
+  playerName,
+  availableBots,
+  selectedBotName,
+  setSelectedBotName,
+  disabled,
+}: BotSelectorProps) => {
   const handleChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const name = e.target.value
     setSelectedBotName(name || null)
