@@ -7,7 +7,12 @@ import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from './chess'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { Buffer } from 'buffer'
 import { bech32m, bech32 } from 'bech32'
-import { hashWithSha256 } from '../context/JesterBotContext'
+
+export const hashWithSha256 = (val: string): NIP01.Sha256 => {
+  let eventHash = sha256.init().update(Buffer.from(val)).digest()
+  return Buffer.from(eventHash).toString('hex')
+}
+
 
 export const VALID_JESTER_ID_EXAMPLE = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
 

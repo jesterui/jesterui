@@ -22,3 +22,5 @@ export const displayJesterIdShort = (jesterId: JesterId, length = 12) => {
   )
 }
 export const pubKeyDisplayName = (pubKey: NIP01.PubKey, length = 8) => pubKey.substring(0, length)
+
+export const randomNumberBetween = (min: number, max: number) => min + Math.round(Math.random() * (max - min))

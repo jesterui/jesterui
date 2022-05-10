@@ -1,34 +1,28 @@
 import React, { useState, createContext, useContext, ProviderProps, useEffect } from 'react'
-import * as secp256k1 from '@alephium/noble-secp256k1'
-import { sha256 } from '@noble/hashes/sha256'
-import { Buffer } from 'buffer'
+import { useLiveQuery } from 'dexie-react-hooks'
 
-import { AppSettings, useSettings } from './SettingsContext'
+import {  useSettings } from './SettingsContext'
+import useBotSuggestion from '../hooks/BotMoveSuggestion'
+
 import { SelectedBot } from '../components/BotSelector'
+
+import { useOutgoingNostrEvents } from './NostrEventsContext'
+import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
+import { useGameStore } from './GameEventStoreContext'
+import { ChessInstance } from '../components/ChessJsTypes'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { AppDexie, GameStartEvent, db, GameMoveEvent } from '../util/app_db'
-import * as Bot from '../util/bot'
-import { getSession } from '../util/session'
-import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
-import { useGameStore } from './GameEventStoreContext'
-import { useLiveQuery } from 'dexie-react-hooks'
 import * as JesterUtils from '../util/jester'
-import { displayKey, pubKeyDisplayName } from '../util/app'
-import { useOutgoingNostrEvents } from './NostrEventsContext'
-import { ChessInstance } from '../components/ChessJsTypes'
+import { GameMoveEvent } from '../util/app_db'
+import { pubKeyDisplayName, randomNumberBetween } from '../util/app'
+import { getSession } from '../util/session'
+import { historyToMinimalPgn } from '../util/chess'
+import * as Bot from '../util/bot'
+
 // @ts-ignore
 import * as Chess from 'chess.js'
-import { historyToMinimalPgn } from '../util/chess'
-import useBotSuggestion from '../hooks/BotMoveSuggestion'
 
-const randomNumberBetween = (min: number, max: number) => min + Math.round(Math.random() * (max - min))
-
-export const hashWithSha256 = (val: string): NIP01.Sha256 => {
-  let eventHash = sha256.init().update(Buffer.from(val)).digest()
-  return Buffer.from(eventHash).toString('hex')
-}
 
 const botName = (pubkey: NIP01.PubKey, bot: Bot.InitialisedBot) => {
   return `${bot.name}(${pubKeyDisplayName(pubkey)})`
@@ -135,7 +129,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     if (!userPrivateKeyOrNull) {
       setBotKeyPair(null)
     } else {
-      const hashOrNull = hashWithSha256(userPrivateKeyOrNull)
+      const hashOrNull = JesterUtils.hashWithSha256(userPrivateKeyOrNull)
       const botPrivateKey = hashToPrivateKey(hashOrNull + hashOrNull)
       setBotKeyPair({
         privateKey: botPrivateKey,

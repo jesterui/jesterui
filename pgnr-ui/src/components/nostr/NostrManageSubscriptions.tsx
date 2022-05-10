@@ -1,12 +1,37 @@
 import React, { useEffect, useState } from 'react'
+import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { useSettings } from '../../context/SettingsContext'
 import { useUpdateSubscription } from '../../context/NostrSubscriptionsContext'
 import * as NIP01 from '../../util/nostr/nip01'
 import * as JesterUtils from '../../util/jester'
-import { getSession } from '../../util/session'
+import { randomNumberBetween } from '../../util/app'
 
 const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 5 : 2
+
+const uniqueRandomStrings = (amount: number, maxStringLength: number) => {
+  const arr: string[] = []
+  if (amount <  0) throw new Error('`amount` must not be negative')
+  if (amount ===  0) return []
+
+
+  let seed = JesterUtils.hashWithSha256(bytesToHex(randomBytes(4)))
+  while(arr.length < amount) {
+    const test = seed.substring(0, randomNumberBetween(1, maxStringLength))
+    if (!arr.includes(test)) {
+      arr.push(test)
+    }
+    seed = JesterUtils.hashWithSha256(seed)
+  }
+
+  return arr;
+}
+
+const UNIQUE_RANDOM_STRINGS = uniqueRandomStrings(4, 10)
+const RANDOMIZE_SUB_IDS = true // process.env.NODE_ENV === 'development'
+const GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? 'game_start' : UNIQUE_RANDOM_STRINGS[0]
+const PRIVATE_GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? 'private_game_start' :UNIQUE_RANDOM_STRINGS[1]
+const CURRENT_GAME_SUB_ID = RANDOMIZE_SUB_IDS ? 'current_game' : UNIQUE_RANDOM_STRINGS[2]
 
 const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NIP01.Filter[] => {
   if (!publicKey) {
@@ -62,7 +87,7 @@ export default function NostrManageSubscriptions() {
 
   useEffect(() => {
     updateSubscription({
-      id: 'game_start',
+      id: GAME_START_SUB_ID,
       filters: gameStartFilters,
     })
   }, [gameStartFilters, updateSubscription])
@@ -70,14 +95,14 @@ export default function NostrManageSubscriptions() {
   // todo: maybe try to incooporate into "game_start"
   useEffect(() => {
     updateSubscription({
-      id: 'game_start2',
+      id: PRIVATE_GAME_START_SUB_ID,
       filters: privateGameStartFilters,
     })
   }, [privateGameStartFilters, updateSubscription])
 
   useEffect(() => {
     updateSubscription({
-      id: 'current_game',
+      id: CURRENT_GAME_SUB_ID,
       filters: currentGameFilters,
     })
   }, [currentGameFilters, updateSubscription])
