@@ -8,11 +8,11 @@ import { GameStartEvent } from '../../util/app_db'
 
 type Loading = undefined
 type GameNotFound = null
-type GameByIdResult = Loading | GameNotFound | GameStartEvent 
+type GameByIdResult = Loading | GameNotFound | GameStartEvent
 
 interface GameByIdProps {
   jesterId: JesterUtils.JesterId
-   children: ((props: GameByIdResult) => React.ReactNode);
+  children: (props: GameByIdResult) => React.ReactNode
 }
 
 export function GameById({ jesterId, children }: GameByIdProps) {

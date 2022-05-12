@@ -48,7 +48,7 @@ interface GameCardProps {
   title?: string
 }
 
-export function GameCard({ game, title = 'Current Game'}: GameCardProps) {
+export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
   const gameStore = useGameStore()
   const settingsDispatch = useSettingsDispatch()
   const redirectToCurrentGameButtonRef = useRef<HTMLButtonElement>(null)
@@ -61,7 +61,7 @@ export function GameCard({ game, title = 'Current Game'}: GameCardProps) {
     [game],
     null
   )
-  
+
   const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
 
   const unsubscribeFromCurrentGame = useCallback(() => {

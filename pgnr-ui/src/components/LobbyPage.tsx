@@ -27,6 +27,7 @@ import Small from '@material-tailwind/react/Small'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+import { Spinner } from './Spinner'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -108,16 +109,6 @@ function CurrentGameCard({ game, moveCount = 0 }: CurrentGameCardProps) {
               alt={displayPubKey}
             />
           </div>
-
-          {/*
-          <h6 className="mb-1 text-xl font-medium">{displayPubKey}</h6>
-          <span className="mb-1 text-sm text-gray-400">
-            with {moveCount} {moveCount === 1 ? 'move' : 'moves'}
-          </span>
-          <span className="mb-1 text-sm text-gray-400">
-            <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-          </span>
-        */}
 
           {/*
           <div className="mb-1">
@@ -248,29 +239,6 @@ export default function LobbyPage() {
     }
   }, [])
 
-  const currentGameLiveQuery = useLiveQuery(
-    async () => {
-      if (!settings.currentGameJesterId) return null
-
-      const currentGameId = JesterUtils.jesterIdToGameId(settings.currentGameJesterId)
-
-      const event = await gameStore.game_start.get(currentGameId)
-      return event || null
-    },
-    [settings],
-    null
-  )
-
-  const currentGameMoveCountLiveQuery = useLiveQuery(
-    async () => {
-      if (!currentGameLiveQuery) return null
-
-      return await gameStore.game_move.where('gameId').equals(currentGameLiveQuery.id).count()
-    },
-    [currentGameLiveQuery],
-    null
-  )
-
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
       const events = await gameStore.game_start
@@ -307,22 +275,27 @@ export default function LobbyPage() {
           <div className="flex justify-center my-4">
             {!settings.currentGameJesterId ? (
               <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-            ) : (<>
-              <GameById jesterId={settings.currentGameJesterId}>
-                {(game) => {
-                  if (game === undefined) {
-                  return (<>
-                    <div>Loading...</div>
-                  </>)
-                } else if (game === null) {
-                  return (<>
-                    <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-                  </>)
-                } else {
-                  return (<GameCard game={game} />)
-                }
-              }}
-            </GameById>
+            ) : (
+              <>
+                <GameById jesterId={settings.currentGameJesterId}>
+                  {(game) => {
+                    if (game === undefined) {
+                      return (
+                        <>
+                          <Spinner />
+                        </>
+                      )
+                    } else if (game === null) {
+                      return (
+                        <>
+                          <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                        </>
+                      )
+                    } else {
+                      return <GameCard game={game} />
+                    }
+                  }}
+                </GameById>
               </>
             )}
           </div>

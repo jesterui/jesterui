@@ -89,6 +89,26 @@ code {
   flex-grow: 0;
 }
 
+.animate-spin {
+  -webkit-animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+.fill-deep-orange-500 {
+  fill: rgba(255, 87, 34, 1);
+}
+.fill-orange-500 {
+  fill: rgba(255, 152, 0, 1);
+}
+.fill-gray-200 {
+  fill: rgba(238, 238, 238, 1);
+}
+
 /* missing tailwind classes from material-tailwind - end */
 
 /* quick fix for material-tailwind oddities */
