@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect } from 'react'
+import React, { RefObject, useEffect, useCallback } from 'react'
 
 import { useSettings } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -28,7 +28,7 @@ export default function CreateGameButton({
   const publicKeyOrNull = settings.identity?.pubkey || null
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const onStartGameButtonClicked = async () => {
+  const onStartGameButtonClicked = useCallback(async () => {
     // TODO: do not use window.alert..
     if (!outgoingNostr) {
       window.alert('Nostr EventBus not ready..')
@@ -51,9 +51,9 @@ export default function CreateGameButton({
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
     onGameCreated(JesterUtils.gameIdToJesterId(signedEvent.id))
-  }
+  }, [outgoingNostr, publicKeyOrNull, privateKeyOrNull, onGameCreated])
 
-  const onClick = () => onStartGameButtonClicked()
+  const onClick = useCallback(() => onStartGameButtonClicked(), [onStartGameButtonClicked])
 
   useEffect(() => {
     if (!buttonRef) return
@@ -106,7 +106,7 @@ interface CurrentGameRedirectButtonHookProps {
 export function CurrentGameRedirectButtonHook({ buttonRef, jesterId }: CurrentGameRedirectButtonHookProps) {
   const navigate = useNavigate()
 
-  const onClick = () => navigate(`/redirect/game/${jesterId}`)
+  const onClick = useCallback(() => navigate(`/redirect/game/${jesterId}`), [navigate, jesterId])
 
   useEffect(() => {
     if (!buttonRef) return

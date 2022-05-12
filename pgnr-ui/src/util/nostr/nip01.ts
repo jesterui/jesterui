@@ -41,15 +41,7 @@ export type Kind = EventSetMetadata | EventTextNote | EventRecommendServer | Oth
 // resistance and make the spread of relay addresses more seamless across
 // clients.
 type RelayUrl = `wss://${string}` | `ws://${string}.onion`
-const __example_RelayUrl1: RecommendedRelayUrl = `wss://example.com`
-const __example_RelayUrl2: RecommendedRelayUrl = `ws://example.onion`
-const __example_RelayUrl3: RecommendedRelayUrl = `wss://example.onion`
-
 type RecommendedRelayUrl = RelayUrl | ''
-const __example_RecommendedRelayUrl: RecommendedRelayUrl = ''
-const __example_RecommendedRelayUrl1: RecommendedRelayUrl = `wss://example.com`
-const __example_RecommendedRelayUrl2: RecommendedRelayUrl = `ws://example.onion`
-const __example_RecommendedRelayUrl3: RecommendedRelayUrl = `wss://example.onion`
 // type error: const __example_RecommendedRelayUrl4: RecommendedRelayUrl = `ws://example.com`
 
 type Other = any
@@ -62,18 +54,18 @@ type Content = string // <arbitrary string>
 
 /*
 {
-    "id": <32-bytes sha256 of the the serialized event data>
-    "pubkey": <32-bytes hex-encoded public key of the event creator>,
-    "created_at": <unix timestamp in seconds>,
-    "kind": <integer>,
-    "tags": [
-      ["e", <32-bytes hex of the id of another event>, <recommended relay URL>],
-      ["p", <32-bytes hex of the key>, <recommended relay URL>],
-      ... // other kinds of tags may be included later
-    ]
-    "content": <arbitrary string>,
-    "sig": <64-bytes signature of the sha256 hash of the serialized event data, which is the same as the "id" field>,
-  }
+  "id": <32-bytes sha256 of the the serialized event data>
+  "pubkey": <32-bytes hex-encoded public key of the event creator>,
+  "created_at": <unix timestamp in seconds>,
+  "kind": <integer>,
+  "tags": [
+    ["e", <32-bytes hex of the id of another event>, <recommended relay URL>],
+    ["p", <32-bytes hex of the key>, <recommended relay URL>],
+    ... // other kinds of tags may be included later
+  ]
+  "content": <arbitrary string>,
+  "sig": <64-bytes signature of the sha256 hash of the serialized event data, which is the same as the "id" field>,
+}
 */
 export interface EventInConstruction {
   pubkey?: PubKey
@@ -81,14 +73,6 @@ export interface EventInConstruction {
   kind?: Kind
   tags?: Tags
   content?: Content
-}
-const __exampleEventInConstruction1: EventInConstruction = {}
-const __exampleEventInConstruction2: EventInConstruction = {
-  pubkey: '',
-  created_at: 0,
-  kind: 0,
-  tags: [],
-  content: '',
 }
 
 export interface EventParts {
@@ -103,37 +87,20 @@ export type UnsignedEvent = EventParts & {
   id: EventId
 }
 
-const __exampleUnsignedEvent1: UnsignedEvent = {
-  id: '',
-  pubkey: '',
-  created_at: 0,
-  kind: 0,
-  tags: [],
-  content: '',
-}
-
 export type Event = UnsignedEvent & {
   sig: Sig
 }
 
-const __exampleEvent1: Event = {
-  id: '',
-  pubkey: '',
-  created_at: 0,
-  kind: 0,
-  tags: [],
-  content: '',
-  sig: '',
-}
-
-/*[
-    0,
-    <pubkey, as a (lowercase) hex string>,
-    <created_at, as a number>,
-    <kind, as a number>,
-    <tags, as an array of arrays of strings>,
-    <content, as a string>
-  ]*/
+/*
+[
+  0,
+  <pubkey, as a (lowercase) hex string>,
+  <created_at, as a number>,
+  <kind, as a number>,
+  <tags, as an array of arrays of strings>,
+  <content, as a string>
+]
+*/
 export type SignableEventData = [0, PubKey, CreatedAtTimestamp, Kind, Tags, Content]
 
 type ListOfPubKeys = PubKey[]
@@ -176,16 +143,6 @@ export interface Filter {
   since?: Timestamp
   until?: Timestamp
   authors?: ListOfPublicKeysOrPrefix
-}
-const __exampleFilter1: Filter = {}
-const __exampleFilter2: Filter = {
-  ids: [],
-  kinds: [],
-  '#e': [],
-  '#p': [],
-  since: 0,
-  until: 1,
-  authors: [],
 }
 
 export type SubscriptionId = string

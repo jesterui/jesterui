@@ -78,12 +78,14 @@ export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
             <img
               className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
               src={`https://robohash.org/${game.pubkey}`}
+              title={game.pubkey}
               alt={displayPubKey}
             />
             <div className="text-xl font-medium">vs.</div>
             <img
               className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
               src={`https://robohash.org/${game.id}`}
+              title={game.id}
               alt={displayPubKey}
             />
           </div>

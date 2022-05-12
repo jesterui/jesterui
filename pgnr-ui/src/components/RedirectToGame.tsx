@@ -21,7 +21,7 @@ export default function RedirectToGame({ jesterId: argJesterId, replace }: Redir
     if (!jesterId) return
 
     navigate(`/game/${jesterId}`, { replace })
-  }, [navigate, jesterId])
+  }, [navigate, jesterId, replace])
 
   return <></>
 }

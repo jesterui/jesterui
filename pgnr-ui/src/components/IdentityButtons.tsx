@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect } from 'react'
+import React, { RefObject, useEffect, useCallback } from 'react'
 
 import { AppSettings, Identity, useSettingsDispatch } from '../context/SettingsContext'
 import { setSessionAttribute } from '../util/session'
@@ -19,7 +19,7 @@ export function GenerateRandomIdentityButton({
 }: GenerateRandomIdentityButtonProps) {
   const settingsDispatch = useSettingsDispatch()
 
-  const newIdentityButtonClicked = async () => {
+  const newIdentityButtonClicked = useCallback(async () => {
     const privateKey = NostrIdentity.generatePrivateKey()
     const publicKey = NostrIdentity.publicKey(privateKey)
 
@@ -30,9 +30,9 @@ export function GenerateRandomIdentityButton({
     if (onIdentityCreated) {
       onIdentityCreated(identity)
     }
-  }
+  }, [settingsDispatch, onIdentityCreated])
 
-  const onClick = () => newIdentityButtonClicked()
+  const onClick = useCallback(() => newIdentityButtonClicked(), [newIdentityButtonClicked])
 
   useEffect(() => {
     if (!buttonRef) return

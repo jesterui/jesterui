@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { NavLink as ReactNavLink, useNavigate } from 'react-router-dom'
+import { NavLink as ReactNavLink } from 'react-router-dom'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 
-import { pubKeyDisplayName } from '../util/app'
+import * as AppUtils from '../util/app'
 import { getSession, setSessionAttribute } from '../util/session'
 
 // @ts-ignore
@@ -43,7 +43,8 @@ export default function AppNavbar() {
     setSessionAttribute({ privateKey: null })
     settingsDispatch({ identity: undefined } as AppSettings)
   }
-
+  
+  const displayPubKey = publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull)
   /*const onProfileButtonClicked = () => {
     navigate(`/profile`)
   }*/
@@ -136,12 +137,13 @@ export default function AppNavbar() {
               </NavItem>
             </ReactNavLink>
 
-            {privateKeyOrNull && publicKeyOrNull && (
+            {privateKeyOrNull && publicKeyOrNull && displayPubKey && (
               <ReactNavLink to="/" className={({ isActive }) => `hidden lg:block mx-1 my-1 ${isActive ? '' : ''}`}>
                 <img
                   className="w-6 h-6 ml-2 mr-2 rounded-full shadow-lg-gray bg-blue-gray-500"
                   src={`https://robohash.org/${publicKeyOrNull}`}
                   title={publicKeyOrNull}
+                  alt={displayPubKey}
                 />
                 <span className="lg:hidden">Profile</span>
               </ReactNavLink>
@@ -166,7 +168,7 @@ export default function AppNavbar() {
                   <Dropdown
                     color="deepOrange"
                     placement="bottom-start"
-                    buttonText={pubKeyDisplayName(publicKeyOrNull)}
+                    buttonText={displayPubKey}
                     buttonType="filled"
                     size="regular"
                     rounded={false}

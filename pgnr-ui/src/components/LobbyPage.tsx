@@ -11,8 +11,9 @@ import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdenti
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
 import JesterId from '../components/jester/JesterId'
-import { GameCard } from './GameCard'
-import { GameById } from './jester/GameById'
+import { GameCard } from '../components/GameCard'
+import { Spinner } from '../components/Spinner'
+import { GameById } from '../components/jester/GameById'
 
 import * as JesterUtils from '../util/jester'
 import * as AppUtils from '../util/app'
@@ -27,7 +28,6 @@ import Small from '@material-tailwind/react/Small'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
-import { Spinner } from './Spinner'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
