@@ -23,6 +23,7 @@ export function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey:
             ripple="light"
             ref={createNewGameButtonRef}
             disabled={!hasPrivateKey}
+            className="w-40"
           >
             Start new game
             <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
@@ -39,6 +40,7 @@ export function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey:
             iconOnly={false}
             ripple="light"
             ref={generateRandomIdentityButtonRef}
+            className="w-40"
           >
             New Identity
             <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />

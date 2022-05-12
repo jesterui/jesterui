@@ -1,4 +1,4 @@
-import React, { MouseEvent, ChangeEvent, useState, useRef } from 'react'
+import React, { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
@@ -36,6 +36,7 @@ function CreateIdentityStep() {
           iconOnly={false}
           ripple="light"
           ref={generateRandomIdentityButtonRef}
+          className="w-48"
         >
           New Identity
           <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
