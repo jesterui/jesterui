@@ -13,6 +13,9 @@ import LeadText from '@material-tailwind/react/LeadText'
 import { Identity, useSettings } from '../context/SettingsContext'
 import { getSession } from '../util/session'
 import { pubKeyDisplayName } from '../util/app'
+import { GameById } from './jester/GameById'
+import { Spinner } from './Spinner'
+import { GameCard } from './GameCard'
 
 function CreateIdentityStep() {
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
@@ -110,7 +113,6 @@ function IdentityStep({ identity }: { identity: Identity | null }) {
 
 function SetupCompleteStep({ identity }: { identity: Identity }) {
   const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
-  const redirectToCurrentGameButtonRef = useRef<HTMLButtonElement>(null)
   const settings = useSettings()
   const navigate = useNavigate()
 
@@ -123,35 +125,39 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           {`Hello, ${pubKeyDisplayName(identity.pubkey)}.`}
         </h1>
       </div>
-      <div className="flex justify-center text-center">
-        <LeadText color="">Join another player or start your own game.</LeadText>
-      </div>
+
+      {!settings.currentGameJesterId ? (
+        <div className="flex justify-center text-center">
+          <LeadText color="">Join another player or start your own game.</LeadText>
+        </div>
+      ) : (
+        <GameById jesterId={settings.currentGameJesterId}>
+          {(game) => {
+            if (game === undefined) {
+              return <Spinner />
+            } else if (game === null) {
+              return (
+                <div className="flex justify-center text-center">
+                  <LeadText color="">Join another player or start your own game.</LeadText>
+                </div>
+              )
+            } else {
+              return (
+                <>
+                  <div className="flex justify-center text-center">
+                    <LeadText color="">Your current game already started</LeadText>
+                  </div>
+                  <div className="flex justify-center my-4">
+                    <GameCard game={game} />
+                  </div>
+                </>
+              )
+            }
+          }}
+        </GameById>
+      )}
+
       <div className="flex justify-center items-center space-x-4 my-4">
-        {settings.currentGameJesterId && (
-          <>
-            <Button
-              color="green"
-              buttonType="filled"
-              size="regular"
-              rounded={false}
-              block={false}
-              iconOnly={false}
-              ripple="dark"
-              ref={redirectToCurrentGameButtonRef}
-              disabled={!settings.currentGameJesterId}
-              className="px-1 w-40"
-            >
-              Keep playing
-              <CurrentGameRedirectButtonHook
-                buttonRef={redirectToCurrentGameButtonRef}
-                jesterId={settings.currentGameJesterId}
-              />
-            </Button>
-
-            <div>or</div>
-          </>
-        )}
-
         <Button
           color="green"
           buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
@@ -161,7 +167,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           iconOnly={false}
           ripple="light"
           ref={createNewGameButtonRef}
-          className={`px-1 ${settings.currentGameJesterId ? 'w-40' : 'w-48'}`}
+          className="w-48"
         >
           Start a new game
           <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
@@ -198,7 +204,7 @@ export default function Index() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        <div className="w-full grid grid-cols-1 mt-16">
+        <div className="w-full grid grid-cols-1 mt-8">
           {!incomingNostr && (
             <div className="flex justify-center my-4">
               <div>No connection to nostr</div>
