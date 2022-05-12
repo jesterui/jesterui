@@ -283,7 +283,7 @@ const KeyPairForm = () => {
   )
 }
 
-export default function Settings() {
+export default function SettingsPage() {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()

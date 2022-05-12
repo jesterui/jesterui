@@ -20,13 +20,13 @@ import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
 
-interface SearchFrom {
+interface SearchFromProps {
   onSearchButtonClicked: (val: string) => void
   onSearchInputChange?: (val: string) => void
   error?: boolean
   success?: boolean
 }
-const SearchFrom = (props: SearchFrom) => {
+const SearchFrom = (props: SearchFromProps) => {
   const [searchInputValue, setSearchInputValue] = useState<string>('')
 
   const onSearchInputChange = (e: ChangeEvent<HTMLInputElement>) => {

@@ -7,9 +7,9 @@ import NostrManageSubscriptions from './components/nostr/NostrManageSubscription
 import NoCurrentGamePage from './components/NoCurrentGamePage'
 import NostrManageRelays from './components/nostr/NostrManageRelays'
 import AppNavbar from './components/AppNavbar'
-import Settings from './components/Settings'
-import Index from './components/Index'
-import Faq from './components/Faq'
+import SettingsPage from './components/SettingsPage'
+import IndexPage from './components/IndexPage'
+import FaqPage from './components/FaqPage'
 import RedirectToGame from './components/RedirectToGame'
 import LobbyPage from './components/LobbyPage'
 import GameByIdPage from './components/GameByIdPage'
@@ -37,7 +37,7 @@ export default function App() {
         <section className="App-container">
           <Routes>
             <Route element={<Layout variant={null} />}>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<IndexPage />} />
               <Route
                 path="/current"
                 element={
@@ -53,9 +53,9 @@ export default function App() {
               <Route path="/game/:jesterId" element={<GameByIdPage />} />
               <Route path="/redirect/game/:jesterId" element={<RedirectToGame replace={true} />} />
               <Route path="/search" element={<SearchPage />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/login" element={<Navigate to="/settings" replace={true} />} />
-              <Route path="/faq" element={<Faq />} />
+              <Route path="/faq" element={<FaqPage />} />
               <Route path="*" element={<Navigate to="/" replace={true} />} />
             </Route>
           </Routes>

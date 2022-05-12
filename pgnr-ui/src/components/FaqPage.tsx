@@ -5,7 +5,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
 
-export default function Faq() {
+export default function FaqPage() {
   useEffect(() => {
     const previousTitle = document.title
     document.title = `FAQ`

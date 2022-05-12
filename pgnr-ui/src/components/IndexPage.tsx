@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
-import { CreateGameAndRedirectButton, CurrentGameRedirectButtonHook } from '../components/CreateGameButton'
+import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
 
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
@@ -192,7 +192,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
   )
 }
 
-export default function Index() {
+export default function IndexPage() {
   const incomingNostr = useIncomingNostrEvents()
   const settings = useSettings()
 

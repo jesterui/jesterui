@@ -160,7 +160,8 @@ function GameListEntry({ game }: GameListEntryProps) {
           <img
             className="w-16 h-16 rounded-full shadow-lg-gray bg-blue-gray-500"
             src={`https://robohash.org/${game.pubkey}`}
-            alt="Neil image"
+            alt={displayPubKey}
+            title={game.pubkey}
           />
         </div>
         <div className="flex-1 min-w-0">
@@ -188,7 +189,7 @@ function GameList(props: GameListProps) {
       {/*<div className=" max-w-md rounded-lg border border-gray-900 shadow-md p-4 ">*/}
       <div className="max-w-md rounded-lg ">
         <div className="flow-root">
-          <ul role="list">
+          <ul>
             {props.games.map((game) => {
               return (
                 <li

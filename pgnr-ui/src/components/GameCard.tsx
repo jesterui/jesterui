@@ -17,31 +17,6 @@ import Small from '@material-tailwind/react/Small'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
-import { GameById } from './jester/GameById'
-
-/*
-interface GameCardByIdProps {
-  jesterId: JesterUtils.JesterId
-}
-export function GameCardById({ jesterId }: GameCardByIdProps) {
-    return (<>
-      <GameById jesterId={jesterId}>
-        {(game) => {
-           if (game === undefined) {
-            return (<>
-              <div>Loading...</div>
-            </>)
-          } else if (game === null) {
-            return (<>
-              <div>{`Game ${jesterId} not found...`}</div>
-            </>)
-          } else {
-            return (<GameCard game={game} />)
-          }
-        }}
-      </GameById>
-    </>)
-}*/
 
 interface GameCardProps {
   game: GameStartEvent
