@@ -74,7 +74,7 @@ export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 my-4">
+          <div className="flex items-center sm:space-x-4 space-x-2 my-4">
             <img
               className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
               src={`https://robohash.org/${game.pubkey}`}
