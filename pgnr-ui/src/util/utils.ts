@@ -1,3 +1,7 @@
+export const isFunction = (obj: any): obj is Function =>
+  typeof obj === 'function';
+
+
 export const arrayEquals = (a: any, b: any): boolean => {
   return (
     Array.isArray(a) &&

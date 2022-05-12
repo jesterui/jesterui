@@ -11,6 +11,8 @@ import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdenti
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
 import JesterId from '../components/JesterId'
+import { GameCard } from './GameCard'
+import { GameById } from './jester/GameById'
 
 import * as JesterUtils from '../util/jester'
 import * as AppUtils from '../util/app'
@@ -303,10 +305,25 @@ export default function LobbyPage() {
       ) : (
         <>
           <div className="flex justify-center my-4">
-            {!currentGameLiveQuery ? (
+            {!settings.currentGameJesterId ? (
               <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-            ) : (
-              <CurrentGameCard game={currentGameLiveQuery} moveCount={currentGameMoveCountLiveQuery} />
+            ) : (<>
+              <GameById jesterId={settings.currentGameJesterId}>
+                {(game) => {
+                  if (game === undefined) {
+                  return (<>
+                    <div>Loading...</div>
+                  </>)
+                } else if (game === null) {
+                  return (<>
+                    <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                  </>)
+                } else {
+                  return (<GameCard game={game} />)
+                }
+              }}
+            </GameById>
+              </>
             )}
           </div>
 

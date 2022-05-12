@@ -316,7 +316,7 @@ function GameboardWithLoader({
   )
 }
 
-export default function GameById({ jesterId: argJesterId }: { jesterId?: JesterUtils.JesterId }) {
+export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: JesterUtils.JesterId }) {
   const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterUtils.JesterId }>()
 
   const [jesterId] = useState<JesterUtils.JesterId | undefined>(

@@ -12,7 +12,7 @@ import Index from './components/Index'
 import Faq from './components/Faq'
 import RedirectToGame from './components/RedirectToGame'
 import LobbyPage from './components/LobbyPage'
-import GameById from './components/GameById'
+import GameByIdPage from './components/GameByIdPage'
 import Layout from './Layout'
 
 import './App.css'
@@ -50,7 +50,7 @@ export default function App() {
               />
               {settings.dev && <Route path="/no-current-game" element={<NoCurrentGamePage />} />}
               <Route path="/lobby" element={<LobbyPage />} />
-              <Route path="/game/:jesterId" element={<GameById />} />
+              <Route path="/game/:jesterId" element={<GameByIdPage />} />
               <Route path="/redirect/game/:jesterId" element={<RedirectToGame replace={true} />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/settings" element={<Settings />} />
