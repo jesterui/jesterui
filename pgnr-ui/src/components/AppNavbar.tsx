@@ -7,7 +7,6 @@ import { WebsocketIndicator } from '../components/WebsocketIndicator'
 
 import { pubKeyDisplayName } from '../util/app'
 import { getSession, setSessionAttribute } from '../util/session'
-import * as NostrIdentity from '../util/nostr/identity'
 
 // @ts-ignore
 import Navbar from '@material-tailwind/react/Navbar'
@@ -114,7 +113,7 @@ export default function AppNavbar() {
                 <span className="lg:hidden">Search</span>
               </NavItem>
             </ReactNavLink>
-            <ReactNavLink
+            {/*<ReactNavLink
               to="/faq"
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
@@ -124,7 +123,7 @@ export default function AppNavbar() {
                 </div>
                 <span className="lg:hidden">FAQ</span>
               </NavItem>
-            </ReactNavLink>
+            </ReactNavLink>*/}
             <ReactNavLink
               to="/settings"
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
