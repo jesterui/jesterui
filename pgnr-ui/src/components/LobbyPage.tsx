@@ -10,7 +10,7 @@ import { CurrentGameRedirectButtonHook } from '../components/CreateGameButton'
 import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
-import JesterId from '../components/JesterId'
+import JesterId from '../components/jester/JesterId'
 import { GameCard } from './GameCard'
 import { GameById } from './jester/GameById'
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 
-import JesterId from '../components/JesterId'
+import JesterId from '../components/jester/JesterId'
 
 import * as JesterUtils from '../util/jester'
 

@@ -1,4 +1,4 @@
-import * as JesterUtils from '../util/jester'
+import * as JesterUtils from '../../util/jester'
 
 import styles from './JesterId.module.css'
 
