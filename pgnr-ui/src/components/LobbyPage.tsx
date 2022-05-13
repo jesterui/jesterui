@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
@@ -19,6 +19,7 @@ import { GameStartEvent } from '../util/app_db'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
+import { jesterIdToGameId } from '../util/jester'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -69,6 +70,7 @@ export default function LobbyPage() {
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
   const [gameStartEventFilter, setGameStartEventFilter] = useState(createGameOverviewFilter(new Date()))
+  const currentGameId = useMemo(() => settings.currentGameJesterId && jesterIdToGameId(settings.currentGameJesterId), [settings])
 
   const privateKeyOrNull = getSession()?.privateKey || null
 
@@ -103,6 +105,10 @@ export default function LobbyPage() {
     [gameStartEventFilter],
     null
   )
+
+  const listOfStartGames = useMemo(() => {
+    return listOfStartGamesLiveQuery?.filter((it) => it.id !== currentGameId)
+  }, [listOfStartGamesLiveQuery, currentGameId])
 
   useEffect(() => {
     const previousTitle = document.title
@@ -156,7 +162,7 @@ export default function LobbyPage() {
           {
             <div className="my-4">
               <Heading6 color="blueGray">Latest Games</Heading6>
-              {listOfStartGamesLiveQuery?.length || 0} games available
+              {listOfStartGames?.length || 0} games available
               <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
               <Small color="gray"> from {gameStartEventFilter.from.toLocaleString()}</Small>
               <Small color="gray"> to {gameStartEventFilter.until.toLocaleString()}</Small>
@@ -164,7 +170,7 @@ export default function LobbyPage() {
           }
 
           <div className="my-4">
-            <GameList games={listOfStartGamesLiveQuery || []} />
+            <GameList games={listOfStartGames || []} />
           </div>
         </>
       )}
