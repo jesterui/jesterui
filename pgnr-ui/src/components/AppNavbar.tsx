@@ -43,7 +43,7 @@ export default function AppNavbar() {
     setSessionAttribute({ privateKey: null })
     settingsDispatch({ identity: undefined } as AppSettings)
   }
-  
+
   const displayPubKey = publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull)
   /*const onProfileButtonClicked = () => {
     navigate(`/profile`)

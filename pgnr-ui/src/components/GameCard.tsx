@@ -37,7 +37,20 @@ export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
     null
   )
 
-  const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
+  const player1PubKey = game.pubkey
+  const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
+
+  const player2PubKey = useLiveQuery(
+    async () => {
+      if (!game) return null
+      const event = await gameStore.game_move.where('[gameId+moveCounter]').equals([game.id, 2]).first()
+
+      return (event && event.pubkey) || null
+    },
+    [game],
+    null
+  )
+  const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
 
   const unsubscribeFromCurrentGame = useCallback(() => {
     settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
@@ -77,17 +90,23 @@ export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
           <div className="flex items-center sm:space-x-4 space-x-2 my-4">
             <img
               className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-              src={`https://robohash.org/${game.pubkey}`}
-              title={game.pubkey}
-              alt={displayPubKey}
+              src={`https://robohash.org/${player1PubKey}`}
+              title={player1PubKey}
+              alt={displayPlayer1PubKey}
             />
             <div className="text-xl font-medium">vs.</div>
-            <img
-              className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-              src={`https://robohash.org/${game.id}`}
-              title={game.id}
-              alt={displayPubKey}
-            />
+            {player2PubKey && displayPlayer2PubKey ? (
+              <img
+                className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                src={`https://robohash.org/${player2PubKey}`}
+                title={player2PubKey}
+                alt={displayPlayer2PubKey}
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center">
+                <Icon name="question_mark" size="xxl" />
+              </div>
+            )}
           </div>
 
           {/*

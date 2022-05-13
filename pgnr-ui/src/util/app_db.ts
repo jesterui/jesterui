@@ -17,7 +17,7 @@ export class AppDexie extends Dexie {
     super('app_game_events')
     this.version(1).stores({
       game_start: '&id, pubkey, created_at',
-      game_move: '&id, gameId, parentMoveId, moveCounter',
+      game_move: '&id, gameId, parentMoveId, [gameId+moveCounter]',
     })
   }
 }
