@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { NavLink as ReactNavLink } from 'react-router-dom'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -37,7 +37,7 @@ export default function AppNavbar() {
   const settingsDispatch = useSettingsDispatch()
   const [openMenu, setOpenMenu] = useState(false)
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const deleteIdentityButtonClicked = () => {

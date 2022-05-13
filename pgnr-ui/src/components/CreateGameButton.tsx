@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useCallback } from 'react'
+import React, { RefObject, useEffect, useCallback, useMemo } from 'react'
 
 import { useSettings } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -25,7 +25,7 @@ export default function CreateGameButton({
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const onStartGameButtonClicked = useCallback(async () => {

@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, ProviderProps, useEffect } from 'react'
+import React, { useState, createContext, useContext, useMemo, ProviderProps, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useSettings } from './SettingsContext'
@@ -70,11 +70,11 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   const gameStore = useGameStore()
   const outgoingNostr = useOutgoingNostrEvents()
 
-  const userPublicKeyOrNull = settings.identity?.pubkey || null
+  const userPublicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const userPrivateKeyOrNull = getSession()?.privateKey || null
 
-  const currentGameJesterId = settings.currentGameJesterId
-  const selectedBotName = settings.botName
+  const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
+  const selectedBotName = useMemo(() => settings.botName, [settings])
 
   const [botKeyPair, setBotKeyPair] = useState<KeyPair | null>(null)
   const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(null)

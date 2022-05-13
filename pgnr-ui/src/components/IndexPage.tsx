@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
@@ -196,7 +196,7 @@ export default function IndexPage() {
   const incomingNostr = useIncomingNostrEvents()
   const settings = useSettings()
 
-  const identity = settings.identity || null
+  const identity = useMemo(() => settings.identity || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const showIdentityStep = identity === null || privateKeyOrNull === null

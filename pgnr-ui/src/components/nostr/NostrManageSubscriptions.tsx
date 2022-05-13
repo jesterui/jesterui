@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { useSettings } from '../../context/SettingsContext'
@@ -68,8 +68,8 @@ export default function NostrManageSubscriptions() {
   const settings = useSettings()
   const updateSubscription = useUpdateSubscription()
 
-  const currentGameJesterId = settings.currentGameJesterId
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
 
   const [gameStartFilters] = useState<NIP01.Filter[]>([
     {

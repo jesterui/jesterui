@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -342,7 +342,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
   // in 10 seconds, or never..
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   useEffect(() => {

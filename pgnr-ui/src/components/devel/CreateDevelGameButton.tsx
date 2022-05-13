@@ -1,4 +1,4 @@
-import React, { MouseEvent } from 'react'
+import React, { useMemo, MouseEvent } from 'react'
 
 import { useSettings } from '../../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../../context/NostrEventsContext'
@@ -15,7 +15,7 @@ export default function CreateDevelGameButton({ className, onGameCreated }: Crea
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const onButtonClicked = async (e: MouseEvent<HTMLButtonElement>) => {

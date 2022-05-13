@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, ChangeEvent } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, ChangeEvent } from 'react'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -41,7 +41,7 @@ function TestNostrConnectionButton() {
   const [waitForEvent, setWaitForEvent] = useState<NIP01.Event | null>(null)
   const [statusText, setStatusText] = useState<string>('')
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   useEffect(() => {
@@ -181,7 +181,7 @@ const KeyPairForm = () => {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const [publicKeyInputValue, setPublicKeyInputValue] = useState<PubKey>(publicKeyOrNull || '')
@@ -297,24 +297,27 @@ export default function SettingsPage() {
     }
   }, [])
 
-  const [selectedBotName, setSelectedBotName] = useState<string | null>(settings.botName)
+  const relays = useMemo(() => settings.relays, [settings])
+  const selectedBotName = useMemo(() => settings.botName, [settings])
 
   const updateSelectedBotName = (botName: string | null) => {
-    setSelectedBotName(botName)
     settingsDispatch({ botName } as AppSettings)
   }
 
-  const onRelayClicked = (relay: string) => {
-    const index = settings.relays.indexOf(relay, 0)
-    const shouldAdd = index === -1
-    if (shouldAdd) {
-      settingsDispatch({ relays: [relay] } as AppSettings)
-    } else {
-      const newVal = [...settings.relays]
-      newVal.splice(index, 1)
-      settingsDispatch({ relays: newVal } as AppSettings)
-    }
-  }
+  const onRelayClicked = useCallback(
+    (relay: string) => {
+      const index = relays.indexOf(relay, 0)
+      const shouldAdd = index === -1
+      if (shouldAdd) {
+        settingsDispatch({ relays: [relay] } as AppSettings)
+      } else {
+        const newVal = [...relays]
+        newVal.splice(index, 1)
+        settingsDispatch({ relays: newVal } as AppSettings)
+      }
+    },
+    [settings, settingsDispatch]
+  )
 
   const onDeveloperModeToggleClicked = () => {
     settingsDispatch({ dev: !settings.dev } as AppSettings)
@@ -381,7 +384,7 @@ export default function SettingsPage() {
                 color="blueGray"
                 text={relay}
                 id={`relay-checkbox-${index}`}
-                checked={settings.relays.includes(relay)}
+                checked={relays.includes(relay)}
                 onChange={() => onRelayClicked(relay)}
               />
             </div>

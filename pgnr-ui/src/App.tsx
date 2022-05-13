@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom'
 import { useSettings } from './context/SettingsContext'
 
@@ -20,8 +20,7 @@ import SearchPage from './components/SearchPage'
 
 export default function App() {
   const settings = useSettings()
-
-  const currentGameJesterIdOrNull = settings.currentGameJesterId
+  const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
 
   return (
     <>
@@ -41,8 +40,8 @@ export default function App() {
               <Route
                 path="/current"
                 element={
-                  currentGameJesterIdOrNull ? (
-                    <RedirectToGame jesterId={currentGameJesterIdOrNull} replace={true} />
+                  currentGameJesterId ? (
+                    <RedirectToGame jesterId={currentGameJesterId} replace={true} />
                   ) : (
                     <NoCurrentGamePage />
                   )

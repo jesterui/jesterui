@@ -70,7 +70,10 @@ export default function LobbyPage() {
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
   const [gameStartEventFilter, setGameStartEventFilter] = useState(createGameOverviewFilter(new Date()))
-  const currentGameId = useMemo(() => settings.currentGameJesterId && jesterIdToGameId(settings.currentGameJesterId), [settings])
+  const currentGameId = useMemo(
+    () => settings.currentGameJesterId && jesterIdToGameId(settings.currentGameJesterId),
+    [settings]
+  )
 
   const privateKeyOrNull = getSession()?.privateKey || null
 

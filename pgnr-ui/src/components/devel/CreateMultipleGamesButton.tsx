@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useMemo } from 'react'
 
 import { useSettings } from '../../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../../context/NostrEventsContext'
@@ -17,7 +17,7 @@ export default function CreateMultipleGamesButton({ className, amount = 10 }: Cr
   const settings = useSettings()
   const createGameButtonRef = useRef<HTMLButtonElement>(null)
 
-  const publicKeyOrNull = settings.identity?.pubkey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
   const onButtonClicked = async (amount: number) => {

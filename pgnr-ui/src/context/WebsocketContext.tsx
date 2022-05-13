@@ -1,4 +1,4 @@
-import React, { ProviderProps, createContext, useEffect, useState, useContext } from 'react'
+import React, { ProviderProps, createContext, useEffect, useMemo, useState, useContext } from 'react'
 import { useSettings } from './SettingsContext'
 
 const WEBSOCKET_RECONNECT_DELAY_STEP = 1_000
@@ -119,17 +119,12 @@ const WebsocketContext = createContext<WebsocketContextEntry | undefined>(undefi
 
 const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | undefined>) => {
   const settings = useSettings()
-  const [host, setHost] = useState<string | null>(null)
+  const host = useMemo<string | null>(() => settings.relays[0] || null, [settings])
   const [websocket, setWebsocket] = useState<WebSocket | null>(null)
   const [websocketState, setWebsocketState] = useState<number | null>(null)
   const [isWebsocketHealthy, setIsWebsocketHealthy] = useState(false)
   const [connectionErrorCount, setConnectionErrorCount] = useState(0)
   const [retryCounter, setRetryCounter] = useState(0)
-
-  useEffect(() => {
-    const host = settings.relays[0] || null
-    setHost(host)
-  }, [settings])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
