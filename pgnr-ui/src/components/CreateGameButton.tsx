@@ -98,12 +98,12 @@ export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGame
   return <CreateGameButton buttonRef={buttonRef} className={className} onGameCreated={onGameCreated} />
 }
 
-interface CurrentGameRedirectButtonHookProps {
+interface GameRedirectButtonHookProps {
   buttonRef: RefObject<HTMLButtonElement>
   jesterId: JesterUtils.JesterId
 }
 
-export function CurrentGameRedirectButtonHook({ buttonRef, jesterId }: CurrentGameRedirectButtonHookProps) {
+export function GameRedirectButtonHook({ buttonRef, jesterId }: GameRedirectButtonHookProps) {
   const navigate = useNavigate()
 
   const onClick = useCallback(() => navigate(`/redirect/game/${jesterId}`), [navigate, jesterId])

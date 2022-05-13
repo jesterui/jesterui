@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
@@ -9,13 +8,10 @@ import { useGameStore } from '../context/GameEventStoreContext'
 import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
-import JesterId from '../components/jester/JesterId'
-import { GameCard } from '../components/GameCard'
+import { GameCard, CurrentGameCard } from '../components/GameCard'
 import { Spinner } from '../components/Spinner'
 import { GameById } from '../components/jester/GameById'
 
-import * as JesterUtils from '../util/jester'
-import * as AppUtils from '../util/app'
 import { getSession } from '../util/session'
 import { GameStartEvent } from '../util/app_db'
 
@@ -23,7 +19,6 @@ import { GameStartEvent } from '../util/app_db'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import { RoboHashImg } from './RoboHashImg'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -45,45 +40,6 @@ const createGameOverviewFilter = (now: Date) => {
   } as GamesFilter
 }
 
-interface GameListEntryProps {
-  game: GameStartEvent
-}
-
-/*function GameListEntry({ game }: GameListEntryProps) {
-  const jesterId = JesterUtils.gameIdToJesterId(game.id)
-  const displayGameName = AppUtils.displayGameName(game)
-  const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
-
-  return (
-    <Link to={`/game/${jesterId}`}>
-      <div className="flex items-center space-x-4">
-        <div className="flex-shrink-0">
-          <RoboHashImg
-            className="w-16 h-16 rounded-full shadow-lg-gray bg-blue-gray-500"
-            value={game.pubkey}
-            alt={displayPubKey}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">
-            <JesterId jesterId={jesterId} />
-          </p>
-          <p className="text-sm text-gray-500 truncate">{displayPubKey}</p>
-          <p className="text-sm text-gray-500 truncate">
-            <Small color="yellow"> started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-          </p>
-        </div>
-        <div className="inline-flex items-center text-base font-semibold"></div>
-      </div>
-    </Link>
-  )
-}*/
-
-function GameListEntry({ game }: GameListEntryProps) {
-  const jesterId = JesterUtils.gameIdToJesterId(game.id)
-
-  return <GameCard game={game} title={jesterId} />
-}
 interface GameListProps {
   games: GameStartEvent[]
 }
@@ -91,27 +47,16 @@ interface GameListProps {
 function GameList(props: GameListProps) {
   return (
     <>
-      {/*<div className=" max-w-md rounded-lg border border-gray-900 shadow-md p-4 ">*/}
-      <div className="max-w-md rounded-lg ">
-        <div className="flow-root">
-          <ul>
-            {props.games.map((game) => {
-              return (
-                <li
-                  key={game.id}
-                  className="px-4 py-3 mb-2 
-                  rounded border border-gray-800 border-opacity-50 
-                  shadow-sm hover:shadow-xl 
-                  opacity-95 hover:opacity-100 
-                  transform  duration-300
-                  hover:-translate-y-1 hover:-translate-x-1
-                  hover:transform-scale-101"
-                >
-                  <GameListEntry game={game} />
-                </li>
-              )
-            })}
-          </ul>
+      {/*<div className="max-w-md rounded-lg border border-gray-900 shadow-md p-4">*/}
+      <div className="w-full max-w-md rounded-lg ">
+        <div className="grid justify-items-center gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {props.games.map((game) => {
+            return (
+              <div key={game.id} className="w-full max-w-sm">
+                <GameCard game={game} />
+              </div>
+            )
+          })}
         </div>
       </div>
     </>
@@ -182,27 +127,17 @@ export default function LobbyPage() {
             {!settings.currentGameJesterId ? (
               <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
             ) : (
-              <>
-                <GameById jesterId={settings.currentGameJesterId}>
-                  {(game) => {
-                    if (game === undefined) {
-                      return (
-                        <>
-                          <Spinner />
-                        </>
-                      )
-                    } else if (game === null) {
-                      return (
-                        <>
-                          <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-                        </>
-                      )
-                    } else {
-                      return <GameCard game={game} />
-                    }
-                  }}
-                </GameById>
-              </>
+              <GameById jesterId={settings.currentGameJesterId}>
+                {(game) => {
+                  if (game === undefined) {
+                    return <Spinner />
+                  } else if (game === null) {
+                    return <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                  } else {
+                    return <CurrentGameCard game={game} />
+                  }
+                }}
+              </GameById>
             )}
           </div>
 

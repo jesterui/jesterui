@@ -15,7 +15,7 @@ import { getSession } from '../util/session'
 import { pubKeyDisplayName } from '../util/app'
 import { GameById } from './jester/GameById'
 import { Spinner } from './Spinner'
-import { GameCard } from './GameCard'
+import { CurrentGameCard } from './GameCard'
 
 function CreateIdentityStep() {
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
@@ -148,7 +148,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
                     <LeadText color="">Your current game already started</LeadText>
                   </div>
                   <div className="flex justify-center my-4">
-                    <GameCard game={game} />
+                    <CurrentGameCard game={game} />
                   </div>
                 </>
               )
