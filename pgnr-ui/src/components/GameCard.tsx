@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
-import { AppSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
 import { GameRedirectButtonHook } from '../components/CreateGameButton'
 import { RoboHashImg } from '../components/RoboHashImg'
@@ -17,22 +17,35 @@ import Small from '@material-tailwind/react/Small'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+import { Spinner } from './Spinner'
 
 interface GameCardProps {
   game: GameStartEvent
 }
 
-export function GameCard({ game }: GameCardProps) {
-  const redirectToGameButtonRef = useRef<HTMLButtonElement>(null)
-  const [jesterId] = useState(JesterUtils.gameIdToJesterId(game.id))
+type JoinMode = 'play' | 'watch'
 
-  const displayJesterId = AppUtils.displayJesterIdShort(jesterId)
+export function GameCard({ game }: GameCardProps) {
+  const settings = useSettings()
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
+  
+  const jesterId = useMemo(() => JesterUtils.gameIdToJesterId(game.id), [game])
+  const displayJesterId = useMemo(() => AppUtils.displayJesterIdShort(jesterId), [jesterId])
+
+  const redirectToGameButtonRef = useRef<HTMLButtonElement>(null)
 
   return (
     <GameDetails game={game}>
       {({ moveCount, player1PubKey, player2PubKey }) => {
         const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
         const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
+
+        const isLoading = moveCount === null
+        const canJoinGame = publicKeyOrNull !== null && player1PubKey !== publicKeyOrNull && player2PubKey === null
+        const isAlreadyJoined = publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
+
+        const mode: JoinMode = !isLoading && (canJoinGame || isAlreadyJoined) ? 'play' : 'watch'
+
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
             <div className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
@@ -77,9 +90,10 @@ export function GameCard({ game }: GameCardProps) {
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
                 <div className="px-4 mt-2 w-full">
-                  <Button
-                    color="green"
-                    buttonType="filled"
+                  {isLoading ? (<Spinner />) : (
+                    <Button
+                    color={mode === 'play' ? 'green' : 'blueGray'}
+                    buttonType={mode === 'play' ? 'filled' : 'outline'}
                     size="regular"
                     rounded={false}
                     block={true}
@@ -87,9 +101,10 @@ export function GameCard({ game }: GameCardProps) {
                     ripple="dark"
                     ref={redirectToGameButtonRef}
                   >
-                    Play
+                    {mode === 'play' ? 'Play' : 'Watch'}
                     <GameRedirectButtonHook buttonRef={redirectToGameButtonRef} jesterId={jesterId} />
                   </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -107,8 +122,11 @@ interface CurrentGameCardProps {
 
 export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCardProps) {
   const settingsDispatch = useSettingsDispatch()
+  const settings = useSettings()
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
+
   const redirectToGameButtonRef = useRef<HTMLButtonElement>(null)
-  const [jesterId] = useState(JesterUtils.gameIdToJesterId(game.id))
+  const jesterId = useMemo(() => JesterUtils.gameIdToJesterId(game.id), [game])
 
   const unsubscribeFromCurrentGame = useCallback(() => {
     settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
@@ -119,6 +137,13 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
       {({ moveCount, player1PubKey, player2PubKey }) => {
         const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
         const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
+
+        const isLoading = moveCount === null
+        const canJoinGame = publicKeyOrNull !== null && player1PubKey !== publicKeyOrNull && player2PubKey === null
+        const isAlreadyJoined = publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
+
+        const mode: JoinMode = !isLoading && (canJoinGame || isAlreadyJoined) ? 'play' : 'watch'
+
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
             <div className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
@@ -183,9 +208,10 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
                 <div className="px-4 mt-2 w-full">
-                  <Button
-                    color="green"
-                    buttonType="filled"
+                  {isLoading ? (<Spinner />) : (
+                    <Button
+                    color={mode === 'play' ? 'green' : 'blueGray'}
+                    buttonType={mode === 'play' ? 'filled' : 'outline'}
                     size="regular"
                     rounded={false}
                     block={true}
@@ -193,9 +219,10 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
                     ripple="dark"
                     ref={redirectToGameButtonRef}
                   >
-                    Play
+                    {mode === 'play' ? 'Play' : 'Watch'}
                     <GameRedirectButtonHook buttonRef={redirectToGameButtonRef} jesterId={jesterId} />
                   </Button>
+                  )}
                 </div>
               </div>
             </div>

@@ -37,15 +37,15 @@ export default function AppNavbar() {
   const settingsDispatch = useSettingsDispatch()
   const [openMenu, setOpenMenu] = useState(false)
 
-  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
+  const displayPubKey = useMemo(() => publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull), [publicKeyOrNull])
 
   const deleteIdentityButtonClicked = () => {
     setSessionAttribute({ privateKey: null })
     settingsDispatch({ identity: undefined } as AppSettings)
   }
 
-  const displayPubKey = publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull)
   /*const onProfileButtonClicked = () => {
     navigate(`/profile`)
   }*/
