@@ -43,18 +43,19 @@ const createGameOverviewFilter = (now: Date) => {
 
 interface GameListProps {
   games: GameStartEvent[]
+  currentGameId?: string
 }
 
 function GameList(props: GameListProps) {
   return (
     <>
-      {/*<div className="max-w-md rounded-lg border border-gray-900 shadow-md p-4">*/}
       <div className="w-full max-w-md rounded-lg ">
-        <div className="grid justify-items-center gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid justify-items-center items-center gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {props.games.map((game) => {
+            const isCurrentGame = game.id === props.currentGameId
             return (
               <div key={game.id} className="w-full max-w-sm">
-                <GameCard game={game} />
+                <GameCard game={game} isCurrentGame={isCurrentGame} />
               </div>
             )
           })}
@@ -114,9 +115,21 @@ export default function LobbyPage() {
     [gameStartEventFilter],
     null
   )
+
   const listOfStartGames = useMemo(() => {
-    return listOfStartGamesLiveQuery?.filter((it) => it.id !== currentGameId)
-  }, [listOfStartGamesLiveQuery, currentGameId])
+    return listOfStartGamesLiveQuery ? [...listOfStartGamesLiveQuery] : []
+  }, [listOfStartGamesLiveQuery])
+
+  const listOfPrivateStartGamesLiveQuery = useLiveQuery(
+    async () => {
+      if (!privateStartGameRef) return null
+      const events = await gameStore.game_start.where('event_tags').equals(privateStartGameRef).limit(3).toArray()
+
+      return events
+    },
+    [gameStartEventFilter],
+    null
+  )
 
   useEffect(() => {
     const previousTitle = document.title
@@ -167,6 +180,20 @@ export default function LobbyPage() {
               </>
             )}
           </div>
+
+          {listOfPrivateStartGamesLiveQuery && listOfPrivateStartGamesLiveQuery.length > 0 && (
+            <>
+              <div className="my-4">
+                <Heading6 color="blueGray">
+                  Direct Challenges ({listOfPrivateStartGamesLiveQuery?.length || 0})
+                </Heading6>
+              </div>
+              <div className="my-4">
+                <GameList games={listOfPrivateStartGamesLiveQuery || []} currentGameId={currentGameId} />
+              </div>
+            </>
+          )}
+
           {
             <div className="my-4">
               <Heading6 color="blueGray">Latest Games</Heading6>
@@ -176,9 +203,8 @@ export default function LobbyPage() {
               <Small color="gray"> to {gameStartEventFilter.until.toLocaleString()}</Small>
             </div>
           }
-
           <div className="my-4">
-            <GameList games={listOfStartGames || []} />
+            <GameList games={listOfStartGames || []} currentGameId={currentGameId} />
           </div>
         </>
       )}

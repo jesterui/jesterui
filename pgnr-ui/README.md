@@ -10,7 +10,8 @@
 - [ ] currently, player started the game is always white 
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
-- [ ] let user play against a bot via nostr
+- [x] let user play against a bot via nostr
+  - bot should make move even when currentGameId is other game
 - [ ] Color scheme: More clean interface, use bright, warm colors
 - [ ] Dark Mode
 - [ ] Move Menu from Navbar to Sidebar - only necessary stuff in navbar

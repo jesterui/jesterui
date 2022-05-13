@@ -21,11 +21,12 @@ import { Spinner } from './Spinner'
 
 interface GameCardProps {
   game: GameStartEvent
+  isCurrentGame?: boolean
 }
 
 type JoinMode = 'play' | 'watch'
 
-export function GameCard({ game }: GameCardProps) {
+export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
   const settings = useSettings()
   const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
 
@@ -33,6 +34,10 @@ export function GameCard({ game }: GameCardProps) {
   const displayJesterId = useMemo(() => AppUtils.displayJesterIdShort(jesterId), [jesterId])
 
   const redirectToGameButtonRef = useRef<HTMLButtonElement>(null)
+
+  if (isCurrentGame) {
+    return <CurrentGameCard game={game} />
+  }
 
   return (
     <GameDetails game={game}>
@@ -49,7 +54,9 @@ export function GameCard({ game }: GameCardProps) {
 
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
-            <div className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
+            <div
+              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800`}
+            >
               <div className="flex flex-col items-center pb-4 pt-4">
                 <div className="flex items-center justify-center w-full">
                   <h6 className="text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">

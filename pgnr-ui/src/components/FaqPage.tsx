@@ -52,8 +52,9 @@ export default function FaqPage() {
         <a href="https://github.com/react-chess/chessground">https://github.com/react-chess/chessground</a>
       </div>
       <div>
-        - react-chessboard (GitHub):{' '}
-        <a href="https://github.com/Clariity/react-chessboard">https://github.com/Clariity/react-chessboard</a>
+        <div>
+          - dexie (GitHub): <a href="https://github.com/dexie/Dexie.js">https://github.com/dexie/Dexie.js</a>
+        </div>
       </div>
 
       <Heading6 color="blueGray">Theming</Heading6>

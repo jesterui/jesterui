@@ -50,8 +50,18 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
     const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
       if (JesterUtils.isStartGameEvent(entry)) {
         trans.on('complete', async () => {
+          const additionalEventTags = entry.tags
+            .filter((t) => t[0] === NIP01.TagEnum.e)
+            .map((t) => t[1] as NIP01.EventId)
+            .filter((t) => t !== JesterUtils.JESTER_START_GAME_E_REF)
+
+          const entity = {
+            ...entry,
+            event_tags: additionalEventTags,
+          }
+
           try {
-            const id = await db.game_start.put(entry)
+            const id = await db.game_start.put(entity)
             console.debug(`insert new game_start entry ${id}`)
           } catch (e) {
             console.debug('error while adding game_start - might already exist')
@@ -79,8 +89,8 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
       const possiblePreviousMoveEventId = eventRefs[1]
       const isInitialMove = possiblePreviousMoveEventId === possibleStartEventId
 
-      // TODO: currently the events arrive out of order.. so there might not be something to valide..
-      // even the start game, as well as a possible "parent move" may not be present..
+      // TODO: currently the events arrive out of order.. so there might not be something to valid..
+      // even the start game, as well as a possible "parent move", may not be present..
       // e.g. when an old game is loaded
       /*const gameStartEventOrNull = await db.game_start.get(possibleStartEventId)
       .then((val) =>  val !== undefined ? val : null)

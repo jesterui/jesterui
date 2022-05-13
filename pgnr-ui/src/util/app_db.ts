@@ -1,7 +1,9 @@
 import Dexie, { Table } from 'dexie'
 import * as NIP01 from './nostr/nip01'
 
-export interface GameStartEvent extends NIP01.Event {}
+export interface GameStartEvent extends NIP01.Event {
+  event_tags: NIP01.EventId[]
+}
 
 export interface GameMoveEvent extends NIP01.Event {
   gameId: NIP01.EventId
@@ -16,7 +18,7 @@ export class AppDexie extends Dexie {
   constructor() {
     super('app_game_events')
     this.version(1).stores({
-      game_start: '&id, pubkey, created_at',
+      game_start: '&id, pubkey, created_at, *event_tags',
       game_move: '&id, gameId, parentMoveId, [gameId+moveCounter]',
     })
   }
