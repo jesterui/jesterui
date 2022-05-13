@@ -28,7 +28,7 @@ type JoinMode = 'play' | 'watch'
 export function GameCard({ game }: GameCardProps) {
   const settings = useSettings()
   const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
-  
+
   const jesterId = useMemo(() => JesterUtils.gameIdToJesterId(game.id), [game])
   const displayJesterId = useMemo(() => AppUtils.displayJesterIdShort(jesterId), [jesterId])
 
@@ -42,7 +42,8 @@ export function GameCard({ game }: GameCardProps) {
 
         const isLoading = moveCount === null
         const canJoinGame = publicKeyOrNull !== null && player1PubKey !== publicKeyOrNull && player2PubKey === null
-        const isAlreadyJoined = publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
+        const isAlreadyJoined =
+          publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
 
         const mode: JoinMode = !isLoading && (canJoinGame || isAlreadyJoined) ? 'play' : 'watch'
 
@@ -90,20 +91,22 @@ export function GameCard({ game }: GameCardProps) {
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
                 <div className="px-4 mt-2 w-full">
-                  {isLoading ? (<Spinner />) : (
+                  {isLoading ? (
+                    <Spinner />
+                  ) : (
                     <Button
-                    color={mode === 'play' ? 'green' : 'blueGray'}
-                    buttonType={mode === 'play' ? 'filled' : 'outline'}
-                    size="regular"
-                    rounded={false}
-                    block={true}
-                    iconOnly={false}
-                    ripple="dark"
-                    ref={redirectToGameButtonRef}
-                  >
-                    {mode === 'play' ? 'Play' : 'Watch'}
-                    <GameRedirectButtonHook buttonRef={redirectToGameButtonRef} jesterId={jesterId} />
-                  </Button>
+                      color={mode === 'play' ? 'green' : 'blueGray'}
+                      buttonType={mode === 'play' ? 'filled' : 'outline'}
+                      size="regular"
+                      rounded={false}
+                      block={true}
+                      iconOnly={false}
+                      ripple="dark"
+                      ref={redirectToGameButtonRef}
+                    >
+                      {mode === 'play' ? 'Play' : 'Watch'}
+                      <GameRedirectButtonHook buttonRef={redirectToGameButtonRef} jesterId={jesterId} />
+                    </Button>
                   )}
                 </div>
               </div>
@@ -140,7 +143,8 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
 
         const isLoading = moveCount === null
         const canJoinGame = publicKeyOrNull !== null && player1PubKey !== publicKeyOrNull && player2PubKey === null
-        const isAlreadyJoined = publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
+        const isAlreadyJoined =
+          publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
 
         const mode: JoinMode = !isLoading && (canJoinGame || isAlreadyJoined) ? 'play' : 'watch'
 
@@ -208,20 +212,22 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
                 <div className="px-4 mt-2 w-full">
-                  {isLoading ? (<Spinner />) : (
+                  {isLoading ? (
+                    <Spinner />
+                  ) : (
                     <Button
-                    color={mode === 'play' ? 'green' : 'blueGray'}
-                    buttonType={mode === 'play' ? 'filled' : 'outline'}
-                    size="regular"
-                    rounded={false}
-                    block={true}
-                    iconOnly={false}
-                    ripple="dark"
-                    ref={redirectToGameButtonRef}
-                  >
-                    {mode === 'play' ? 'Play' : 'Watch'}
-                    <GameRedirectButtonHook buttonRef={redirectToGameButtonRef} jesterId={jesterId} />
-                  </Button>
+                      color={mode === 'play' ? 'green' : 'blueGray'}
+                      buttonType={mode === 'play' ? 'filled' : 'outline'}
+                      size="regular"
+                      rounded={false}
+                      block={true}
+                      iconOnly={false}
+                      ripple="dark"
+                      ref={redirectToGameButtonRef}
+                    >
+                      {mode === 'play' ? 'Play' : 'Watch'}
+                      <GameRedirectButtonHook buttonRef={redirectToGameButtonRef} jesterId={jesterId} />
+                    </Button>
                   )}
                 </div>
               </div>

@@ -32,7 +32,10 @@ const GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[0] : 'game_s
 const PRIVATE_GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[1] : 'private_game_start'
 const CURRENT_GAME_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[2] : 'current_game'
 
-const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NIP01.Filter[] => {
+const createPrivateGameStartFilterOrEmpty = (
+  publicKey: NIP01.PubKey | null,
+  sinceMinutesBack: number
+): NIP01.Filter[] => {
   if (!publicKey) {
     return []
   }
@@ -41,7 +44,7 @@ const createPrivateGameStartFilterOrEmpty = (publicKey: NIP01.PubKey | null): NI
     ? [
         {
           ...JesterUtils.createPrivateGameStartFilter(publicKey),
-          since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
+          since: createSinceFilterValue(sinceMinutesBack),
         },
       ]
     : []
@@ -78,9 +81,10 @@ export default function NostrManageSubscriptions() {
     },
   ])
 
-  const [privateGameStartFilters, setPrivateGameStartFilters] = useState<NIP01.Filter[]>(
-    createPrivateGameStartFilterOrEmpty(publicKeyOrNull)
-  )
+  const privateGameStartFilters = useMemo<NIP01.Filter[]>(() => {
+    const minutesBack = 60 * 24 * 2 // 2 days
+    return createPrivateGameStartFilterOrEmpty(publicKeyOrNull, minutesBack)
+  }, [publicKeyOrNull])
 
   const [currentGameFilters, setCurrentGameFilters] = useState<NIP01.Filter[]>([])
 
@@ -114,11 +118,6 @@ export default function NostrManageSubscriptions() {
       setCurrentGameFilters([])
     }
   }, [currentGameJesterId])
-
-  useEffect(() => {
-    const newFilterOrEmpty = createPrivateGameStartFilterOrEmpty(publicKeyOrNull)
-    setPrivateGameStartFilters(newFilterOrEmpty)
-  }, [publicKeyOrNull])
 
   return <></>
 }

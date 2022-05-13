@@ -19,7 +19,7 @@ import { GameStartEvent } from '../util/app_db'
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import { jesterIdToGameId } from '../util/jester'
+import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -75,7 +75,13 @@ export default function LobbyPage() {
     [settings]
   )
 
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
+
+  const privateStartGameRef = useMemo(
+    () => publicKeyOrNull && jesterPrivateStartGameRef(publicKeyOrNull),
+    [publicKeyOrNull]
+  )
 
   const [tick, setTick] = useState<number>(Date.now())
 
@@ -108,7 +114,6 @@ export default function LobbyPage() {
     [gameStartEventFilter],
     null
   )
-
   const listOfStartGames = useMemo(() => {
     return listOfStartGamesLiveQuery?.filter((it) => it.id !== currentGameId)
   }, [listOfStartGamesLiveQuery, currentGameId])
