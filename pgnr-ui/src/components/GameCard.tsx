@@ -17,6 +17,7 @@ import Small from '@material-tailwind/react/Small'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+import { RoboHashImg } from './RoboHashImg'
 
 interface GameCardProps {
   game: GameStartEvent
@@ -88,18 +89,16 @@ export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
           </div>
 
           <div className="flex items-center sm:space-x-4 space-x-2 my-4">
-            <img
+            <RoboHashImg
               className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-              src={`https://robohash.org/${player1PubKey}`}
-              title={player1PubKey}
+              value={player1PubKey}
               alt={displayPlayer1PubKey}
             />
             <div className="text-xl font-medium">vs.</div>
             {player2PubKey && displayPlayer2PubKey ? (
-              <img
+              <RoboHashImg
                 className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                src={`https://robohash.org/${player2PubKey}`}
-                title={player2PubKey}
+                value={player2PubKey}
                 alt={displayPlayer2PubKey}
               />
             ) : (

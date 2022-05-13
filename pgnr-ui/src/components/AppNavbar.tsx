@@ -30,6 +30,7 @@ import Dropdown from '@material-tailwind/react/Dropdown'
 import DropdownItem from '@material-tailwind/react/DropdownItem'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+import { RoboHashImg } from './RoboHashImg'
 
 export default function AppNavbar() {
   const settings = useSettings()
@@ -139,10 +140,9 @@ export default function AppNavbar() {
 
             {privateKeyOrNull && publicKeyOrNull && displayPubKey && (
               <ReactNavLink to="/" className={({ isActive }) => `hidden lg:block mx-1 my-1 ${isActive ? '' : ''}`}>
-                <img
+                <RoboHashImg
                   className="w-6 h-6 ml-2 mr-2 rounded-full shadow-lg-gray bg-blue-gray-500"
-                  src={`https://robohash.org/${publicKeyOrNull}`}
-                  title={publicKeyOrNull}
+                  value={publicKeyOrNull}
                   alt={displayPubKey}
                 />
                 <span className="lg:hidden">Profile</span>
