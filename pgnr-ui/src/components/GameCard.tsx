@@ -18,6 +18,7 @@ import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 import { RoboHashImg } from './RoboHashImg'
+import { GameDetails } from './jester/GameDetails'
 
 interface GameCardProps {
   game: GameStartEvent
@@ -25,119 +26,102 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, title = 'Current Game' }: GameCardProps) {
-  const gameStore = useGameStore()
   const settingsDispatch = useSettingsDispatch()
   const redirectToCurrentGameButtonRef = useRef<HTMLButtonElement>(null)
   const [jesterId] = useState(JesterUtils.gameIdToJesterId(game.id))
-
-  const gameMoveCount = useLiveQuery(
-    async () => {
-      return await gameStore.game_move.where('gameId').equals(game.id).count()
-    },
-    [game],
-    null
-  )
-
-  const player1PubKey = game.pubkey
-  const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
-
-  const player2PubKey = useLiveQuery(
-    async () => {
-      if (!game) return null
-      const event = await gameStore.game_move.where('[gameId+moveCounter]').equals([game.id, 2]).first()
-
-      return (event && event.pubkey) || null
-    },
-    [game],
-    null
-  )
-  const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
 
   const unsubscribeFromCurrentGame = useCallback(() => {
     settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
   }, [settingsDispatch])
 
   return (
-    <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
-      <div
-        className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl 
-    transform duration-300 hover:transform-scale-103"
-      >
-        <div className="flex flex-col items-center pb-4 pt-4">
-          <div className="flex items-center w-full">
-            <div className="flex-none w-14"></div>
-            <div className="grow flex justify-center">
-              <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">{title}</h6>
-            </div>
-            <div className="flex-none w-14">
-              <Button
-                color="gray"
-                buttonType="link"
-                size="regular"
-                rounded={false}
-                block={false}
-                iconOnly={true}
-                ripple="light"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  unsubscribeFromCurrentGame()
-                }}
-              >
-                <Icon name="close" size="xl" />
-              </Button>
-            </div>
-          </div>
+    <GameDetails game={game}>
+      {({ moveCount, player1PubKey, player2PubKey }) => {
+        const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
+        const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
+        return (
+          <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
+            <div className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
+              <div className="flex flex-col items-center pb-4 pt-4">
+                <div className="flex items-center w-full">
+                  <div className="flex-none w-14"></div>
+                  <div className="grow flex justify-center">
+                    <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">
+                      {title}
+                    </h6>
+                  </div>
+                  <div className="flex-none w-14">
+                    <Button
+                      color="gray"
+                      buttonType="link"
+                      size="regular"
+                      rounded={false}
+                      block={false}
+                      iconOnly={true}
+                      ripple="light"
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault()
+                        unsubscribeFromCurrentGame()
+                      }}
+                    >
+                      <Icon name="close" size="xl" />
+                    </Button>
+                  </div>
+                </div>
 
-          <div className="flex items-center sm:space-x-4 space-x-2 my-4">
-            <RoboHashImg
-              className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-              value={player1PubKey}
-              alt={displayPlayer1PubKey}
-            />
-            <div className="text-xl font-medium">vs.</div>
-            {player2PubKey && displayPlayer2PubKey ? (
-              <RoboHashImg
-                className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                value={player2PubKey}
-                alt={displayPlayer2PubKey}
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center">
-                <Icon name="question_mark" size="xxl" />
+                <div className="flex items-center sm:space-x-4 space-x-2 my-4">
+                  <RoboHashImg
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    value={player1PubKey}
+                    alt={displayPlayer1PubKey}
+                  />
+                  <div className="text-xl font-medium">vs.</div>
+                  {player2PubKey && displayPlayer2PubKey ? (
+                    <RoboHashImg
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      value={player2PubKey}
+                      alt={displayPlayer2PubKey}
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center">
+                      <Icon name="question_mark" size="xxl" />
+                    </div>
+                  )}
+                </div>
+
+                {/*
+                <div className="mb-1">
+                  <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
+                    {displayJesterId}
+                  </code>
+                </div>
+              */}
+                <span className="mb-1 text-sm text-gray-400">
+                  with {moveCount === null ? ' ... ' : `${moveCount}`} {moveCount === 1 ? 'move' : 'moves'}
+                </span>
+                <span className="mb-1 text-sm text-gray-400">
+                  <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+                </span>
+                <div className="px-4 mt-2 w-full">
+                  <Button
+                    color="green"
+                    buttonType="filled"
+                    size="regular"
+                    rounded={false}
+                    block={true}
+                    iconOnly={false}
+                    ripple="dark"
+                    ref={redirectToCurrentGameButtonRef}
+                  >
+                    Play
+                    <CurrentGameRedirectButtonHook buttonRef={redirectToCurrentGameButtonRef} jesterId={jesterId} />
+                  </Button>
+                </div>
               </div>
-            )}
-          </div>
-
-          {/*
-          <div className="mb-1">
-            <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
-              {displayJesterId}
-            </code>
-          </div>
-        */}
-          <span className="mb-1 text-sm text-gray-400">
-            with {gameMoveCount === null ? ' ... ' : `${gameMoveCount}`} {gameMoveCount === 1 ? 'move' : 'moves'}
-          </span>
-          <span className="mb-1 text-sm text-gray-400">
-            <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-          </span>
-          <div className="px-4 mt-2 w-full">
-            <Button
-              color="green"
-              buttonType="filled"
-              size="regular"
-              rounded={false}
-              block={true}
-              iconOnly={false}
-              ripple="dark"
-              ref={redirectToCurrentGameButtonRef}
-            >
-              Play
-              <CurrentGameRedirectButtonHook buttonRef={redirectToCurrentGameButtonRef} jesterId={jesterId} />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </Link>
+            </div>
+          </Link>
+        )
+      }}
+    </GameDetails>
   )
 }

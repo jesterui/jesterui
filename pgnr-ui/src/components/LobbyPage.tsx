@@ -49,7 +49,7 @@ interface GameListEntryProps {
   game: GameStartEvent
 }
 
-function GameListEntry({ game }: GameListEntryProps) {
+/*function GameListEntry({ game }: GameListEntryProps) {
   const jesterId = JesterUtils.gameIdToJesterId(game.id)
   const displayGameName = AppUtils.displayGameName(game)
   const displayPubKey = AppUtils.pubKeyDisplayName(game.pubkey)
@@ -77,8 +77,13 @@ function GameListEntry({ game }: GameListEntryProps) {
       </div>
     </Link>
   )
-}
+}*/
 
+function GameListEntry({ game }: GameListEntryProps) {
+  const jesterId = JesterUtils.gameIdToJesterId(game.id)
+
+  return <GameCard game={game} title={jesterId} />
+}
 interface GameListProps {
   games: GameStartEvent[]
 }
