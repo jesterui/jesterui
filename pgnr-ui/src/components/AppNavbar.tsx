@@ -3,6 +3,7 @@ import { NavLink as ReactNavLink } from 'react-router-dom'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
+import { RoboHashImg } from '../components/RoboHashImg'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 
 import * as AppUtils from '../util/app'
@@ -30,7 +31,6 @@ import Dropdown from '@material-tailwind/react/Dropdown'
 import DropdownItem from '@material-tailwind/react/DropdownItem'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
-import { RoboHashImg } from './RoboHashImg'
 
 export default function AppNavbar() {
   const settings = useSettings()

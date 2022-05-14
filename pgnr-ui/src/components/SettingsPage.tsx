@@ -81,7 +81,7 @@ function TestNostrConnectionButton() {
 
       setWaitForEvent(null)
       setStatusText('')
-    }, 2000)
+    }, 2_000)
 
     return () => {
       abortCtrl.abort()
@@ -103,6 +103,8 @@ function TestNostrConnectionButton() {
   }, [waitForEvent, incomingNostrBuffer])
 
   const onButtonClicked = async () => {
+    if (statusText !== '') return
+    
     if (!outgoingNostr) {
       window.alert('Nostr EventBus not ready..')
       return
@@ -144,7 +146,8 @@ function TestNostrConnectionButton() {
   }
 
   return (
-    <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" onClick={() => onButtonClicked()}>
+    <button type="button" className="bg-white bg-opacity-20 rounded px-2 py-1" 
+      onClick={() => onButtonClicked()} disabled={statusText !== ''}>
       {waitForEvent ? 'Testing connection...' : `Test connection ${statusText}`}
     </button>
   )
@@ -353,12 +356,6 @@ export default function SettingsPage() {
         />
       </div>
 
-      {/*
-      <Heading2 color="blueGray">Subscriptions</Heading2>
-      <div>
-        <pre>{`${JSON.stringify(settings.subscriptions, null, 2)}`}</pre>
-      </div>
-  */}
       <Heading2 color="blueGray">Relays</Heading2>
       <div className="pb-4">
         <div className="pb-1">
@@ -391,6 +388,14 @@ export default function SettingsPage() {
           ))}
         </div>
       </div>
+
+      {settings.dev && (<>
+        <Heading2 color="blueGray">Raw</Heading2>
+        <div>
+          <pre>{`${JSON.stringify(settings, null, 2)}`}</pre>
+        </div>
+      </>)}
+
     </div>
   )
 }
