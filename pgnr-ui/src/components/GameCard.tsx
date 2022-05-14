@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react'
+import React, { useCallback, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
