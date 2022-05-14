@@ -39,12 +39,15 @@ const SearchFrom = (props: SearchFromProps) => {
   }
 
   return (
-    <form noValidate onSubmit={(e) => {
-      e.preventDefault()
-      e.stopPropagation()
+    <form
+      noValidate
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
 
-      props.onSearchButtonClicked(searchInputValue)
-    }}>
+        props.onSearchButtonClicked(searchInputValue)
+      }}
+    >
       <div className="pb-2 w-full">
         <div className="flex">
           <div className="grow">

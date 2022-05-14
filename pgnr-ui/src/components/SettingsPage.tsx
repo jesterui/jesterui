@@ -309,7 +309,7 @@ const KeyPairForm = () => {
           ripple="light"
           onClick={deleteIdentityButtonClicked}
           disabled={privateKeyOrNull === null}
-          className="w-40 mx-1"
+          className="w-40 ml-2"
         >
           Forget
         </Button>
