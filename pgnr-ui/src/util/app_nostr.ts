@@ -1,7 +1,4 @@
-const developmentRelays = [
-  'ws://localhost:7000',
-  'wss://non-existing-nostr-relay.example.com:7000'
-]
+const developmentRelays = ['ws://localhost:7000', 'wss://non-existing-nostr-relay.example.com:7000']
 
 const publicRelays = [
   'wss://nostr-pub.wellorder.net',
