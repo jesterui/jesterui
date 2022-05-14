@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo, ChangeEvent } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, useRef, ChangeEvent } from 'react'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -15,16 +15,18 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as Bot from '../util/bot'
 import { DEFAULT_RELAYS } from '../util/app_nostr'
+import { displayKey } from '../util/app'
 
 // @ts-ignore
 import Checkbox from '@material-tailwind/react/Checkbox'
+// @ts-ignore
+import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading2 from '@material-tailwind/react/Heading2'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
-import { displayKey } from '../util/app'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
@@ -183,6 +185,7 @@ const validateKeyPair = async (pubKey: PubKey, privKey: PrivKey): Promise<boolea
 const KeyPairForm = () => {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
+  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
 
   const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
@@ -272,15 +275,38 @@ const KeyPairForm = () => {
           />
         </div>
       </div>
-      <div className="py-1">
-        <GenerateRandomIdentityButton text="New" className="bg-white bg-opacity-20 rounded px-2 py-1" />
-        <button
-          type="button"
-          className="bg-white bg-opacity-20 rounded px-2 py-1 mx-1"
-          onClick={deleteIdentityButtonClicked}
-        >
-          Forget
-        </button>
+      <div className="py-1 flex">
+        <>
+          <Button
+            color="deepOrange"
+            buttonType={privateKeyOrNull === null ? 'filled' : 'outline'}
+            size="regular"
+            rounded={false}
+            block={false}
+            iconOnly={false}
+            ripple="light"
+            ref={generateRandomIdentityButtonRef}
+            className="w-40"
+          >
+            New Identity
+            <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+          </Button>
+        </>
+
+        <Button
+            color="blueGray"
+            buttonType={privateKeyOrNull !== null ? 'filled' : 'outline'}
+            size="regular"
+            rounded={false}
+            block={false}
+            iconOnly={false}
+            ripple="light"
+            onClick={deleteIdentityButtonClicked}
+            disabled={privateKeyOrNull === null}
+            className="w-40 mx-1"
+          >
+            Forget
+          </Button>
       </div>
     </>
   )
@@ -326,6 +352,21 @@ export default function SettingsPage() {
     settingsDispatch({ dev: !settings.dev } as AppSettings)
   }
 
+  const checkboxColor = (readyState: number | undefined) => {
+    switch (readyState) {
+      case WebSocket.CONNECTING:
+        return 'yellow'
+      case WebSocket.OPEN:
+        return 'green'
+      case WebSocket.CLOSING:
+        return 'deepOrange'
+      case WebSocket.CLOSED:
+        return 'red'
+      default:
+        return 'gray'
+    }
+  }
+
   return (
     <div className="screen-settings pb-4">
       <Heading1 color="blueGray">Settings</Heading1>
@@ -341,9 +382,6 @@ export default function SettingsPage() {
       <Heading2 color="blueGray">Identity</Heading2>
       <div>
         <KeyPairForm />
-      </div>
-      <div className="py-1">
-        <TestNostrConnectionButton />
       </div>
 
       <div style={{ display: 'none' }}>
@@ -371,14 +409,16 @@ export default function SettingsPage() {
             <span className="font-mono">{websocket?.url}</span>
           </span>
         </div>
-        <div className="py-1">
-          <TestNostrConnectionButton />
-        </div>
+        {settings.dev && (<>
+          <div className="py-1">
+            <TestNostrConnectionButton />
+          </div>
+        </>)}
         <div className="py-1">
           {DEFAULT_RELAYS.map((relay, index) => (
-            <div key={index}>
+            <div key={index} className="mb-1">
               <Checkbox
-                color="blueGray"
+                color={checkboxColor(websocket?.readyState)}
                 text={relay}
                 id={`relay-checkbox-${index}`}
                 checked={relays.includes(relay)}
