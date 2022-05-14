@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
@@ -19,6 +19,9 @@ import Input from '@material-tailwind/react/Input'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
+import { useSettings } from '../context/SettingsContext'
+import { useGameStore } from '../context/GameEventStoreContext'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 interface SearchFromProps {
   onSearchButtonClicked: (val: string) => void
@@ -86,11 +89,43 @@ const SearchFrom = (props: SearchFromProps) => {
 }
 
 export default function SearchPage() {
+  const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
+  const gameStore = useGameStore()
   const [searchResults, setSearchResults] = useState<string[] | null>(null)
   const [inputLooksLikeJesterId, setInputLooksLikeJesterId] = useState<boolean | null>(null)
   const [inputIsJesterId, setInputIsJesterId] = useState<boolean | null>(null)
+  const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
+  const [exampleJesterId, setExampleJesterId] = useState<JesterUtils.JesterId>(
+    currentGameJesterId || JesterUtils.VALID_JESTER_ID_EXAMPLE
+  )
+
+  useEffect(() => {
+    if (currentGameJesterId) {
+      setExampleJesterId(currentGameJesterId)
+      return
+    }
+
+    const abortCtrl = new AbortController()
+    gameStore.game_start
+      .toCollection()
+      .reverse()
+      .first()
+      .then((it) => {
+        if (abortCtrl.signal.aborted) return
+        if (it) {
+          setExampleJesterId(JesterUtils.gameIdToJesterId(it.id))
+        }
+      })
+      .catch((e) => {
+        if (abortCtrl.signal.aborted) return
+        console.warn('Could not use example jesterId from db')
+        setExampleJesterId(JesterUtils.VALID_JESTER_ID_EXAMPLE)
+      })
+
+    return () => abortCtrl.abort()
+  }, [currentGameJesterId])
 
   const search = (searchInput: string) => {
     setInputLooksLikeJesterId(false)
@@ -184,12 +219,14 @@ export default function SearchPage() {
                       ) : (
                         <>
                           <p>Are you sure this is a valid game id?</p>
-                          <small>
-                            e.g. a game id looks like this:
+                          <p>
+                            <small>e.g. a game id looks like this:</small>
+                          </p>
+                          <p>
                             <code className="text-xs font-semibold px-2.5 py-1 rounded">
-                              <JesterId jesterId={JesterUtils.VALID_JESTER_ID_EXAMPLE} />
+                              <JesterId jesterId={exampleJesterId} />
                             </code>
-                          </small>
+                          </p>
                         </>
                       )}
                     </>
