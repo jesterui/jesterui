@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
 import { GameRedirectButtonHook } from '../components/CreateGameButton'
-import { RoboHashImg } from '../components/RoboHashImg'
+import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 import { GameDetails } from '../components/jester/GameDetails'
 
 import * as JesterUtils from '../util/jester'
@@ -78,9 +78,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                       alt={displayPlayer2PubKey}
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center">
-                      <Icon name="question_mark" size="xxl" />
-                    </div>
+                    <UnknownImg size={24} />
                   )}
                 </div>
 
@@ -134,7 +132,7 @@ interface CurrentGameCardProps {
   title?: string
 }
 
-export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCardProps) {
+export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCardProps) {
   const settingsDispatch = useSettingsDispatch()
   const settings = useSettings()
   const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
@@ -203,9 +201,7 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
                       alt={displayPlayer2PubKey}
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center">
-                      <Icon name="question_mark" size="xxl" />
-                    </div>
+                    <UnknownImg size={24} />
                   )}
                 </div>
 

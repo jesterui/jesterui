@@ -97,12 +97,25 @@ code {
 .grow-0 {
   flex-grow: 0;
 }
+.order-1 {
+  order: 1;
+}
+.order-2 {
+  order: 2;
+}
+.order-3 {
+  order: 3;
+}
 
 .justify-items-stretch {
   justify-items: stretch;
 }
 .justify-items-center {
   justify-items: center;
+}
+
+.min-w-sm-1\/2 {
+  min-width: 12rem;
 }
 
 .grid-cols-1 {
@@ -126,8 +139,14 @@ code {
   .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .lg\:mt-0 {
-    margin-top: 0 !important;
+  .lg\:order-1 {
+    order: 1;
+  }
+  .lg\:order-2 {
+    order: 2;
+  }
+  .lg\:order-3 {
+    order: 3;
   }
 }
 @media (min-width: 1440px) {
