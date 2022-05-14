@@ -2,8 +2,11 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
+import { useSettings } from '../context/SettingsContext'
+import { useGameStore } from '../context/GameEventStoreContext'
 
 import JesterId from '../components/jester/JesterId'
+import { NoConnectionAlert } from './NoConnectionAlert'
 
 import * as JesterUtils from '../util/jester'
 
@@ -19,9 +22,6 @@ import Input from '@material-tailwind/react/Input'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import { useSettings } from '../context/SettingsContext'
-import { useGameStore } from '../context/GameEventStoreContext'
-import { useLiveQuery } from 'dexie-react-hooks'
 
 interface SearchFromProps {
   onSearchButtonClicked: (val: string) => void
@@ -176,12 +176,12 @@ export default function SearchPage() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        <div className="w-full grid grid-cols-1 mt-16 lg:w-8/12">
+        <div className="w-full grid grid-cols-1 lg:w-8/12">
           {!incomingNostr ? (
-            <div>No connection to nostr</div>
+            <NoConnectionAlert />
           ) : (
             <>
-              <div className="w-full grid grid-cols-1">
+              <div className="w-full mt-16 grid grid-cols-1">
                 <div className="flex justify-center">
                   <Heading1 color="blueGray">Search</Heading1>
                 </div>

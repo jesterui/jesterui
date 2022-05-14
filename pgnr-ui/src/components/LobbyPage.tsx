@@ -8,18 +8,19 @@ import { useGameStore } from '../context/GameEventStoreContext'
 import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
-import { GameCard, CurrentGameCard } from '../components/GameCard'
+import { GameCard } from '../components/GameCard'
 import { Spinner } from '../components/Spinner'
 import { GameById } from '../components/jester/GameById'
+import { NoConnectionAlert } from '../components/NoConnectionAlert'
 
 import { getSession } from '../util/session'
 import { GameStartEvent } from '../util/app_db'
+import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
 
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -147,7 +148,7 @@ export default function LobbyPage() {
   return (
     <div className="screen-games-overview">
       {!incomingNostr ? (
-        <div>No connection to nostr</div>
+        <NoConnectionAlert />
       ) : (
         <>
           <div className="flex justify-center my-4">

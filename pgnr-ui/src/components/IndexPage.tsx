@@ -16,6 +16,7 @@ import { pubKeyDisplayName } from '../util/app'
 import { GameById } from './jester/GameById'
 import { Spinner } from './Spinner'
 import { CurrentGameCard } from './GameCard'
+import { NoConnectionAlert } from './NoConnectionAlert'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()
@@ -245,13 +246,11 @@ export default function IndexPage() {
   return (
     <div className="screen-index">
       <div className="flex justify-center items-center">
-        <div className="w-full grid grid-cols-1 mt-8">
-          {!incomingNostr && (
-            <div className="flex justify-center my-4">
-              <div>No connection to nostr</div>
-            </div>
-          )}
-          {showIdentityStep ? <IdentityStep identity={identity} /> : <SetupCompleteStep identity={identity} />}
+        <div className="w-full grid grid-cols-1">
+          {!incomingNostr && <NoConnectionAlert />}
+          <div className="mt-8">
+            {showIdentityStep ? <IdentityStep identity={identity} /> : <SetupCompleteStep identity={identity} />}
+          </div>
         </div>
       </div>
     </div>
