@@ -377,7 +377,7 @@ export default function SettingsPage() {
     <div className="screen-settings pb-4">
       <Heading1 color="blueGray">Settings</Heading1>
 
-      <div className="pb-4">
+      <div className="pb-16">
         <Heading2 color="blueGray">jester</Heading2>
         <Checkbox
           color="blueGray"
@@ -389,9 +389,9 @@ export default function SettingsPage() {
 
         {settings.dev && (
           <>
-            <div style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
+            <div className="pb-4" style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
               <BotSelector
-                label="Companion selection"
+                label="Companion"
                 availableBots={Bot.Bots}
                 selectedBotName={selectedBotName}
                 setSelectedBotName={updateSelectedBotName}
@@ -402,55 +402,57 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <Heading2 color="blueGray">nostr</Heading2>
-      <div className="grid gap-x-24 gap-y-4 grid-cols-1 lg:grid-cols-2">
-        <div className="flex-1">
-          <Heading3 color="blueGray">Identity</Heading3>
-          <div>
-            <KeyPairForm />
+      <div className="pb-16">
+        <Heading2 color="blueGray">nostr</Heading2>
+        <div className="grid gap-x-24 gap-y-4 grid-cols-1 lg:grid-cols-2">
+          <div className="flex-1">
+            <Heading3 color="blueGray">Identity</Heading3>
+            <div>
+              <KeyPairForm />
+            </div>
           </div>
-        </div>
-        <div className="flex-1">
-          <Heading3 color="blueGray">Relays</Heading3>
-          <div className="pb-4">
-            <div className="pb-1">
-              Status:
-              <span className="px-1">
-                <WebsocketIndicator />
-              </span>
-              <span className="font-mono">{readyStatePhrase(websocket?.readyState)}</span>
-            </div>
-            <div className="pb-1">
-              Host:
-              <span className="px-1">
-                <span className="font-mono">{websocket?.url}</span>
-              </span>
-            </div>
-            {settings.dev && (
-              <>
-                <div className="py-1">
-                  <TestNostrConnectionButton />
-                </div>
-              </>
-            )}
-            <div className="py-1">
-              {DEFAULT_RELAYS.map((relay, index) => (
-                <div key={index} className="mb-1">
-                  <Checkbox
-                    color={checkboxColor(websocket?.readyState)}
-                    text={relay}
-                    id={`relay-checkbox-${index}`}
-                    checked={relays.includes(relay)}
-                    onChange={() => onRelayClicked(relay)}
-                  />
-                </div>
-              ))}
+          <div className="flex-1">
+            <Heading3 color="blueGray">Relays</Heading3>
+            <div className="pb-4">
+              <div className="pb-1">
+                Status:
+                <span className="px-1">
+                  <WebsocketIndicator />
+                </span>
+                <span className="font-mono">{readyStatePhrase(websocket?.readyState)}</span>
+              </div>
+              <div className="pb-1">
+                Host:
+                <span className="px-1">
+                  <span className="font-mono">{websocket?.url}</span>
+                </span>
+              </div>
+              {settings.dev && (
+                <>
+                  <div className="py-1">
+                    <TestNostrConnectionButton />
+                  </div>
+                </>
+              )}
+              <div className="py-1">
+                {DEFAULT_RELAYS.map((relay, index) => (
+                  <div key={index} className="mb-1">
+                    <Checkbox
+                      color={checkboxColor(websocket?.readyState)}
+                      text={relay}
+                      id={`relay-checkbox-${index}`}
+                      checked={relays.includes(relay)}
+                      onChange={() => onRelayClicked(relay)}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pb-4">
+      <div className="pb-16">
         {settings.dev && (
           <>
             <Heading2 color="blueGray">Raw</Heading2>
