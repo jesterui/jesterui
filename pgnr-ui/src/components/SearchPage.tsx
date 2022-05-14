@@ -39,10 +39,15 @@ const SearchFrom = (props: SearchFromProps) => {
   }
 
   return (
-    <form noValidate onSubmit={() => props.onSearchButtonClicked(searchInputValue)}>
-      <div className="pb-2 grow">
-        <div className="flex justify-center">
-          <div className="w-full">
+    <form noValidate onSubmit={(e) => {
+      e.preventDefault()
+      e.stopPropagation()
+
+      props.onSearchButtonClicked(searchInputValue)
+    }}>
+      <div className="pb-2 w-full">
+        <div className="flex">
+          <div className="grow">
             <Input
               type="text"
               size="lg"
@@ -56,7 +61,7 @@ const SearchFrom = (props: SearchFromProps) => {
             />
           </div>
 
-          <div className="ml-1">
+          <div className="ml-1 flex-none">
             <Button
               className="h-12"
               type="submit"
