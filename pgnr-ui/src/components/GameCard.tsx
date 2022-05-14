@@ -91,9 +91,13 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                   </code>
                 </div>
               */}
-                <span className="mb-1 text-sm text-gray-400">
-                  with {moveCount === null ? ' ... ' : `${moveCount}`} {moveCount === 1 ? 'move' : 'moves'}
-                </span>
+                {moveCount && moveCount > 0 ? (
+                  <span className="mb-1 text-sm text-gray-400">
+                    {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
+                  </span>
+                ) : (
+                  <></>
+                )}
                 <span className="mb-1 text-sm text-gray-400">
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
@@ -212,9 +216,13 @@ export function CurrentGameCard({ game, title = 'Current Game' }: CurrentGameCar
                   </code>
                 </div>
               */}
-                <span className="mb-1 text-sm text-gray-400">
-                  with {moveCount === null ? ' ... ' : `${moveCount}`} {moveCount === 1 ? 'move' : 'moves'}
-                </span>
+                {moveCount && moveCount > 0 ? (
+                  <span className="mb-1 text-sm text-gray-400">
+                    {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
+                  </span>
+                ) : (
+                  <></>
+                )}
                 <span className="mb-1 text-sm text-gray-400">
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
