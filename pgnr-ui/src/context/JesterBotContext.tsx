@@ -23,22 +23,33 @@ import * as Bot from '../util/bot'
 // @ts-ignore
 import * as Chess from 'chess.js'
 
+const botConsole =
+  process.env.NODE_ENV === 'development'
+    ? console
+    : {
+        debug: () => {},
+        info: () => {},
+        error: () => {},
+      }
+
+const DEFAULT_BOT_NAME = 'Risky Alice'
 const DEFAULT_BOT: SelectedBot | null = ((name) => {
   try {
     return {
       name: name,
-      move: Bot.Bots[name](),
+      bot: Bot.Bots[name](),
     }
   } catch (e) {
+    botConsole.error(`Could not instantiate bot '${name}'`)
     return null
   }
-})('Alice')
+})(DEFAULT_BOT_NAME)
 
 const instantiateBotByName = (botName: string | null): SelectedBot | null => {
   if (botName && Bot.Bots[botName]) {
     return {
       name: botName,
-      move: Bot.Bots[botName](),
+      bot: Bot.Bots[botName](),
     }
   }
   return DEFAULT_BOT
@@ -52,15 +63,6 @@ type KeyPair = {
 interface JesterBotContextEntry {
   bot: string
 }
-
-const botConsole =
-  process.env.NODE_ENV === 'development'
-    ? console
-    : {
-        debug: () => {},
-        info: () => {},
-        error: () => {},
-      }
 
 const JesterBotContext = createContext<JesterBotContextEntry | undefined>(undefined)
 
@@ -125,10 +127,15 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
 
   useEffect(() => {
     setSelectedBot((current) => {
-      if (current && current.name === selectedBotName) {
-        return current
+      if (current) {
+        if (current.name === selectedBotName) {
+          return current
+        }
+        // terminate the bot if not already happened
+        if (!current.bot.isTerminated()) {
+          current.bot.terminate()
+        }
       }
-
       return instantiateBotByName(selectedBotName)
     })
   }, [selectedBotName])

@@ -1,10 +1,11 @@
 import React, { ChangeEvent } from 'react'
 import { AvailableBots, InitialisedBot } from '../util/bot'
+
 import styles from './BotSelector.module.css'
 
 export type SelectedBot = {
   name: string
-  move: InitialisedBot
+  bot: InitialisedBot
 } | null
 
 interface BotSelectorProps {

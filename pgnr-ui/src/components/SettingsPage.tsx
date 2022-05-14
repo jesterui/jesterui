@@ -29,6 +29,7 @@ import Heading2 from '@material-tailwind/react/Heading2'
 import Heading3 from '@material-tailwind/react/Heading3'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
+import { env } from 'process'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
@@ -423,16 +424,6 @@ export default function SettingsPage() {
           <div>
             <KeyPairForm />
           </div>
-
-          <div style={{ display: 'none' }}>
-            <BotSelector
-              playerName="Your Bot"
-              availableBots={Bot.Bots}
-              selectedBotName={selectedBotName}
-              setSelectedBotName={updateSelectedBotName}
-              disabled={false}
-            />
-          </div>
         </div>
       </div>
 
@@ -445,6 +436,20 @@ export default function SettingsPage() {
           checked={settings.dev}
           onChange={() => onDeveloperModeToggleClicked()}
         />
+
+        {settings.dev && (
+          <>
+            <div style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
+              <BotSelector
+                playerName="Your Bot"
+                availableBots={Bot.Bots}
+                selectedBotName={selectedBotName}
+                setSelectedBotName={updateSelectedBotName}
+                disabled={false}
+              />
+            </div>
+          </>
+        )}
 
         {settings.dev && (
           <>
