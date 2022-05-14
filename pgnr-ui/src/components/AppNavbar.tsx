@@ -59,22 +59,31 @@ export default function AppNavbar() {
               jester
               <span
                 style={{ whiteSpace: 'nowrap' }}
-                className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded dark:bg-green-200 dark:text-green-900"
+                className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
               >
                 beta
               </span>
-            </ReactNavLink>
-            <span className="px-1">
-              <WebsocketIndicator />
-            </span>
-            {settings.dev && (
-              <span
-                style={{ whiteSpace: 'nowrap' }}
-                className="bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900"
-              >
-                dev mode
+              <span className="ml-1">
+                <WebsocketIndicator />
               </span>
-            )}
+              {settings.dev ? (
+                <span
+                  style={{ whiteSpace: 'nowrap' }}
+                  className="bg-green-100 text-green-800 text-xs font-semibold ml-1 px-2.5 py-0.5 rounded"
+                >
+                  dev mode
+                </span>
+              ) : (
+                <>
+                  <span
+                    style={{ whiteSpace: 'nowrap' }}
+                    className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
+                  >
+                    chess on nostr
+                  </span>
+                </>
+              )}
+            </ReactNavLink>
           </NavbarBrand>
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
