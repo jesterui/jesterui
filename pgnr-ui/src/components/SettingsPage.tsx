@@ -29,7 +29,6 @@ import Heading2 from '@material-tailwind/react/Heading2'
 import Heading3 from '@material-tailwind/react/Heading3'
 // @ts-ignore
 import Input from '@material-tailwind/react/Input'
-import { env } from 'process'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
@@ -352,7 +351,7 @@ export default function SettingsPage() {
         settingsDispatch({ relays: newVal } as AppSettings)
       }
     },
-    [settings, settingsDispatch]
+    [relays, settingsDispatch]
   )
 
   const onDeveloperModeToggleClicked = () => {
@@ -378,8 +377,39 @@ export default function SettingsPage() {
     <div className="screen-settings pb-4">
       <Heading1 color="blueGray">Settings</Heading1>
 
+      <div className="pb-4">
+        <Heading2 color="blueGray">jester</Heading2>
+        <Checkbox
+          color="blueGray"
+          text="Developer Mode"
+          id="developer-mode-checkbox"
+          checked={settings.dev}
+          onChange={() => onDeveloperModeToggleClicked()}
+        />
+
+        {settings.dev && (
+          <>
+            <div style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
+              <BotSelector
+                label="Companion selection"
+                availableBots={Bot.Bots}
+                selectedBotName={selectedBotName}
+                setSelectedBotName={updateSelectedBotName}
+                disabled={false}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
       <Heading2 color="blueGray">nostr</Heading2>
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-x-24 gap-y-4 grid-cols-1 lg:grid-cols-2">
+        <div className="flex-1">
+          <Heading3 color="blueGray">Identity</Heading3>
+          <div>
+            <KeyPairForm />
+          </div>
+        </div>
         <div className="flex-1">
           <Heading3 color="blueGray">Relays</Heading3>
           <div className="pb-4">
@@ -418,39 +448,9 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-
-        <div className="flex-1">
-          <Heading3 color="blueGray">Identity</Heading3>
-          <div>
-            <KeyPairForm />
-          </div>
-        </div>
       </div>
 
       <div className="pb-4">
-        <Heading2 color="blueGray">jester</Heading2>
-        <Checkbox
-          color="blueGray"
-          text="Developer Mode"
-          id="developer-mode-checkbox"
-          checked={settings.dev}
-          onChange={() => onDeveloperModeToggleClicked()}
-        />
-
-        {settings.dev && (
-          <>
-            <div style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
-              <BotSelector
-                playerName="Your Bot"
-                availableBots={Bot.Bots}
-                selectedBotName={selectedBotName}
-                setSelectedBotName={updateSelectedBotName}
-                disabled={false}
-              />
-            </div>
-          </>
-        )}
-
         {settings.dev && (
           <>
             <Heading2 color="blueGray">Raw</Heading2>

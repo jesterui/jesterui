@@ -33,17 +33,18 @@ const botConsole =
       }
 
 const DEFAULT_BOT_NAME = 'Risky Alice'
-const DEFAULT_BOT: SelectedBot | null = ((name) => {
-  try {
-    return {
-      name: name,
-      bot: Bot.Bots[name](),
+const createDefaultBot: () => SelectedBot | null = () =>
+  ((name) => {
+    try {
+      return {
+        name: name,
+        bot: Bot.Bots[name](),
+      }
+    } catch (e) {
+      botConsole.error(`Could not instantiate bot '${name}'`)
+      return null
     }
-  } catch (e) {
-    botConsole.error(`Could not instantiate bot '${name}'`)
-    return null
-  }
-})(DEFAULT_BOT_NAME)
+  })(DEFAULT_BOT_NAME)
 
 const instantiateBotByName = (botName: string | null): SelectedBot | null => {
   if (botName && Bot.Bots[botName]) {
@@ -52,7 +53,7 @@ const instantiateBotByName = (botName: string | null): SelectedBot | null => {
       bot: Bot.Bots[botName](),
     }
   }
-  return DEFAULT_BOT
+  return createDefaultBot()
 }
 
 type KeyPair = {

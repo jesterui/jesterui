@@ -1,8 +1,6 @@
-//@ts-ignore
-// import * as Stockfish from 'stockfish'
+
 // @ts-ignore
 import * as Chess from 'chess.js'
-import { write } from 'fs'
 
 export type ShortMove = { from: string; to: string }
 export type Fen = string
@@ -82,7 +80,7 @@ export const Bots: AvailableBots = {
     'setoption name Style value Risky',
     'go depth 1',
   ]),
-  Bob: uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', ['setoption name Skill Level value 1', 'go depth 1']),
+  Bob: uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', ['setoption name Skill Level value 1', 'go movetime 1000']),
   /*'stockfish (l:1,d:1)': uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1',
     'go depth 1',
@@ -104,5 +102,5 @@ export const Bots: AvailableBots = {
     'setoption name Style value Risky',
     'go depth 10',
   ]),
-  Random: randomMove,
+  Chaos: randomMove,
 }

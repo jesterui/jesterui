@@ -1,5 +1,10 @@
-import React, { ChangeEvent } from 'react'
+import React from 'react'
 import { AvailableBots, InitialisedBot } from '../util/bot'
+
+// @ts-ignore
+import Dropdown from '@material-tailwind/react/Dropdown'
+// @ts-ignore
+import DropdownItem from '@material-tailwind/react/DropdownItem'
 
 import styles from './BotSelector.module.css'
 
@@ -9,36 +14,41 @@ export type SelectedBot = {
 } | null
 
 interface BotSelectorProps {
-  playerName: string
+  label: string
   availableBots: AvailableBots
   selectedBotName: string | null
   setSelectedBotName: (botName: string | null) => void
   disabled: boolean
 }
 
-export const BotSelector = ({
-  playerName,
-  availableBots,
-  selectedBotName,
-  setSelectedBotName,
-  disabled,
-}: BotSelectorProps) => {
-  const handleChange = (e: ChangeEvent<HTMLSelectElement>): void => {
-    const name = e.target.value
-    setSelectedBotName(name || null)
-  }
-
+export const BotSelector = ({ label, availableBots, selectedBotName, setSelectedBotName }: BotSelectorProps) => {
   return (
-    <div className={styles.BotSelector}>
-      <label>{playerName}</label>
-      <select value={selectedBotName || undefined} onChange={handleChange} disabled={disabled}>
-        <option value="" key="User">
-          User
-        </option>
-        {Object.keys(availableBots).map((name) => (
-          <option key={name}>{name}</option>
-        ))}
-      </select>
+    <div className={`${styles.BotSelector} flex items-center`}>
+      <div>
+        <label>{label}</label>
+      </div>
+
+      <div>
+        <Dropdown
+          color="blueGray"
+          placement="bottom-start"
+          buttonText={selectedBotName ? selectedBotName : 'None'}
+          buttonType="filled"
+          size="regular"
+          rounded={false}
+          block={true}
+          ripple="light"
+        >
+          <DropdownItem color="blueGray" ripple="light" onClick={() => setSelectedBotName(null)}>
+            None
+          </DropdownItem>
+          {Object.keys(availableBots).map((name) => (
+            <DropdownItem color="blueGray" ripple="light" onClick={() => setSelectedBotName(name)} key={name}>
+              {name}
+            </DropdownItem>
+          ))}
+        </Dropdown>
+      </div>
     </div>
   )
 }
