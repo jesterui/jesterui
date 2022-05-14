@@ -1,4 +1,3 @@
-
 // @ts-ignore
 import * as Chess from 'chess.js'
 

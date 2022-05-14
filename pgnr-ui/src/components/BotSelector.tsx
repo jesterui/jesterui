@@ -32,7 +32,7 @@ export const BotSelector = ({ label, availableBots, selectedBotName, setSelected
         <Dropdown
           color="blueGray"
           placement="bottom-start"
-          buttonText={selectedBotName ? selectedBotName : 'None'}
+          buttonText={selectedBotName ? selectedBotName : 'Default'}
           buttonType="filled"
           size="regular"
           rounded={false}
@@ -40,7 +40,7 @@ export const BotSelector = ({ label, availableBots, selectedBotName, setSelected
           ripple="light"
         >
           <DropdownItem color="blueGray" ripple="light" onClick={() => setSelectedBotName(null)}>
-            None
+            Default
           </DropdownItem>
           {Object.keys(availableBots).map((name) => (
             <DropdownItem color="blueGray" ripple="light" onClick={() => setSelectedBotName(name)} key={name}>

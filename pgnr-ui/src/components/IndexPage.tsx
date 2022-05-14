@@ -18,7 +18,12 @@ import { Spinner } from './Spinner'
 import { CurrentGameCard } from './GameCard'
 
 function CreateIdentityStep() {
+  const navigate = useNavigate()
+
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
+
+  const viewLobbyButtonClicked = () => navigate(`/lobby`)
+
   return (
     <>
       <div className="flex justify-center">
@@ -45,15 +50,33 @@ function CreateIdentityStep() {
           <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
         </Button>
       </div>
+
+      <div className="flex justify-center items-center space-x-4 my-4">
+        <Button
+          color="blueGray"
+          buttonType="link"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          className="w-48"
+          onClick={viewLobbyButtonClicked}
+        >
+          Browse all games
+        </Button>
+      </div>
     </>
   )
 }
 
 function LoginIdentityStep({ identity }: { identity: Identity }) {
   const navigate = useNavigate()
+
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
 
   const loginButtonClicked = () => navigate(`/login`)
+  const viewLobbyButtonClicked = () => navigate(`/lobby`)
 
   return (
     <>
@@ -97,6 +120,22 @@ function LoginIdentityStep({ identity }: { identity: Identity }) {
         >
           New Identity
           <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+        </Button>
+      </div>
+
+      <div className="flex justify-center items-center space-x-4 my-4">
+        <Button
+          color="blueGray"
+          buttonType="link"
+          size="regular"
+          rounded={false}
+          block={false}
+          iconOnly={false}
+          ripple="light"
+          className="w-48"
+          onClick={viewLobbyButtonClicked}
+        >
+          Browse all games
         </Button>
       </div>
     </>
@@ -157,36 +196,38 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
         </GameById>
       )}
 
-      <div className="flex justify-center items-center space-x-4 my-4">
-        <Button
-          color="green"
-          buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          ref={createNewGameButtonRef}
-          className="w-48"
-        >
-          Start a new game
-          <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
-        </Button>
-      </div>
-      <div className="flex justify-center items-center space-x-4 my-1">
-        <Button
-          color="blueGray"
-          buttonType="link"
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          className="w-48"
-          onClick={viewLobbyButtonClicked}
-        >
-          Browse all games
-        </Button>
+      <div className="my-4">
+        <div className="flex justify-center items-center space-x-4 my-4">
+          <Button
+            color="blueGray"
+            buttonType="outline"
+            size="regular"
+            rounded={false}
+            block={false}
+            iconOnly={false}
+            ripple="light"
+            className="w-48"
+            onClick={viewLobbyButtonClicked}
+          >
+            Browse all games
+          </Button>
+        </div>
+        <div className="flex justify-center items-center space-x-4 my-1">
+          <Button
+            color="green"
+            buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
+            size="regular"
+            rounded={false}
+            block={false}
+            iconOnly={false}
+            ripple="light"
+            ref={createNewGameButtonRef}
+            className="w-48"
+          >
+            Start a new game
+            <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
+          </Button>
+        </div>
       </div>
     </>
   )

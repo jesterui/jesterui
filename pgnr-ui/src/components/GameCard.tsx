@@ -107,7 +107,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                   ) : (
                     <Button
                       color={mode === 'play' ? 'green' : 'blueGray'}
-                      buttonType={mode === 'play' ? 'filled' : 'outline'}
+                      buttonType={mode === 'play' ? 'filled' : 'filled'}
                       size="regular"
                       rounded={false}
                       block={true}
