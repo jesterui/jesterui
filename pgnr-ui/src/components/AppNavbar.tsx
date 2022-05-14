@@ -54,45 +54,58 @@ export default function AppNavbar() {
     <Navbar color="" navbar>
       <NavbarContainer>
         <NavbarWrapper>
-          <NavbarBrand>
-            <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
-              jester
-              <span
-                style={{ whiteSpace: 'nowrap' }}
-                className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
-              >
-                beta
-              </span>
-              <span className="ml-1">
-                <WebsocketIndicator />
-              </span>
-              {settings.dev ? (
+          <div className="flex-1">
+            <NavbarBrand>
+              <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
+                jester
                 <span
                   style={{ whiteSpace: 'nowrap' }}
-                  className="bg-green-100 text-green-800 text-xs font-semibold ml-1 px-2.5 py-0.5 rounded"
+                  className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
                 >
-                  dev mode
+                  beta
                 </span>
-              ) : (
-                <>
+                <span className="ml-1">
+                  <WebsocketIndicator />
+                </span>
+                {settings.dev ? (
                   <span
                     style={{ whiteSpace: 'nowrap' }}
-                    className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
+                    className="bg-green-100 text-green-800 text-xs font-semibold ml-1 px-2.5 py-0.5 rounded"
                   >
-                    chess on nostr
+                    dev mode
                   </span>
-                </>
-              )}
-            </ReactNavLink>
-          </NavbarBrand>
+                ) : (
+                  <>
+                    <span
+                      style={{ whiteSpace: 'nowrap' }}
+                      className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
+                    >
+                      chess on nostr
+                    </span>
+                  </>
+                )}
+              </ReactNavLink>
+            </NavbarBrand>
+          </div>
+          {privateKeyOrNull && publicKeyOrNull && displayPubKey && (
+            <div className="flex items-center">
+              <ReactNavLink to="/" className={({ isActive }) => `block lg:hidden ${isActive ? '' : ''}`}>
+                <RoboHashImg
+                  className="w-9 h-9 ml-2 mr-2 rounded-full shadow-sm-gray bg-blue-gray-500"
+                  value={publicKeyOrNull}
+                  alt={displayPubKey}
+                />
+              </ReactNavLink>
+            </div>
+          )}
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
         <NavbarCollapse open={openMenu}>
-          <Nav leftSide>
+          <Nav leftSide className="mt-2 lg:mt-0">
             {settings.currentGameJesterId && (
               <ReactNavLink to="/current" className={({ isActive }) => `mx-1 my-1 ${isActive ? '' : ''}`}>
                 <NavItem ripple="light">
-                  <div className="w-6 flex justify-center">
+                  <div className="h-6 w-6 flex justify-center items-center">
                     <Icon name="language" size="xl" />
                   </div>
                   Current Game
@@ -105,7 +118,7 @@ export default function AppNavbar() {
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
-                <div className="w-6 flex justify-center">
+                <div className="h-6 w-6 flex justify-center items-center">
                   <Icon name="games" size="xl" />
                 </div>
                 Lobby
@@ -118,7 +131,7 @@ export default function AppNavbar() {
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
-                <div className="w-6 flex justify-center">
+                <div className="h-6 w-6 flex justify-center items-center">
                   <Icon name="search" size="xl" />
                 </div>
                 <span className="lg:hidden">Search</span>
@@ -140,7 +153,7 @@ export default function AppNavbar() {
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
               <NavItem ripple="light">
-                <div className="w-6 flex justify-center">
+                <div className="h-6 w-6 flex justify-center items-center">
                   <Icon name="settings" size="xl" />
                 </div>
                 <span className="lg:hidden">Settings</span>
@@ -150,7 +163,7 @@ export default function AppNavbar() {
             {privateKeyOrNull && publicKeyOrNull && displayPubKey && (
               <ReactNavLink to="/" className={({ isActive }) => `hidden lg:block mx-1 my-1 ${isActive ? '' : ''}`}>
                 <RoboHashImg
-                  className="w-6 h-6 ml-2 mr-2 rounded-full shadow-lg-gray bg-blue-gray-500"
+                  className="w-9 h-9 ml-2 mr-2 rounded-full shadow-sm-gray bg-blue-gray-500"
                   value={publicKeyOrNull}
                   alt={displayPubKey}
                 />
@@ -171,7 +184,7 @@ export default function AppNavbar() {
               </NavItem>
             </ReactNavLink>)*/}
 
-            {privateKeyOrNull && publicKeyOrNull && (
+            {/*privateKeyOrNull && publicKeyOrNull && (
               <>
                 <div className="mx-1 my-1">
                   <Dropdown
@@ -184,16 +197,13 @@ export default function AppNavbar() {
                     block={true}
                     ripple="light"
                   >
-                    {/*<DropdownItem color="blueGray" ripple="light" onClick={() => onProfileButtonClicked()}>
-            Profile
-            </DropdownItem>*/}
                     <DropdownItem color="red" ripple="light" onClick={() => deleteIdentityButtonClicked()}>
                       Forget identity
                     </DropdownItem>
                   </Dropdown>
                 </div>
               </>
-            )}
+            )*/}
           </Nav>
         </NavbarCollapse>
       </NavbarContainer>

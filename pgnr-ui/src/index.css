@@ -126,6 +126,9 @@ code {
   .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .lg\:mt-0 {
+    margin-top: 0 !important;
+  }
 }
 @media (min-width: 1440px) {
   .xl\:grid-cols-4 {
