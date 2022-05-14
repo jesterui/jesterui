@@ -127,7 +127,7 @@ export default function LobbyPage() {
 
       return events
     },
-    [gameStartEventFilter],
+    [privateStartGameRef],
     null
   )
 

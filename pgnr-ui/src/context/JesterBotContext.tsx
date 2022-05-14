@@ -185,6 +185,10 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       })
       .then((event) => {
         botConsole.info('[Bot] Sent event via nostr..', event?.id)
+        if (!abortCtrl.signal.aborted) {
+          botConsole.info('[Bot] Sent event dddddddddddddddddddddddddddddddddvia nostr..', event?.id)
+          setWatchGameId(event?.id || null)
+        }
       })
       .catch((e) => {
         botConsole.error('[Bot] Error while sending start event..', e)
@@ -203,7 +207,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
 
     setWatchGameId((current) => {
       if (!currentGameJesterId) {
-        return null
+        return current
       }
       const currentGameId = JesterUtils.jesterIdToGameId(currentGameJesterId)
       if (current === currentGameId) {
@@ -212,7 +216,10 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
 
       const matchingGames = allGamesCreatedByBot.filter((it) => it.id === currentGameId)
       const matchingGame = matchingGames.length > 0 ? matchingGames[0] : null
-      return matchingGame?.id || null
+      if (matchingGame !== null) {
+        return matchingGame.id
+      }
+      return current
     })
   }, [currentGameJesterId, allGamesCreatedByBot])
 
