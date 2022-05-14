@@ -161,25 +161,23 @@ export default function LobbyPage() {
                   } else if (game === null) {
                     return <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
                   } else {
-                    return <CurrentGameCard game={game} />
+                    return <></>
                   }
                 }}
               </GameById>
             )}
           </div>
 
-          <div className="my-4">
-            {settings.dev && (
-              <>
-                <CreateDevelGameButton
-                  onGameCreated={(e, jesterId) => {
-                    window.alert(`Published game ${jesterId}`)
-                  }}
-                />
-                <CreateMultipleGamesButton amount={21} />
-              </>
-            )}
-          </div>
+          {process.env.NODE_ENV === 'development' && settings.dev && (
+            <div className="my-4">
+              <CreateDevelGameButton
+                onGameCreated={(e, jesterId) => {
+                  window.alert(`Published game ${jesterId}`)
+                }}
+              />
+              <CreateMultipleGamesButton amount={21} />
+            </div>
+          )}
 
           {listOfPrivateStartGamesLiveQuery && listOfPrivateStartGamesLiveQuery.length > 0 && (
             <>

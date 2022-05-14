@@ -26,10 +26,6 @@ import Nav from '@material-tailwind/react/Nav'
 // @ts-ignore
 import NavItem from '@material-tailwind/react/NavItem'
 // @ts-ignore
-import Dropdown from '@material-tailwind/react/Dropdown'
-// @ts-ignore
-import DropdownItem from '@material-tailwind/react/DropdownItem'
-// @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 
 export default function AppNavbar() {
@@ -106,9 +102,9 @@ export default function AppNavbar() {
               <ReactNavLink to="/current" className={({ isActive }) => `mx-1 my-1 ${isActive ? '' : ''}`}>
                 <NavItem ripple="light">
                   <div className="h-6 w-6 flex justify-center items-center">
-                    <Icon name="language" size="xl" />
+                    <Icon name="games" size="xl" />
                   </div>
-                  Current Game
+                  Active Game
                 </NavItem>
               </ReactNavLink>
             )}
@@ -119,7 +115,7 @@ export default function AppNavbar() {
             >
               <NavItem ripple="light">
                 <div className="h-6 w-6 flex justify-center items-center">
-                  <Icon name="games" size="xl" />
+                  <Icon name="language" size="xl" />
                 </div>
                 Lobby
               </NavItem>
