@@ -7,7 +7,7 @@ import * as NIP01 from '../../util/nostr/nip01'
 import * as JesterUtils from '../../util/jester'
 import { randomNumberBetween } from '../../util/app'
 
-const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 5 : 2
+const FILTER_TIME_IN_MINUTES = process.env.NODE_ENV === 'development' ? 10 : 10
 
 const uniqueRandomStrings = (amount: number, maxStringLength: number) => {
   const arr: string[] = []

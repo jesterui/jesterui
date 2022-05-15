@@ -25,9 +25,9 @@ import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 
-const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
+const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 10 : 10
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
-const MAX_AMOUNT_OF_GAMES = 100
+const INITIAL_MAX_AMOUNT_OF_GAMES = 21
 const MIN_UPDATE_IN_SECONDS = 60
 
 interface GamesFilter {
@@ -80,6 +80,8 @@ export default function LobbyPage() {
     [settings]
   )
 
+  const [maxAmountOfGamesDisplayed, setMaxAmountOfGamesDisplayed] = useState<number>(INITIAL_MAX_AMOUNT_OF_GAMES)
+
   const publicKeyOrNull: NIP01.PubKey | null = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
@@ -119,18 +121,21 @@ export default function LobbyPage() {
   const onRefreshGameListButtonClicked = () => {
     setTick(Date.now())
   }
+  const onLoadMoreGamesButtonClicked = () => {
+    setMaxAmountOfGamesDisplayed((current) => current + INITIAL_MAX_AMOUNT_OF_GAMES)
+  }
 
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
       const events = await gameStore.game_start
         .where('created_at')
         .between(gameStartEventFilter.from.getTime() / 1_000, gameStartEventFilter.until.getTime() / 1_000)
-        .limit(MAX_AMOUNT_OF_GAMES)
+        .limit(maxAmountOfGamesDisplayed)
         .toArray()
 
       return events
     },
-    [gameStartEventFilter],
+    [gameStartEventFilter, maxAmountOfGamesDisplayed],
     null
   )
 
@@ -213,25 +218,18 @@ export default function LobbyPage() {
           <div className="my-4">
             <Heading6 color="blueGray">
               Latest Games (
-              {`${listOfStartGames && listOfStartGames.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${
-                listOfStartGames?.length || 0
-              }`}
+              {listOfStartGames && listOfStartGames.length >= maxAmountOfGamesDisplayed
+                ? `>${maxAmountOfGamesDisplayed}`
+                : `${listOfStartGames?.length || 0}`}
               )
             </Heading6>
 
             <div className="flex items-center">
               <div className="text-sm text-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
-                {`${listOfStartGames && listOfStartGames.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${
-                  listOfStartGames?.length || 0
-                }`}{' '}
-                games available
-                <span>
-                  {' '}
-                  in the last {Math.floor(
-                    (renderedAt.getTime() - gameStartEventFilter.from.getTime()) / 1_000 / 60
-                  )}{' '}
-                  minutes
-                </span>
+                <div>
+                  {`${listOfStartGames?.length || 0}`} games available in the last{' '}
+                  {Math.floor((renderedAt.getTime() - gameStartEventFilter.from.getTime()) / 1_000 / 60)} minutes
+                </div>
                 <div> on {renderedAt.toLocaleString()}</div>
               </div>
 
@@ -259,15 +257,37 @@ export default function LobbyPage() {
             </div>
           </div>
 
-          <div className="my-4">
+          <div className="mt-4 mb-24">
             <GameList games={listOfStartGames || []} currentGameId={currentGameId} />
+
             {listOfStartGames !== null && listOfStartGames.length === 0 && (
-              <>
-                <div className="flex items-center gap-3 text-white p-4 pr-12 border-0 bg-gray-500 rounded-lg relative mb-4 undefined transition-all duration-300 bg-opacity-20">
-                  <div className="text-gray-500">Currently, no games are being played.</div>
-                  {isLoading && <Spinner size={24} />}
-                </div>
-              </>
+              <div className="flex items-center gap-3 text-white p-4 pr-12 border-0 bg-gray-500 bg-opacity-20 rounded-lg relative mb-4 transition-all duration-300">
+                <div className="text-gray-500">Currently, no games are being played.</div>
+                {isLoading && <Spinner size={24} />}
+              </div>
+            )}
+
+            {listOfStartGames && listOfStartGames.length >= maxAmountOfGamesDisplayed && (
+              <div className="flex justify-center my-4">
+                <Button
+                  color="blueGray"
+                  buttonType="outline"
+                  size="xl"
+                  rounded={false}
+                  block={false}
+                  iconOnly={false}
+                  ripple="light"
+                  onClick={onLoadMoreGamesButtonClicked}
+                  disabled={isLoading}
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="w-6 flex items-center justify-center">
+                      {isLoading ? <Spinner size={16} /> : <Icon name="refresh" size="xl" />}
+                    </div>
+                    <div className="ml-2">Load more</div>
+                  </div>
+                </Button>
+              </div>
             )}
           </div>
         </>
