@@ -58,11 +58,6 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
               className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800`}
             >
               <div className="flex flex-col items-center pb-4 pt-4">
-                <div className="flex items-center justify-center w-full">
-                  <h6 className="text-xs text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
-                    {displayJesterId}
-                  </h6>
-                </div>
 
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
@@ -89,6 +84,11 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                 ) : (
                   <></>
                 )}
+                <div className="flex items-center justify-center w-full">
+                  <h6 className="text-xs text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
+                    {displayJesterId}
+                  </h6>
+                </div>
                 <span className="mb-1 text-sm text-gray-400">
                   <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>

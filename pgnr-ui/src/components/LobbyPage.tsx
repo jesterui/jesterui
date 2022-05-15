@@ -15,6 +15,7 @@ import { NoConnectionAlert } from '../components/NoConnectionAlert'
 
 import { getSession } from '../util/session'
 import { GameStartEvent } from '../util/app_db'
+import * as NIP01 from '../util/nostr/nip01'
 import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
 
 // @ts-ignore
@@ -74,15 +75,15 @@ export default function LobbyPage() {
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
   const [gameStartEventFilter, setGameStartEventFilter] = useState(createGameOverviewFilter(new Date()))
-  const currentGameId = useMemo(
+  const currentGameId: NIP01.EventId | undefined = useMemo(
     () => settings.currentGameJesterId && jesterIdToGameId(settings.currentGameJesterId),
     [settings]
   )
 
-  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
+  const publicKeyOrNull: NIP01.PubKey | null = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const privateStartGameRef = useMemo(
+  const privateStartGameRef: NIP01.EventId | null = useMemo(
     () => publicKeyOrNull && jesterPrivateStartGameRef(publicKeyOrNull),
     [publicKeyOrNull]
   )
@@ -134,7 +135,7 @@ export default function LobbyPage() {
   )
 
   const listOfStartGames = useMemo(() => {
-    return listOfStartGamesLiveQuery ? [...listOfStartGamesLiveQuery] : []
+    return listOfStartGamesLiveQuery
   }, [listOfStartGamesLiveQuery])
 
   const listOfPrivateStartGamesLiveQuery = useLiveQuery(
@@ -212,13 +213,18 @@ export default function LobbyPage() {
           <div className="my-4">
             <Heading6 color="blueGray">
               Latest Games (
-              {`${listOfStartGames?.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${listOfStartGames?.length || 0}`})
+              {`${listOfStartGames && listOfStartGames.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${
+                listOfStartGames?.length || 0
+              }`}
+              )
             </Heading6>
 
             <div className="flex items-center">
               <div className="text-sm text-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
-                {`${listOfStartGames?.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${listOfStartGames?.length || 0}`} games
-                available
+                {`${listOfStartGames && listOfStartGames.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${
+                  listOfStartGames?.length || 0
+                }`}{' '}
+                games available
                 <span>
                   {' '}
                   in the last {Math.floor(
@@ -240,6 +246,7 @@ export default function LobbyPage() {
                   ripple="light"
                   onClick={onRefreshGameListButtonClicked}
                   className="mx-4 h-8 "
+                  disabled={isLoading}
                 >
                   <div className="flex items-center justify-center">
                     <div className="w-6 flex items-center justify-center">
@@ -254,6 +261,16 @@ export default function LobbyPage() {
 
           <div className="my-4">
             <GameList games={listOfStartGames || []} currentGameId={currentGameId} />
+            {listOfStartGames !== null && listOfStartGames.length === 0 && (
+              <>
+                <div className="flex items-center gap-3 text-white p-4 pr-12 border-0 bg-gray-500 rounded-lg relative mb-4 undefined transition-all duration-300 bg-opacity-20">
+                  <div className="text-gray-500">
+                    Currently, no games are being played.
+                    </div>
+                    {isLoading && <Spinner size={24}/>}
+                </div>
+              </>
+            )}
           </div>
         </>
       )}

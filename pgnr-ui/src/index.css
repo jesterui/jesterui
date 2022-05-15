@@ -18,6 +18,9 @@ code {
 
 /* missing tailwind classes from material-tailwind */
 /* TODO: integrate plain tailwind and get rif of material-tailwind to remove these classes again */
+
+.underline{text-decoration:underline}
+
 .my-1 {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
@@ -26,6 +29,10 @@ code {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .py-3\.5 {
   padding-top: 0.825rem;
   padding-bottom: 0.825rem;
@@ -130,11 +137,6 @@ code {
 .content-between {
   align-content: space-between;
 }
-
-.ml-4 {
-  margin-left: 1rem;
-}
-
 .min-w-xs {
   min-width: 20rem;
 }

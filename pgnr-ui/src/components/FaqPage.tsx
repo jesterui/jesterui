@@ -4,8 +4,11 @@ import React, { useEffect } from 'react'
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
+import { useSettings } from '../context/SettingsContext'
 
 export default function FaqPage() {
+  const settings = useSettings()
+
   useEffect(() => {
     const previousTitle = document.title
     document.title = `FAQ`
@@ -20,28 +23,28 @@ export default function FaqPage() {
       <Heading1 color="blueGray">FAQ</Heading1>
 
       <Heading6 color="blueGray">What is this?</Heading6>
-      <p className="mb-8 text-gray-500 font-serif">A chess app on nostr.</p>
+      <p className="mb-8 font-serif">A chess app on nostr.</p>
       <Heading6 color="blueGray">How can I do X?</Heading6>
-      <p className="mb-8 text-gray-500 font-serif">You probably can't. It's current state the app is very limited.</p>
+      <p className="mb-8 font-serif">You probably can't. The current functionality is very limited.</p>
       <Heading6 color="blueGray">I found a bug. How can I report it?</Heading6>
-      <p className="mb-8 text-gray-500 font-serif">
+      <p className="mb-8 font-serif">
         Please open an issue on the project's GitHub repo:{' '}
-        <a target="_blank" rel="noopener noreferrer" href="https://robohash.org/">
-          Robohash.org
+        <a className="underline" target="_blank" rel="noopener noreferrer" href="https://github.com/jesterui/jesterui/issues">
+          https://github.com/jesterui/jesterui
         </a>
       </p>
       <Heading6 color="blueGray">This is in beta. Is this just a demo application?</Heading6>
-      <p className="mb-8 text-gray-500 font-serif">Yes.</p>
+      <p className="mb-8 font-serif">Yes.</p>
       <Heading6 color="blueGray">Where are the robots coming from?</Heading6>
-      <p className="mb-8 text-gray-500 font-serif">
+      <p className="mb-8 font-serif">
         Robots lovingly delivered by{' '}
-        <a target="_blank" rel="noopener noreferrer" href="https://robohash.org/">
+        <a className="underline" target="_blank" rel="noopener noreferrer" href="https://robohash.org/">
           https://robohash.org
         </a>
         .
       </p>
 
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === 'development' && settings.dev && (
         <>
           <Heading6 color="blueGray">Nostr</Heading6>
           <div>
