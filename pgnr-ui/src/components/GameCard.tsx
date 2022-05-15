@@ -18,6 +18,7 @@ import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
 import { Spinner } from './Spinner'
+import { timeElapsed } from '../util/utils'
 
 interface GameCardProps {
   game: GameStartEvent
@@ -76,6 +77,12 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                   )}
                 </div>
 
+                <div className="flex items-center justify-center w-full">
+                  <h6 className="text-xs text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
+                    {displayJesterId}
+                  </h6>
+                </div>
+
                 {moveCount && moveCount > 0 ? (
                   <span className="mb-1 text-sm text-gray-400">
                     {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
@@ -83,14 +90,9 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                 ) : (
                   <></>
                 )}
-                <div className="flex items-center justify-center w-full">
-                  <h6 className="text-xs text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
-                    {displayJesterId}
-                  </h6>
+                <div className="mb-1 text-sm text-gray-400">
+                  <Small color="">Started {timeElapsed(game.created_at * 1_000)}</Small>
                 </div>
-                <span className="mb-1 text-sm text-gray-400">
-                  <Small color=""> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-                </span>
                 <div className="px-4 mt-2 w-full">
                   {isLoading ? (
                     <Spinner />

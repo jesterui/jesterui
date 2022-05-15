@@ -83,3 +83,33 @@ export const copyToClipboard = (
       }
     })
 }
+
+type Milliseconds = number
+type UnitKey = 'year' | 'month' | 'day' | 'hour' | 'minute' | 'second'
+
+type Units = {
+  [key in UnitKey]: Milliseconds
+}
+
+const units: Units = {
+  year: 24 * 60 * 60 * 1_000 * 365,
+  month: (24 * 60 * 60 * 1_000 * 365) / 12,
+  day: 24 * 60 * 60 * 1_000,
+  hour: 60 * 60 * 1_000,
+  minute: 60 * 1_000,
+  second: 1_000,
+}
+const RELATIVE_TIME_FORMAT = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+
+export const timeElapsed = (d1: Milliseconds, d2: Milliseconds = Date.now()) => {
+  const elapsedInMillis: Milliseconds = d1 - d2
+
+  for (let k of Object.keys(units) as UnitKey[]) {
+    const limit: number = units[k]
+    if (Math.abs(elapsedInMillis) > limit) {
+      return RELATIVE_TIME_FORMAT.format(Math.round(elapsedInMillis / limit), k)
+    }
+  }
+
+  return RELATIVE_TIME_FORMAT.format(Math.round(elapsedInMillis / units['second']), 'second')
+}
