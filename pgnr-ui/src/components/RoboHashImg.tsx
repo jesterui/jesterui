@@ -21,7 +21,7 @@ export function RoboHashImg(props: RoboHashImgProps) {
     setImage(raw ? value : hashWithSha256(value))
   }, [value, raw])
 
-  return <img className={className} src={`https://robohash.org/${image}`} title={value} alt={alt} />
+  return <img className={className} src={`https://robohash.org/${image}`} title={title} alt={alt} />
 }
 
 interface UnknownImgProps {

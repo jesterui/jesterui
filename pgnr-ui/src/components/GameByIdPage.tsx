@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -14,7 +14,7 @@ import { ChessInstance } from '../components/ChessJsTypes'
 import { GameDetails } from '../components/jester/GameDetails'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 
-import useWindowDimensions from '../hooks/WindowDimensions'
+import { useResize } from '../hooks/ElementDimensions'
 
 import * as NIP01 from '../util/nostr/nip01'
 import { GameMoveEvent } from '../util/app_db'
@@ -78,12 +78,11 @@ const titleMessage = (game: ChessInstance, color: MovableColor) => {
 interface BoardContainerProps {
   game: ChessInstance
   color: MovableColor
+  size: number
   onGameChanged: (game: ChessInstance) => void
 }
 
-function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
-  const { height, width } = useWindowDimensions()
-
+function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProps) {
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
@@ -94,32 +93,21 @@ function BoardContainer({ game, color, onGameChanged }: BoardContainerProps) {
     [game, onGameChanged]
   )
 
-  const minSize = 240 // minimal screen size, e.g. smart watches
-  const maxSize = 600
-  const scrollbarSpacing = 13 * 2
-  const size = Math.min(maxSize, Math.max(minSize, Math.min(height * 0.75, width - scrollbarSpacing)))
-
   return (
     <>
-      <div>
-        <div
-          style={{
-            minWidth: minSize,
-            minHeight: minSize,
-            width: size,
-            height: size,
-            maxWidth: maxSize,
-            maxHeight: maxSize,
-          }}
-        >
-          {<Chessboard game={game} userColor={color} onAfterMoveFinished={updateGameCallback} />}
-        </div>
-        {false && game && (
-          <div className="pl-2 overflow-y-scroll">
-            <PgnTable game={game} />
-          </div>
-        )}
+      <div
+        style={{
+          width: size,
+          height: size,
+        }}
+      >
+        {<Chessboard game={game} userColor={color} onAfterMoveFinished={updateGameCallback} />}
       </div>
+      {false && game && (
+        <div className="pl-2 overflow-y-scroll">
+          <PgnTable game={game} />
+        </div>
+      )}
     </>
   )
 }
@@ -139,7 +127,7 @@ const CopyGameUrlInput = ({ value }: { value: string }) => {
           style={{ color: 'currentColor' }}
         />
         <CopyButtonWithConfirmation
-          className="h-11 mx-1 px-4 flex items-center justify-center gap-1 font-bold outline-none uppercase tracking-wider focus:outline-none focus:shadow-none transition-all duration-300 rounded-lg text-xs leading-normal text-white bg-blue-gray-500 hover:bg-blue-gray-700 focus:bg-blue-gray-400 active:bg-blue-gray-800 shadow-md-blue-gray hover:shadow-lg-blue-gray"
+          className="h-11 ml-1 px-4 flex items-center justify-center font-bold outline-none uppercase tracking-wider focus:outline-none focus:shadow-none transition-all duration-300 rounded-lg text-xs leading-normal text-white bg-blue-gray-500 hover:bg-blue-gray-700 focus:bg-blue-gray-400 active:bg-blue-gray-800 shadow-md-blue-gray hover:shadow-lg-blue-gray"
           value={value}
           text="Copy"
           successText="Copied"
@@ -178,7 +166,7 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
 const ColorMessage = ({ color }: { color: MovableColor }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
+      <h6 className="text-blue-gray-500 text-xs sm:text-sm lg:text-2xl font-serif font-bold mt-0 mb-0">
         {`You are ${color.length === 0 ? 'in watch-only mode' : color}`}
       </h6>
     </div>
@@ -206,19 +194,22 @@ const GameStateMessage = ({
   )
 }
 
-function ProposeTakebackButton({ disabled }: { disabled: boolean }) {
+function ProposeTakebackButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
   const buttonRef = useRef()
+
+  const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
+  const popoverPlacement = useMemo(() => (vertical ? 'right' : 'bottom'), [vertical])
 
   return (
     <>
-      <Button className="w-8 mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
+      <Button className="w-8 mx-2 md:mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
         <Icon name="undo" size="xl" />
       </Button>
-      <Tooltips placement="top" ref={buttonRef}>
+      <Tooltips placement={tooltipPlacement} ref={buttonRef}>
         <TooltipsContent>Propose a takeback</TooltipsContent>
       </Tooltips>
 
-      <Popover placement="bottom" ref={buttonRef}>
+      <Popover placement={popoverPlacement} ref={buttonRef}>
         <PopoverContainer>
           <PopoverHeader>Propose a takeback</PopoverHeader>
           <PopoverBody>Proposing to take back your move is not yet implemented.</PopoverBody>
@@ -227,19 +218,22 @@ function ProposeTakebackButton({ disabled }: { disabled: boolean }) {
     </>
   )
 }
-function ResignButton({ disabled }: { disabled: boolean }) {
+function ResignButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
   const buttonRef = useRef()
+
+  const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
+  const popoverPlacement = useMemo(() => (vertical ? 'right' : 'bottom'), [vertical])
 
   return (
     <>
-      <Button className="w-8 mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
+      <Button className="w-8 mx-2 md:mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
         <Icon name="cancel" size="xl" />
       </Button>
-      <Tooltips placement="top" ref={buttonRef}>
+      <Tooltips placement={tooltipPlacement} ref={buttonRef}>
         <TooltipsContent>Resign</TooltipsContent>
       </Tooltips>
 
-      <Popover placement="bottom" ref={buttonRef}>
+      <Popover placement={popoverPlacement} ref={buttonRef}>
         <PopoverContainer>
           <PopoverHeader>Resign</PopoverHeader>
           <PopoverBody>Don't resign! It is not yet implemented, keep playing!</PopoverBody>
@@ -249,19 +243,22 @@ function ResignButton({ disabled }: { disabled: boolean }) {
   )
 }
 
-function OfferDrawButton({ disabled }: { disabled: boolean }) {
+function OfferDrawButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
   const buttonRef = useRef()
+
+  const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
+  const popoverPlacement = useMemo(() => (vertical ? 'right' : 'bottom'), [vertical])
 
   return (
     <>
-      <Button className="w-8 mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
+      <Button className="w-8 mx-2 md:mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
         <Icon name="handshake" size="xl" />
       </Button>
-      <Tooltips placement="top" ref={buttonRef}>
+      <Tooltips placement={tooltipPlacement} ref={buttonRef}>
         <TooltipsContent>Offer Draw</TooltipsContent>
       </Tooltips>
 
-      <Popover placement="bottom" ref={buttonRef}>
+      <Popover placement={popoverPlacement} ref={buttonRef}>
         <PopoverContainer>
           <PopoverHeader>Offer Draw</PopoverHeader>
           <PopoverBody>Offering a draw is not yet impelemented.</PopoverBody>
@@ -271,13 +268,13 @@ function OfferDrawButton({ disabled }: { disabled: boolean }) {
   )
 }
 
-const LoadingBoard = ({ color }: { color: MovableColor }) => {
+const LoadingBoard = ({ color, size }: { size: number; color: MovableColor }) => {
   const [game] = useState<ChessInstance>(new Chess.Chess())
   const onGameChanged = useCallback(() => {}, [])
 
   return (
     <div style={{ filter: 'grayscale()' }}>
-      {<BoardContainer game={game} color={color} onGameChanged={onGameChanged} />}
+      {<BoardContainer game={game} color={color} onGameChanged={onGameChanged} size={size} />}
     </div>
   )
 }
@@ -297,25 +294,62 @@ function GameboardWithLoader({
   isSearchingHead,
   onChessboardChanged,
 }: GameboardWithLoaderProps) {
+  const divForSizeRef = useRef<HTMLDivElement>(null)
+  const { width: elementRefWidth } = useResize(divForSizeRef)
+  const [size, setSize] = useState(0)
+
+  useLayoutEffect(() => {
+    const minSize = 240 // minimal screen size, e.g. smart watches
+    const maxSize = 620
+    const size = Math.min(maxSize, Math.max(minSize, elementRefWidth))
+
+    setSize(size)
+  }, [elementRefWidth])
+
   return (
     <>
-      {(isLoading || (!isLoading && game === null)) && (
-        <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
-      )}
-      {game !== null && (
-        <>
-          {/* it's important that these elements are present in the DOM to avoid flickering */}
-          <div style={{ display: isLoading ? 'none' : 'block' }}>
-            <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
-              <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} />
+      <div ref={divForSizeRef} className="board-size-ref" style={{ height: 0, visibility: 'hidden' }}></div>
+      <div className="flex justify-center">
+        {(isLoading || (!isLoading && game === null)) && (
+          <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} size={size} />
+        )}
+        {game !== null && (
+          <>
+            {/* it's important that these elements are present in the DOM to avoid flickering */}
+            <div style={{ display: isLoading ? 'none' : 'block' }}>
+              <div style={{ display: isSearchingHead ? 'block' : 'none' }}>
+                <LoadingBoard color={color.length === 1 ? color : MOVE_COLOR_WHITE} size={size} />
+              </div>
+              <div style={{ display: isSearchingHead ? 'none' : 'block' }}>
+                <BoardContainer game={game} color={color} size={size} onGameChanged={onChessboardChanged} />
+              </div>
             </div>
-            <div style={{ display: isSearchingHead ? 'none' : 'block' }}>
-              <BoardContainer game={game} color={color} onGameChanged={onChessboardChanged} />
-            </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </>
+  )
+}
+
+interface ActionButtonsProps {
+  isLoading: boolean
+  isSearchingHead: boolean
+  vertical?: boolean
+}
+
+function ActionButtons({ isLoading, isSearchingHead, vertical = false }: ActionButtonsProps) {
+  return (
+    <div className={vertical ? 'grid grid-cols-1' : 'flex'}>
+      <div>
+        <ProposeTakebackButton disabled={isLoading || isSearchingHead} vertical={vertical} />
+      </div>
+      <div>
+        <OfferDrawButton disabled={isLoading || isSearchingHead} vertical={vertical} />
+      </div>
+      <div>
+        <ResignButton disabled={isLoading || isSearchingHead} vertical={vertical} />
+      </div>
+    </div>
   )
 }
 
@@ -386,7 +420,6 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     return await gameStore.game_start.get(gameId)
   }, [gameId])
 
-
   const currentGameStart = useMemo(() => {
     if (!currentGameStartEvent) return null
     return new GameStart(currentGameStartEvent)
@@ -401,6 +434,23 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     },
     [gameId],
     [] as GameMoveEvent[]
+  )
+
+  const player1PubKey = useMemo<NIP01.PubKey | undefined>(() => currentGameStartEvent?.pubkey, [currentGameStartEvent])
+  const player2PubKey = useLiveQuery<NIP01.PubKey | undefined>(async () => {
+    if (!currentGameStartEvent) return undefined
+    const event = await gameStore.game_move.where('[gameId+moveCounter]').equals([currentGameStartEvent.id, 2]).first()
+
+    return (event && event.pubkey) || undefined
+  }, [currentGameStartEvent])
+
+  const displayPlayer1PubKey = useMemo(
+    () => player1PubKey && AppUtils.pubKeyDisplayName(player1PubKey),
+    [player1PubKey]
+  )
+  const displayPlayer2PubKey = useMemo(
+    () => player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey),
+    [player2PubKey]
   )
 
   const onChessboardChanged = async (chessboard: ChessInstance) => {
@@ -448,17 +498,17 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
 
   useEffect(() => {
     setColor((_) => {
-      if (currentGameStart && privateKeyOrNull !== null && publicKeyOrNull !== null) {
-        if (publicKeyOrNull === currentGameStart.event().pubkey) {
+      if (privateKeyOrNull !== null && publicKeyOrNull !== null) {
+        if (publicKeyOrNull === player1PubKey) {
           return MOVE_COLOR_WHITE
-        } else {
+        } else if (player2PubKey === undefined || publicKeyOrNull === player2PubKey) {
           return MOVE_COLOR_BLACK
         }
       }
 
       return MOVE_COLOR_NONE
     })
-  }, [currentGameStart, privateKeyOrNull, publicKeyOrNull])
+  }, [privateKeyOrNull, publicKeyOrNull, player1PubKey, player2PubKey])
 
   useEffect(() => {
     setCurrentGameHead(currentGameStart)
@@ -559,6 +609,146 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     return <div>Error: GameId not present</div>
   }
 
+  const a = new Date().getTime() > 1
+  if (a) {
+    return (
+      <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-2 min-w-xs max-w-lg lg:max-w-6xl">
+          <div className="order-1">
+            <div className="mb-2 flex justify-center items-center">
+              <div>
+                <ColorMessage color={color} />
+              </div>
+            </div>
+          </div>
+          <div className="order-2"></div>
+          <div className="order-3">
+            <div className="grid grid-cols-1">
+              <div className={`lg:hidden ${color === MOVE_COLOR_BLACK ? 'mb-2 order-1' : 'mt-2 order-3'}`}>
+                <div className="h-10 flex items-center">
+                  {player1PubKey ? (
+                    <RoboHashImg
+                      className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      value={player1PubKey}
+                      alt={displayPlayer1PubKey}
+                    />
+                  ) : (
+                    <UnknownImg size={8} />
+                  )}
+                  <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">White</h6>
+                  <div className="flex-1"></div>
+                  <div className="flex justify-center items-center">
+                    {privateKeyOrNull &&
+                      publicKeyOrNull &&
+                      publicKeyOrNull === player1PubKey &&
+                      currentChessInstance !== null &&
+                      !currentChessInstance.game_over() && (
+                        <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
+                      )}
+                  </div>
+                </div>
+              </div>
+              <div
+                className="order-2"
+                style={{
+                  filter: settings.currentGameJesterId !== jesterId ? 'brightness(0.5)' : undefined,
+                }}
+              >
+                <GameboardWithLoader
+                  isLoading={isLoading}
+                  isSearchingHead={isSearchingHead}
+                  game={currentChessInstance}
+                  color={color}
+                  onChessboardChanged={onChessboardChanged}
+                />
+              </div>
+              <div className={`lg:hidden ${color !== MOVE_COLOR_BLACK ? 'mb-2 order-1' : 'mt-2 order-3'}`}>
+                <div className="h-10 flex items-center">
+                  {player2PubKey ? (
+                    <RoboHashImg
+                      className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      value={player2PubKey}
+                      alt={displayPlayer2PubKey}
+                    />
+                  ) : (
+                    <UnknownImg size={8} />
+                  )}
+                  <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">Black</h6>
+
+                  <div className="flex-1"></div>
+                  <div className="flex justify-center items-center">
+                    {privateKeyOrNull &&
+                      publicKeyOrNull &&
+                      publicKeyOrNull === player2PubKey &&
+                      currentChessInstance !== null && (
+                        <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
+                      )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="order-4 lg:order-5">
+            {currentChessInstance !== null && (
+              <div className="mt-4 my-2">
+                <CopyGameUrlInput value={window.location.href} />
+              </div>
+            )}
+          </div>
+          <div className="hidden order-5 lg:order-4 lg:grid grid-cols-1 h-full content-between">
+            <div className={`flex ${color === MOVE_COLOR_BLACK ? 'order-1' : 'order-3'}`}>
+              <div className="grid grid-cols-1">
+                <div className="flex justify-center">
+                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">White</h6>
+                </div>
+                <div className="flex justify-center">
+                  {player1PubKey ? (
+                    <RoboHashImg
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      value={player1PubKey}
+                      alt={displayPlayer1PubKey}
+                    />
+                  ) : (
+                    <UnknownImg size={24} />
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="order-2">
+              <div className="flex justify-start items-center">
+                {privateKeyOrNull &&
+                  publicKeyOrNull &&
+                  (publicKeyOrNull === player1PubKey || publicKeyOrNull === player2PubKey) &&
+                  currentChessInstance !== null &&
+                  !currentChessInstance.game_over() && (
+                    <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} vertical={true} />
+                  )}
+              </div>
+            </div>
+            <div className={`flex ${color === MOVE_COLOR_BLACK ? 'order-3' : 'order-1'}`}>
+              <div className="grid grid-cols-1">
+                <div className="flex justify-center">
+                  {player2PubKey ? (
+                    <RoboHashImg
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      value={player2PubKey}
+                      alt={displayPlayer2PubKey}
+                    />
+                  ) : (
+                    <UnknownImg size={24} />
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Black</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   return (
     <div className="screen-game-by-id">
       <div>
@@ -592,8 +782,8 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
           </div>
         )}
       </div>
-      <div className="flex justify-between">
-        <div className="order-1 lg:order-2 flex-1 justify-center">
+      <div className="flex justify-between space-x-4">
+        <div className="order-1 lg:order-1 flex-none">
           <div className="flex-1 justify-center">
             <div
               className="flex justify-center"
@@ -609,90 +799,96 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 onChessboardChanged={onChessboardChanged}
               />
             </div>
-
-            {currentChessInstance !== null && (
-              <div className="my-2">
-                <div className="mb-2 flex justify-center items-center">
-                  <div>
-                    <ColorMessage color={color} />
-                  </div>
+          </div>
+        </div>
+        <div className="order-2 lg:order-2 flex-1 min-w-sm-1/2 hidden lg:block">
+          <div className="grid grid-cols-1 h-full content-between">
+            <div className="flex">
+              <div className="grid grid-cols-1">
+                <div className="flex justify-center">
+                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">White</h6>
                 </div>
-
-                <div className="mb-4 flex justify-center items-center">
-                  {color.length > 0 && currentChessInstance !== null && !currentChessInstance.game_over() && (
-                    <>
-                      <div>
-                        <ProposeTakebackButton disabled={isLoading || isSearchingHead} />
-                      </div>
-                      <div>
-                        <OfferDrawButton disabled={isLoading || isSearchingHead} />
-                      </div>
-                      <div>
-                        <ResignButton disabled={isLoading || isSearchingHead} />
-                      </div>
-                    </>
+                <div className="flex justify-center">
+                  {currentGameStartEvent && (
+                    <GameDetails game={currentGameStartEvent}>
+                      {({ player1PubKey }) => {
+                        const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
+                        return (
+                          <RoboHashImg
+                            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                            value={player1PubKey}
+                            alt={displayPlayer1PubKey}
+                          />
+                        )
+                      }}
+                    </GameDetails>
                   )}
                 </div>
+              </div>
+            </div>
+            <div className="flex">
+              <div className="grid grid-cols-1">
+                <div className="flex justify-center">
+                  {currentGameStartEvent && (
+                    <GameDetails game={currentGameStartEvent}>
+                      {({ player2PubKey }) => {
+                        if (!player2PubKey) {
+                          return <UnknownImg size={24} />
+                        }
 
-                {currentChessInstance !== null && (
-                  <div className="mb-2">
-                    <CopyGameUrlInput value={window.location.href} />
+                        const displayPlayer2PubKey = AppUtils.pubKeyDisplayName(player2PubKey)
+                        return (
+                          <RoboHashImg
+                            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                            value={player2PubKey}
+                            alt={displayPlayer2PubKey}
+                          />
+                        )
+                      }}
+                    </GameDetails>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Black</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        {currentChessInstance !== null && (
+          <div className="my-2">
+            <div className="mb-2 flex justify-center items-center">
+              <div>
+                <ColorMessage color={color} />
+              </div>
+            </div>
+
+            <div className="mb-4 flex justify-center items-center">
+              {color.length > 0 && currentChessInstance !== null && !currentChessInstance.game_over() && (
+                <>
+                  <div>
+                    <ProposeTakebackButton disabled={isLoading || isSearchingHead} />
                   </div>
-                )}
+                  <div>
+                    <OfferDrawButton disabled={isLoading || isSearchingHead} />
+                  </div>
+                  <div>
+                    <ResignButton disabled={isLoading || isSearchingHead} />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {currentChessInstance !== null && (
+              <div className="mb-2">
+                <CopyGameUrlInput value={window.location.href} />
               </div>
             )}
           </div>
-        </div>
-        <div className="order-2 lg:order-1 flex-1 min-w-sm-1/2 hidden lg:block">
-          <div className="grid grid-cols-1">
-            <div className="flex justify-center">
-              <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">White</h6>
-            </div>
-            <div className="flex justify-center">
-              {currentGameStartEvent && (
-                <GameDetails game={currentGameStartEvent}>
-                  {({ player1PubKey }) => {
-                    const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
-                    return (
-                      <RoboHashImg
-                        className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                        value={player1PubKey}
-                        alt={displayPlayer1PubKey}
-                      />
-                    )
-                  }}
-                </GameDetails>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="order-3 lg:order-3 flex-1 min-w-sm-1/2 hidden lg:block">
-          <div className="grid grid-cols-1">
-            <div className="flex justify-center">
-              <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Black</h6>
-            </div>
-            <div className="flex justify-center">
-              {currentGameStartEvent && (
-                <GameDetails game={currentGameStartEvent}>
-                  {({ player2PubKey }) => {
-                    if (!player2PubKey) {
-                      return <UnknownImg size={24} />
-                    }
-
-                    const displayPlayer2PubKey = AppUtils.pubKeyDisplayName(player2PubKey)
-                    return (
-                      <RoboHashImg
-                        className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                        value={player2PubKey}
-                        alt={displayPlayer2PubKey}
-                      />
-                    )
-                  }}
-                </GameDetails>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {settings.dev && (

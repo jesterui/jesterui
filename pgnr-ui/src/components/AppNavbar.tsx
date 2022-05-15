@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from 'react'
 import { NavLink as ReactNavLink } from 'react-router-dom'
 
-import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { useSettings } from '../context/SettingsContext'
 
 import { RoboHashImg } from '../components/RoboHashImg'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 
 import * as AppUtils from '../util/app'
-import { getSession, setSessionAttribute } from '../util/session'
 
 // @ts-ignore
 import Navbar from '@material-tailwind/react/Navbar'
@@ -15,8 +14,6 @@ import Navbar from '@material-tailwind/react/Navbar'
 import NavbarContainer from '@material-tailwind/react/NavbarContainer'
 // @ts-ignore
 import NavbarWrapper from '@material-tailwind/react/NavbarWrapper'
-// @ts-ignore
-import NavbarBrand from '@material-tailwind/react/NavbarBrand'
 // @ts-ignore
 import NavbarToggler from '@material-tailwind/react/NavbarToggler'
 // @ts-ignore
@@ -30,60 +27,51 @@ import Icon from '@material-tailwind/react/Icon'
 
 export default function AppNavbar() {
   const settings = useSettings()
-  const settingsDispatch = useSettingsDispatch()
   const [openMenu, setOpenMenu] = useState(false)
 
-  const privateKeyOrNull = getSession()?.privateKey || null
   const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const displayPubKey = useMemo(() => publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull), [publicKeyOrNull])
-
-  const deleteIdentityButtonClicked = () => {
-    setSessionAttribute({ privateKey: null })
-    settingsDispatch({ identity: undefined } as AppSettings)
-  }
-
-  /*const onProfileButtonClicked = () => {
-    navigate(`/profile`)
-  }*/
 
   return (
     <Navbar color="" navbar>
       <NavbarContainer>
         <NavbarWrapper>
-          <div className="flex-1">
-            <NavbarBrand>
-              <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
-                jester
-                <span
-                  style={{ whiteSpace: 'nowrap' }}
-                  className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
-                >
-                  beta
-                </span>
-                <span className="ml-1">
-                  <WebsocketIndicator />
-                </span>
-                {settings.dev ? (
+          <div className="flex-1 text-sm font-bold inline-block mr-4 whitespace-no-wrap text-white">
+            <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
+              <div className="grid grid-cols-1">
+                <div>
+                  jester
+                  <span className="ml-1">
+                    <WebsocketIndicator />
+                  </span>
                   <span
                     style={{ whiteSpace: 'nowrap' }}
-                    className="bg-green-100 text-green-800 text-xs font-semibold ml-1 px-2.5 py-0.5 rounded"
+                    className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
                   >
-                    dev mode
+                    beta
                   </span>
-                ) : (
-                  <>
+                </div>
+                <div>
+                  {settings.dev ? (
                     <span
                       style={{ whiteSpace: 'nowrap' }}
-                      className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
+                      className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded"
+                    >
+                      dev mode
+                    </span>
+                  ) : (
+                    <span
+                      style={{ whiteSpace: 'nowrap' }}
+                      className="bg-gray-100 text-blue-gray-800 text-xs font-semibold px-1 py-0.5 rounded"
                     >
                       chess on nostr
                     </span>
-                  </>
-                )}
-              </ReactNavLink>
-            </NavbarBrand>
+                  )}
+                </div>
+              </div>
+            </ReactNavLink>
           </div>
-          {privateKeyOrNull && publicKeyOrNull && displayPubKey && (
+          {publicKeyOrNull && displayPubKey && (
             <div className="flex items-center">
               <ReactNavLink to="/" className={({ isActive }) => `block lg:hidden ${isActive ? '' : ''}`}>
                 <RoboHashImg
@@ -97,7 +85,7 @@ export default function AppNavbar() {
           <NavbarToggler color="white" onClick={() => setOpenMenu(!openMenu)} ripple="light" />
         </NavbarWrapper>
         <NavbarCollapse open={openMenu}>
-          <Nav leftSide className="mt-2 lg:mt-0">
+          <Nav leftSide className="items-center hidden lg:flex">
             {settings.currentGameJesterId && (
               <ReactNavLink to="/current" className={({ isActive }) => `mx-1 my-1 ${isActive ? '' : ''}`}>
                 <NavItem ripple="light">
@@ -121,7 +109,7 @@ export default function AppNavbar() {
               </NavItem>
             </ReactNavLink>
           </Nav>
-          <Nav>
+          <Nav className="mt-2 lg:mt-0">
             <ReactNavLink
               to="/search"
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
@@ -156,7 +144,7 @@ export default function AppNavbar() {
               </NavItem>
             </ReactNavLink>
 
-            {privateKeyOrNull && publicKeyOrNull && displayPubKey && (
+            {publicKeyOrNull && displayPubKey && (
               <ReactNavLink to="/" className={({ isActive }) => `hidden lg:block mx-1 my-1 ${isActive ? '' : ''}`}>
                 <RoboHashImg
                   className="w-9 h-9 ml-2 mr-2 rounded-full shadow-sm-gray bg-blue-gray-500"

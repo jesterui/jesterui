@@ -116,6 +116,8 @@ export default function SearchPage() {
         if (abortCtrl.signal.aborted) return
         if (it) {
           setExampleJesterId(JesterUtils.gameIdToJesterId(it.id))
+        } else {
+          setExampleJesterId(JesterUtils.VALID_JESTER_ID_EXAMPLE)
         }
       })
       .catch((e) => {
@@ -125,7 +127,7 @@ export default function SearchPage() {
       })
 
     return () => abortCtrl.abort()
-  }, [currentGameJesterId])
+  }, [currentGameJesterId, gameStore])
 
   const search = (searchInput: string) => {
     setInputLooksLikeJesterId(false)

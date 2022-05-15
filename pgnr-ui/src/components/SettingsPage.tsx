@@ -301,14 +301,13 @@ const KeyPairForm = () => {
 
         <Button
           color="blueGray"
-          buttonType={privateKeyOrNull !== null ? 'filled' : 'outline'}
+          buttonType={publicKeyOrNull !== null ? 'filled' : 'outline'}
           size="regular"
           rounded={false}
           block={false}
           iconOnly={false}
           ripple="light"
           onClick={deleteIdentityButtonClicked}
-          disabled={privateKeyOrNull === null}
           className="w-40 ml-2"
         >
           Forget
