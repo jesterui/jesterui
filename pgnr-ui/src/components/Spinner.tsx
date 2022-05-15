@@ -1,12 +1,17 @@
 import React, { PropsWithChildren } from 'react'
 
-export function Spinner({ children }: PropsWithChildren<{}>) {
+interface SpinnerProps {
+  size?: number
+}
+
+export function Spinner({ size = 32, children }: PropsWithChildren<SpinnerProps>) {
   return (
     <div className="flex flex-col justify-center items-center">
       <svg
+        style={{ width: `${size}px`, height: `${size}px` }}
         role="status"
         className="inline w-8 h-8 text-gray-600 animate-spin fill-gray-200"
-        viewBox="0 0 100 101"
+        viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >

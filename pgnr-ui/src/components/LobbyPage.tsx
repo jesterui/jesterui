@@ -20,7 +20,9 @@ import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
 // @ts-ignore
-import Small from '@material-tailwind/react/Small'
+import Button from '@material-tailwind/react/Button'
+// @ts-ignore
+import Icon from '@material-tailwind/react/Icon'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -86,22 +88,36 @@ export default function LobbyPage() {
   )
 
   const [tick, setTick] = useState<number>(Date.now())
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
     setGameStartEventFilter(createGameOverviewFilter(new Date()))
+
+    setIsLoading(true)
+    const abortCtrl = new AbortController()
+    const timer = setTimeout(() => !abortCtrl.signal.aborted && setIsLoading(false), 1_000)
+
+    return () => {
+      clearTimeout(timer)
+      abortCtrl.abort()
+    }
   }, [tick])
 
   useEffect(() => {
     const abortCtrl = new AbortController()
-    const timer = setInterval(
-      () => !abortCtrl.signal.aborted && setTick((_) => Date.now()),
+    const updateInterval = setInterval(
+      () => !abortCtrl.signal.aborted && setTick(Date.now()),
       MIN_UPDATE_IN_SECONDS * 1_000
     )
     return () => {
-      clearInterval(timer)
+      clearInterval(updateInterval)
       abortCtrl.abort()
     }
   }, [])
+
+  const onRefreshGameListButtonClicked = () => {
+    setTick(Date.now())
+  }
 
   const listOfStartGamesLiveQuery = useLiveQuery(
     async () => {
@@ -124,7 +140,7 @@ export default function LobbyPage() {
   const listOfPrivateStartGamesLiveQuery = useLiveQuery(
     async () => {
       if (!privateStartGameRef) return null
-      const events = await gameStore.game_start.where('event_tags').equals(privateStartGameRef).limit(3).toArray()
+      const events = await gameStore.game_start.where('event_tags').equals(privateStartGameRef).limit(12).toArray()
 
       return events
     },
@@ -193,15 +209,49 @@ export default function LobbyPage() {
             </>
           )}
 
-          {
-            <div className="my-4">
-              <Heading6 color="blueGray">Latest Games</Heading6>
-              {listOfStartGames?.length || 0} games available
-              <Small color="yellow"> on {renderedAt.toLocaleString()}</Small>
-              <Small color="gray"> from {gameStartEventFilter.from.toLocaleString()}</Small>
-              <Small color="gray"> to {gameStartEventFilter.until.toLocaleString()}</Small>
+          <div className="my-4">
+            <Heading6 color="blueGray">
+              Latest Games (
+              {`${listOfStartGames?.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${listOfStartGames?.length || 0}`})
+            </Heading6>
+
+            <div className="flex items-center">
+              <div className="text-sm text-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
+                {`${listOfStartGames?.length >= MAX_AMOUNT_OF_GAMES ? '>' : ''}${listOfStartGames?.length || 0}`} games
+                available
+                <span>
+                  {' '}
+                  in the last {Math.floor(
+                    (renderedAt.getTime() - gameStartEventFilter.from.getTime()) / 1_000 / 60
+                  )}{' '}
+                  minutes
+                </span>
+                <div> on {renderedAt.toLocaleString()}</div>
+              </div>
+
+              <div>
+                <Button
+                  color="blueGray"
+                  buttonType="outline"
+                  size="sm"
+                  rounded={false}
+                  block={false}
+                  iconOnly={false}
+                  ripple="light"
+                  onClick={onRefreshGameListButtonClicked}
+                  className="mx-4 h-8 "
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="w-6 flex items-center justify-center">
+                      {isLoading ? <Spinner size={16} /> : <Icon name="refresh" size="xl" />}
+                    </div>
+                    <div className="ml-2">Refresh</div>
+                  </div>
+                </Button>
+              </div>
             </div>
-          }
+          </div>
+
           <div className="my-4">
             <GameList games={listOfStartGames || []} currentGameId={currentGameId} />
           </div>

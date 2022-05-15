@@ -59,7 +59,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
             >
               <div className="flex flex-col items-center pb-4 pt-4">
                 <div className="flex items-center justify-center w-full">
-                  <h6 className="text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
+                  <h6 className="text-xs text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
                     {displayJesterId}
                   </h6>
                 </div>
