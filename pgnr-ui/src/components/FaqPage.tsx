@@ -19,6 +19,34 @@ export default function FaqPage() {
     <div className="screen-faq">
       <Heading1 color="blueGray">FAQ</Heading1>
 
+      <Heading6 color="blueGray">What is this?</Heading6>
+      <p className="mb-8 text-gray-500 font-serif">
+        A chess app on nostr.
+      </p>
+      <Heading6 color="blueGray">How can I do X?</Heading6>
+      <p className="mb-8 text-gray-500 font-serif">
+        You probably can't. It's current state the app is very limited.
+      </p>
+      <Heading6 color="blueGray">I found a bug. How can I report it?</Heading6>
+      <p className="mb-8 text-gray-500 font-serif">
+        Please open an issue on the project's GitHub repo: <a 
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://robohash.org/">Robohash.org</a>
+      </p>
+      <Heading6 color="blueGray">This is in beta. Is this just a demo application?</Heading6>
+      <p className="mb-8 text-gray-500 font-serif">
+        Yes.
+      </p>
+      <Heading6 color="blueGray">Where are the robots coming from?</Heading6>
+      <p className="mb-8 text-gray-500 font-serif">
+        Robots lovingly delivered by <a 
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://robohash.org/">https://robohash.org</a>.
+      </p>
+
+      {process.env.NODE_ENV === 'development' && <>
       <Heading6 color="blueGray">Nostr</Heading6>
       <div>
         - nostr (GitHub): <a href="https://github.com/fiatjaf/nostr">https://github.com/fiatjaf/nostr</a>
@@ -88,7 +116,7 @@ export default function FaqPage() {
         <a href="https://mermaid-js.github.io/mermaid/#/sequenceDiagram">
           https://mermaid-js.github.io/mermaid/#/sequenceDiagram
         </a>
-      </div>
+      </div></>}
     </div>
   )
 }

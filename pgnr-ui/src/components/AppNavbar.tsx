@@ -121,7 +121,7 @@ export default function AppNavbar() {
                 <span className="lg:hidden">Search</span>
               </NavItem>
             </ReactNavLink>
-            {/*<ReactNavLink
+            <ReactNavLink
               to="/faq"
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}
             >
@@ -131,7 +131,7 @@ export default function AppNavbar() {
                 </div>
                 <span className="lg:hidden">FAQ</span>
               </NavItem>
-            </ReactNavLink>*/}
+            </ReactNavLink>
             <ReactNavLink
               to="/settings"
               className={({ isActive }) => `mx-1 my-1 ${isActive ? 'bg-white bg-opacity-20 rounded-lg' : ''}`}

@@ -82,13 +82,6 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                   )}
                 </div>
 
-                {/*
-                <div className="mb-1">
-                  <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
-                    {displayJesterId}
-                  </code>
-                </div>
-              */}
                 {moveCount && moveCount > 0 ? (
                   <span className="mb-1 text-sm text-gray-400">
                     {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
