@@ -11,6 +11,8 @@ export type InitialisedBot = {
 }
 export type AvailableBots = Record<string, UninitialisedBot>
 
+const DEV = process.env.NODE_ENV === 'development'
+
 const uciWorker =
   (file: string, actions: Array<string>): UninitialisedBot =>
   () => {
@@ -19,8 +21,10 @@ const uciWorker =
 
     let resolver: ((move: ShortMove) => void) | null = null
 
-    worker.addEventListener('message', (e) => {
-      const move = e.data.match(/^bestmove\s([a-h][1-8])([a-h][1-8])/)
+    worker.addEventListener('message', (uciMessage) => {
+      DEV && console.debug(`[Engine]`, uciMessage)
+
+      const move = uciMessage.data.match(/^bestmove\s([a-h][1-8])([a-h][1-8])/)
       if (move && resolver) {
         resolver({ from: move[1], to: move[2] })
         resolver = null
@@ -72,11 +76,14 @@ const randomMove: UninitialisedBot = () => {
 }
 
 // https://ucichessengine.wordpress.com/2011/03/16/description-of-uci-protocol/
+// https://github.com/official-stockfish/Stockfish#the-uci-protocol-and-available-options
 export const Bots: AvailableBots = {
   Alice: uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', ['setoption name Skill Level value 1', 'go depth 1']),
   'Risky Alice': uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', [
-    'setoption name Skill Level value 1',
-    'setoption name Style value Risky',
+    'setoption name Skill Level value 1', // 0 - 20
+    'setoption name Contempt value 0', // -100 - 100
+    //'setoption name King Safety value 0',
+    //'setoption name Style value Risky',
     'go depth 1',
   ]),
   Bob: uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', ['setoption name Skill Level value 1', 'go movetime 1000']),
@@ -97,8 +104,10 @@ export const Bots: AvailableBots = {
     'go movetime 1000',
   ]),*/
   Jester: uciWorker('/bots/stockfish.js-10.0.2/stockfish.js', [
-    'setoption name Skill Level value 20',
-    'setoption name Style value Risky',
+    'setoption name Skill Level value 20', // 0 - 20
+    'setoption name Contempt value 42', // -100 - 100
+    //'setoption name Style value Risky',
+    //'setoption name King Safety value 0',
     'go depth 10',
   ]),
   Chaos: randomMove,
