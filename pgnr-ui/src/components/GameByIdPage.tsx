@@ -46,6 +46,7 @@ import Tooltips from '@material-tailwind/react/Tooltips'
 import TooltipsContent from '@material-tailwind/react/TooltipsContent'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
+import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -812,7 +813,10 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                         <GameOverMessage game={currentChessInstance} />
                       </div>
                       <div className="my-2">
-                        <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                        {privateKeyOrNull !== null && publicKeyOrNull !== null && (
+                          /* This should be a "Start new game" button only.. */
+                          <GameStartOrNewIdentityButton hasPrivateKey={true} />
+                        )}
                       </div>
                     </>
                   ) : (

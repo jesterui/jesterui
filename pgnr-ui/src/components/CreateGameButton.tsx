@@ -80,6 +80,7 @@ export default function CreateGameButton({
     </button>
   )
 }
+
 interface CreateGameAndRedirectButtonProps {
   buttonRef?: RefObject<HTMLButtonElement>
   className?: string
