@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 
 import { SelectedBot } from '../components/BotSelector'
 
-import * as Bot from '../util/bot'
+import * as UCI from '../util/uci'
 import { ChessInstance } from '../components/ChessJsTypes'
 
 interface MoveAndFen {
-  move: Bot.ShortMove
-  fen: Bot.Fen
+  move: UCI.ShortMove
+  fen: UCI.Fen
 }
 
 interface BotMoveSuggestion {
@@ -27,7 +27,7 @@ const botConsole =
 
 export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion {
   const [isThinking, setIsThinking] = useState(false)
-  const [thinkingFens, setThinkingFens] = useState<Bot.Fen[]>([])
+  const [thinkingFens, setThinkingFens] = useState<UCI.Fen[]>([])
 
   const [suggestion, setSuggestion] = useState<BotMoveSuggestion>({
     isThinking: false,
@@ -70,7 +70,7 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
 
       selectedBot.bot
         .move(thinkingFen)
-        .then(({ from, to }: Bot.ShortMove) => {
+        .then(({ from, to }: UCI.ShortMove) => {
           /*if (abortCtrl.signal.aborted) {
             console.warn(`Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`)
             return
@@ -98,7 +98,7 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
             return copy
           })
         })
-        .catch((e) => console.warn('Error during move suggestion', e))
+        .catch((e: Error) => console.warn('Error during move suggestion', e))
     }, 100)
 
     return () => {

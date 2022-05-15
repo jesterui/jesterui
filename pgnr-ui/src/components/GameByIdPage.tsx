@@ -46,7 +46,6 @@ import Tooltips from '@material-tailwind/react/Tooltips'
 import TooltipsContent from '@material-tailwind/react/TooltipsContent'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
-import { CreateGameAndRedirectButton } from './CreateGameButton'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
