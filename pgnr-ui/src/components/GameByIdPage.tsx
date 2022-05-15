@@ -336,7 +336,6 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
   const gameStore = useGameStore()
 
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
-  const [currentGameStart, setCurrentGameStart] = useState<GameStart | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
   const [color, setColor] = useState<MovableColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
@@ -384,23 +383,13 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
 
   const currentGameStartEvent = useLiveQuery(async () => {
     if (!gameId) return
-
-    const event = await gameStore.game_start.get(gameId)
-    if (!event) return
-
-    return event
+    return await gameStore.game_start.get(gameId)
   }, [gameId])
 
-  useEffect(() => {
-    setCurrentGameStart((current) => {
-      if (!currentGameStartEvent) {
-        return null
-      }
-      if (current && current.event().id === currentGameStartEvent.id) {
-        return current
-      }
-      return new GameStart(currentGameStartEvent)
-    })
+
+  const currentGameStart = useMemo(() => {
+    if (!currentGameStartEvent) return null
+    return new GameStart(currentGameStartEvent)
   }, [currentGameStartEvent])
 
   const currentGameMoves = useLiveQuery(
@@ -461,9 +450,6 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     setColor((_) => {
       if (currentGameStart && privateKeyOrNull !== null && publicKeyOrNull !== null) {
         if (publicKeyOrNull === currentGameStart.event().pubkey) {
-          //if (process.env.NODE_ENV === 'development') {
-          //  return MOVE_COLOR_BOTH
-          //}
           return MOVE_COLOR_WHITE
         } else {
           return MOVE_COLOR_BLACK
