@@ -29,7 +29,12 @@ export default function FaqPage() {
       <Heading6 color="blueGray">I found a bug. How can I report it?</Heading6>
       <p className="mb-8 font-serif">
         Please open an issue on the project's GitHub repo:{' '}
-        <a className="underline" target="_blank" rel="noopener noreferrer" href="https://github.com/jesterui/jesterui/issues">
+        <a
+          className="underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://github.com/jesterui/jesterui/issues"
+        >
           https://github.com/jesterui/jesterui
         </a>
       </p>

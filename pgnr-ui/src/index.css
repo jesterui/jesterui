@@ -19,7 +19,9 @@ code {
 /* missing tailwind classes from material-tailwind */
 /* TODO: integrate plain tailwind and get rif of material-tailwind to remove these classes again */
 
-.underline{text-decoration:underline}
+.underline {
+  text-decoration: underline;
+}
 
 .my-1 {
   margin-top: 0.25rem;

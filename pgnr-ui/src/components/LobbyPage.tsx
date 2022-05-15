@@ -28,7 +28,7 @@ import Icon from '@material-tailwind/react/Icon'
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 30 : 5
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
 const MAX_AMOUNT_OF_GAMES = 100
-const MIN_UPDATE_IN_SECONDS = 10
+const MIN_UPDATE_IN_SECONDS = 60
 
 interface GamesFilter {
   from: Date
@@ -264,10 +264,8 @@ export default function LobbyPage() {
             {listOfStartGames !== null && listOfStartGames.length === 0 && (
               <>
                 <div className="flex items-center gap-3 text-white p-4 pr-12 border-0 bg-gray-500 rounded-lg relative mb-4 undefined transition-all duration-300 bg-opacity-20">
-                  <div className="text-gray-500">
-                    Currently, no games are being played.
-                    </div>
-                    {isLoading && <Spinner size={24}/>}
+                  <div className="text-gray-500">Currently, no games are being played.</div>
+                  {isLoading && <Spinner size={24} />}
                 </div>
               </>
             )}

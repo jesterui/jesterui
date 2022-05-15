@@ -58,7 +58,6 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
               className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800`}
             >
               <div className="flex flex-col items-center pb-4 pt-4">
-
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
                     className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
@@ -90,7 +89,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                   </h6>
                 </div>
                 <span className="mb-1 text-sm text-gray-400">
-                  <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+                  <Small color=""> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
                 <div className="px-4 mt-2 w-full">
                   {isLoading ? (
@@ -213,7 +212,7 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
                   <></>
                 )}
                 <span className="mb-1 text-sm text-gray-400">
-                  <Small color="yellow"> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
+                  <Small color=""> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
                 </span>
                 <div className="px-4 mt-2 w-full">
                   {isLoading ? (
