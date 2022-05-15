@@ -1,6 +1,5 @@
 import React, { ProviderProps, createContext, useReducer, useEffect, useContext } from 'react'
 
-import * as NIP01 from '../util/nostr/nip01'
 import * as JesterUtils from '../util/jester'
 
 const localStorageKey = () => window.APP.SETTINGS_STORE_KEY

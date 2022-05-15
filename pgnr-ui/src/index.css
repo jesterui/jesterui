@@ -131,6 +131,10 @@ code {
   align-content: space-between;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .min-w-xs {
   min-width: 20rem;
 }

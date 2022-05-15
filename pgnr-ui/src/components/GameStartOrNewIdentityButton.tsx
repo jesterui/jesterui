@@ -4,10 +4,16 @@ import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
+import { useNavigate } from 'react-router-dom'
 
-export function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey: boolean }) {
+export function GameStartOrNewIdentityButton({
+  hasPrivateKey,
+  hasPublicKey,
+}: {
+  hasPrivateKey: boolean
+  hasPublicKey?: boolean
+}) {
   const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
-  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
 
   return (
     <>
@@ -31,22 +37,56 @@ export function GameStartOrNewIdentityButton({ hasPrivateKey }: { hasPrivateKey:
         </>
       ) : (
         <>
+          <LoginOrNewIdentityButton hasPublicKey={hasPublicKey || false} />
+        </>
+      )}
+    </>
+  )
+}
+
+export function LoginOrNewIdentityButton({ hasPublicKey }: { hasPublicKey: boolean }) {
+  const navigate = useNavigate()
+
+  const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
+
+  const loginButtonClicked = () => navigate(`/login`)
+
+  return (
+    <div className="flex justify-center items-center space-x-4 my-4">
+      {hasPublicKey && (
+        <>
           <Button
-            color="deepOrange"
+            color="blueGray"
             buttonType="filled"
             size="regular"
             rounded={false}
             block={false}
             iconOnly={false}
             ripple="light"
-            ref={generateRandomIdentityButtonRef}
             className="w-40"
+            onClick={loginButtonClicked}
           >
-            New Identity
-            <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+            Login
           </Button>
+
+          <div>or</div>
         </>
       )}
-    </>
+
+      <Button
+        color="deepOrange"
+        buttonType="outline"
+        size="regular"
+        rounded={false}
+        block={false}
+        iconOnly={false}
+        ripple="light"
+        ref={generateRandomIdentityButtonRef}
+        className="w-40"
+      >
+        New Identity
+        <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+      </Button>
+    </div>
   )
 }

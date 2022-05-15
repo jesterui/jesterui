@@ -9,9 +9,8 @@ import { useGameStore } from '../context/GameEventStoreContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { CopyButtonWithConfirmation } from '../components/CopyButton'
-import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
+import { GameStartOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
 import { ChessInstance } from '../components/ChessJsTypes'
-import { GameDetails } from '../components/jester/GameDetails'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 
 import { useResize } from '../hooks/ElementDimensions'
@@ -166,7 +165,7 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
 const ColorMessage = ({ color }: { color: MovableColor }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-xs sm:text-sm lg:text-2xl font-serif font-bold mt-0 mb-0">
+      <h6 className="text-blue-gray-500 text-sm font-serif font-bold mt-0 mb-0">
         {`You are ${color.length === 0 ? 'in watch-only mode' : color}`}
       </h6>
     </div>
@@ -184,7 +183,7 @@ const GameStateMessage = ({
 }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
+      <h6 className="text-blue-gray-500 text-sm lg:text-2xl font-serif font-bold mt-0 mb-0">
         {isLoading && game === null && 'Loading...'}
         {isLoading && game !== null && 'Loading...'}
         {!isLoading && game !== null && titleMessage(game, color)}
@@ -609,184 +608,99 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     return <div>Error: GameId not present</div>
   }
 
-  const a = new Date().getTime() > 1
-  if (a) {
+  if (!isLoading && currentChessInstance === null) {
     return (
-      <>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-2 min-w-xs max-w-lg lg:max-w-6xl">
-          <div className="order-1">
-            <div className="mb-2 flex justify-center items-center">
-              <div>
-                <ColorMessage color={color} />
-              </div>
-            </div>
-          </div>
-          <div className="order-2"></div>
-          <div className="order-3">
-            <div className="grid grid-cols-1">
-              <div className={`lg:hidden ${color === MOVE_COLOR_BLACK ? 'mb-2 order-1' : 'mt-2 order-3'}`}>
-                <div className="h-10 flex items-center">
-                  {player1PubKey ? (
-                    <RoboHashImg
-                      className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
-                      value={player1PubKey}
-                      alt={displayPlayer1PubKey}
-                    />
-                  ) : (
-                    <UnknownImg size={8} />
-                  )}
-                  <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">White</h6>
-                  <div className="flex-1"></div>
-                  <div className="flex justify-center items-center">
-                    {privateKeyOrNull &&
-                      publicKeyOrNull &&
-                      publicKeyOrNull === player1PubKey &&
-                      currentChessInstance !== null &&
-                      !currentChessInstance.game_over() && (
-                        <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
-                      )}
-                  </div>
-                </div>
-              </div>
-              <div
-                className="order-2"
-                style={{
-                  filter: settings.currentGameJesterId !== jesterId ? 'brightness(0.5)' : undefined,
-                }}
-              >
-                <GameboardWithLoader
-                  isLoading={isLoading}
-                  isSearchingHead={isSearchingHead}
-                  game={currentChessInstance}
-                  color={color}
-                  onChessboardChanged={onChessboardChanged}
-                />
-              </div>
-              <div className={`lg:hidden ${color !== MOVE_COLOR_BLACK ? 'mb-2 order-1' : 'mt-2 order-3'}`}>
-                <div className="h-10 flex items-center">
-                  {player2PubKey ? (
-                    <RoboHashImg
-                      className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
-                      value={player2PubKey}
-                      alt={displayPlayer2PubKey}
-                    />
-                  ) : (
-                    <UnknownImg size={8} />
-                  )}
-                  <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">Black</h6>
-
-                  <div className="flex-1"></div>
-                  <div className="flex justify-center items-center">
-                    {privateKeyOrNull &&
-                      publicKeyOrNull &&
-                      publicKeyOrNull === player2PubKey &&
-                      currentChessInstance !== null && (
-                        <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
-                      )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="order-4 lg:order-5">
-            {currentChessInstance !== null && (
-              <div className="mt-4 my-2">
-                <CopyGameUrlInput value={window.location.href} />
-              </div>
-            )}
-          </div>
-          <div className="hidden order-5 lg:order-4 lg:grid grid-cols-1 h-full content-between">
-            <div className={`flex ${color === MOVE_COLOR_BLACK ? 'order-1' : 'order-3'}`}>
-              <div className="grid grid-cols-1">
-                <div className="flex justify-center">
-                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">White</h6>
-                </div>
-                <div className="flex justify-center">
-                  {player1PubKey ? (
-                    <RoboHashImg
-                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                      value={player1PubKey}
-                      alt={displayPlayer1PubKey}
-                    />
-                  ) : (
-                    <UnknownImg size={24} />
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="order-2">
-              <div className="flex justify-start items-center">
-                {privateKeyOrNull &&
-                  publicKeyOrNull &&
-                  (publicKeyOrNull === player1PubKey || publicKeyOrNull === player2PubKey) &&
-                  currentChessInstance !== null &&
-                  !currentChessInstance.game_over() && (
-                    <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} vertical={true} />
-                  )}
-              </div>
-            </div>
-            <div className={`flex ${color === MOVE_COLOR_BLACK ? 'order-3' : 'order-1'}`}>
-              <div className="grid grid-cols-1">
-                <div className="flex justify-center">
-                  {player2PubKey ? (
-                    <RoboHashImg
-                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                      value={player2PubKey}
-                      alt={displayPlayer2PubKey}
-                    />
-                  ) : (
-                    <UnknownImg size={24} />
-                  )}
-                </div>
-                <div className="flex justify-center">
-                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Black</h6>
-                </div>
-              </div>
-            </div>
+      <div className="mb-4">
+        <div className="flex justify-between items-center mx-1">
+          <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">Game not found...</div>
+          <div className="mx-4">
+            <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} hasPublicKey={!!publicKeyOrNull} />
           </div>
         </div>
-      </>
+      </div>
     )
   }
 
   return (
     <div className="screen-game-by-id">
-      <div>
-        {!isLoading && currentChessInstance === null ? (
-          <div className="mb-2">
-            <div className="flex justify-between items-center mx-1">
-              <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">Game not found...</div>
-              <div className="mx-4">
-                <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-2">
-            <div className="flex justify-center items-center mx-1 mb-2">
-              <div>
-                <GameStateMessage isLoading={isLoading || isSearchingHead} game={currentChessInstance} color={color} />
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-2 min-w-xs max-w-lg lg:max-w-6xl">
+        <div className="order-1">
+          <div className="lg:hidden">
+            {!isLoading && currentChessInstance !== null && (
+              <>
+                {!isSearchingHead && currentChessInstance.game_over() ? (
+                  <>
+                    <div className="mb-2 flex justify-between items-center">
+                      <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
+                        <GameOverMessage game={currentChessInstance} />
+                      </div>
+                      <div className="ml-4">
+                        <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="mb-2">
+                    <div className="flex justify-center items-center">
+                      {!isLoading && currentChessInstance !== null && (
+                        <>
+                          <ColorMessage color={color} />
+                        </>
+                      )}
+                    </div>
 
-            {!isLoading && !isSearchingHead && currentChessInstance !== null && currentChessInstance.game_over() && (
-              <div className="flex justify-between items-center mx-1">
-                <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
-                  <GameOverMessage game={currentChessInstance} />
-                </div>
-                <div className="mx-4">
-                  <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-                </div>
-              </div>
+                    {(privateKeyOrNull === null || publicKeyOrNull === null) && (
+                      <>
+                        <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
-        )}
-      </div>
-      <div className="flex justify-between space-x-4">
-        <div className="order-1 lg:order-1 flex-none">
-          <div className="flex-1 justify-center">
+        </div>
+        <div className="order-2"></div>
+        <div className="order-3">
+          <div className="grid grid-cols-1">
+            <div className={`lg:hidden ${color === MOVE_COLOR_BLACK ? 'mb-2 order-1' : 'mt-2 order-3'}`}>
+              <div className="h-10 flex items-center">
+                {player1PubKey ? (
+                  <RoboHashImg
+                    className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    value={player1PubKey}
+                    alt={displayPlayer1PubKey}
+                  />
+                ) : (
+                  <UnknownImg size={8} />
+                )}
+                <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">
+                  White {player1PubKey && player1PubKey === publicKeyOrNull && <span className="text-sm">(you)</span>}
+                </h6>
+                <div className="flex-1"></div>
+                <div className="flex justify-center items-center">
+                  {privateKeyOrNull &&
+                    publicKeyOrNull &&
+                    publicKeyOrNull === player1PubKey &&
+                    currentChessInstance !== null &&
+                    !currentChessInstance.game_over() && (
+                      <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
+                    )}
+                </div>
+
+                {color === MOVE_COLOR_BLACK && (
+                  <div className="flex justify-center items-center">
+                    <GameStateMessage
+                      isLoading={isLoading || isSearchingHead}
+                      game={currentChessInstance}
+                      color={color}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
             <div
-              className="flex justify-center"
+              className="order-2"
               style={{
                 filter: settings.currentGameJesterId !== jesterId ? 'brightness(0.5)' : undefined,
               }}
@@ -799,98 +713,140 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 onChessboardChanged={onChessboardChanged}
               />
             </div>
-          </div>
-        </div>
-        <div className="order-2 lg:order-2 flex-1 min-w-sm-1/2 hidden lg:block">
-          <div className="grid grid-cols-1 h-full content-between">
-            <div className="flex">
-              <div className="grid grid-cols-1">
-                <div className="flex justify-center">
-                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">White</h6>
-                </div>
-                <div className="flex justify-center">
-                  {currentGameStartEvent && (
-                    <GameDetails game={currentGameStartEvent}>
-                      {({ player1PubKey }) => {
-                        const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
-                        return (
-                          <RoboHashImg
-                            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                            value={player1PubKey}
-                            alt={displayPlayer1PubKey}
-                          />
-                        )
-                      }}
-                    </GameDetails>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="grid grid-cols-1">
-                <div className="flex justify-center">
-                  {currentGameStartEvent && (
-                    <GameDetails game={currentGameStartEvent}>
-                      {({ player2PubKey }) => {
-                        if (!player2PubKey) {
-                          return <UnknownImg size={24} />
-                        }
+            <div className={`lg:hidden ${color !== MOVE_COLOR_BLACK ? 'mb-2 order-1' : 'mt-2 order-3'}`}>
+              <div className="h-10 flex items-center">
+                {player2PubKey ? (
+                  <RoboHashImg
+                    className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    value={player2PubKey}
+                    alt={displayPlayer2PubKey}
+                  />
+                ) : (
+                  <UnknownImg size={8} />
+                )}
+                <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">
+                  Black {player2PubKey && player2PubKey === publicKeyOrNull && <span className="text-sm">(you)</span>}
+                </h6>
 
-                        const displayPlayer2PubKey = AppUtils.pubKeyDisplayName(player2PubKey)
-                        return (
-                          <RoboHashImg
-                            className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
-                            value={player2PubKey}
-                            alt={displayPlayer2PubKey}
-                          />
-                        )
-                      }}
-                    </GameDetails>
-                  )}
+                <div className="flex-1"></div>
+                <div className="flex justify-center items-center">
+                  {privateKeyOrNull &&
+                    publicKeyOrNull &&
+                    publicKeyOrNull === player2PubKey &&
+                    currentChessInstance !== null &&
+                    !currentChessInstance.game_over() && (
+                      <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
+                    )}
                 </div>
-                <div className="flex justify-center">
-                  <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0 mb-1">Black</h6>
-                </div>
+
+                {color !== MOVE_COLOR_BLACK && (
+                  <div className="flex justify-center items-center">
+                    <GameStateMessage
+                      isLoading={isLoading || isSearchingHead}
+                      game={currentChessInstance}
+                      color={color}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div>
-        {currentChessInstance !== null && (
-          <div className="my-2">
-            <div className="mb-2 flex justify-center items-center">
+        <div className="order-4 lg:order-5">
+          {currentChessInstance !== null && (
+            <div className="mt-4 my-2">
+              <CopyGameUrlInput value={window.location.href} />
+            </div>
+          )}
+        </div>
+        <div className="ml-4 hidden order-5 lg:grid lg:order-4 grid-cols-1 h-full content-between">
+          <div className={`flex ${color === MOVE_COLOR_BLACK ? 'order-1' : 'order-3'}`}>
+            <div className="grid grid-cols-1">
+              <div className="flex justify-center">
+                <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0">White</h6>
+              </div>
+              <div className="flex justify-center">
+                {player1PubKey ? (
+                  <RoboHashImg
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    value={player1PubKey}
+                    alt={displayPlayer1PubKey}
+                  />
+                ) : (
+                  <UnknownImg size={24} />
+                )}
+              </div>
+              {player1PubKey && player1PubKey === publicKeyOrNull && (
+                <div className="flex justify-center">
+                  <span className="text-sm font-bold font-serif text-blue-gray-500">(you)</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="order-2 ml-2">
+            <div className="flex justify-start items-center">
+              {privateKeyOrNull &&
+                publicKeyOrNull &&
+                (publicKeyOrNull === player1PubKey || publicKeyOrNull === player2PubKey) &&
+                currentChessInstance !== null &&
+                !currentChessInstance.game_over() && (
+                  <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} vertical={true} />
+                )}
               <div>
-                <ColorMessage color={color} />
+                <GameStateMessage isLoading={isLoading || isSearchingHead} game={currentChessInstance} color={color} />
+                {!isLoading && currentChessInstance !== null && <ColorMessage color={color} />}
+
+                {(privateKeyOrNull === null || publicKeyOrNull === null) && (
+                  <>
+                    <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />
+                  </>
+                )}
               </div>
             </div>
-
-            <div className="mb-4 flex justify-center items-center">
-              {color.length > 0 && currentChessInstance !== null && !currentChessInstance.game_over() && (
+            <div>
+              {!isLoading && currentChessInstance !== null && (
                 <>
-                  <div>
-                    <ProposeTakebackButton disabled={isLoading || isSearchingHead} />
-                  </div>
-                  <div>
-                    <OfferDrawButton disabled={isLoading || isSearchingHead} />
-                  </div>
-                  <div>
-                    <ResignButton disabled={isLoading || isSearchingHead} />
-                  </div>
+                  {!isSearchingHead && currentChessInstance.game_over() ? (
+                    <>
+                      <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
+                        <GameOverMessage game={currentChessInstance} />
+                      </div>
+                      <div className="my-2">
+                        <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                      </div>
+                    </>
+                  ) : (
+                    <></>
+                  )}
                 </>
               )}
             </div>
-
-            {currentChessInstance !== null && (
-              <div className="mb-2">
-                <CopyGameUrlInput value={window.location.href} />
-              </div>
-            )}
           </div>
-        )}
+          <div className={`flex items-center ${color === MOVE_COLOR_BLACK ? 'order-3' : 'order-1'}`}>
+            <div className="grid grid-cols-1">
+              <div className="flex justify-center">
+                {player2PubKey ? (
+                  <RoboHashImg
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    value={player2PubKey}
+                    alt={displayPlayer2PubKey}
+                  />
+                ) : (
+                  <UnknownImg size={24} />
+                )}
+              </div>
+              <div className="flex justify-center">
+                <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0">Black</h6>
+              </div>
+              {player2PubKey && player2PubKey === publicKeyOrNull && (
+                <div className="flex justify-center">
+                  <span className="text-sm font-bold font-serif text-blue-gray-500">(you)</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-
       {settings.dev && (
         <>
           <div style={{ margin: '2.5rem 0' }}></div>
