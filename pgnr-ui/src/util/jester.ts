@@ -13,7 +13,7 @@ export const hashWithSha256 = (val: string): NIP01.Sha256 => {
   return Buffer.from(eventHash).toString('hex')
 }
 
-export const VALID_JESTER_ID_EXAMPLE = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
+export const VALID_JESTER_ID_EXAMPLE: JesterId = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
 
 export const FEN_START_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export const JESTER_START_GAME_E_REF = bytesToHex(sha256(FEN_START_POSITION))

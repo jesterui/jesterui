@@ -4,6 +4,7 @@ import { SelectedBot } from '../components/BotSelector'
 
 import * as UCI from '../util/uci'
 import { ChessInstance } from '../components/ChessJsTypes'
+import { AnalyticsEngine } from '../util/bot'
 
 interface MoveAndFen {
   move: UCI.ShortMove
@@ -39,14 +40,21 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
       if (game === null || game.game_over()) {
         return []
       }
+      const newFen = game.fen()
 
-      const currentFen = game.fen()
-
-      if (currentFens[currentFens.length - 1] === currentFen) {
+      if (currentFens[currentFens.length - 1] === newFen) {
         return currentFens
       }
-      return [...currentFens, currentFen]
+      return [...currentFens, newFen]
     })
+
+    if (game !== null && !game.game_over()) {
+      AnalyticsEngine.eval(game)
+        .then((result) => {
+          botConsole.info(`[Engine] Evaluation of ${game.fen()}: `, result)
+        })
+        .catch((e: Error) => botConsole.warn('[Engine] Error during eval', e))
+    }
   }, [game])
 
   useEffect(() => {
@@ -59,14 +67,14 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) {
-        botConsole.warn(`Bot ${selectedBot.name} wanted to search for ${thinkingFen} - but operation was aborted.`)
+        botConsole.warn(`[Bot] '${selectedBot.name}' wanted to search for ${thinkingFen} - but operation was aborted.`)
         return
       }
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
       setIsThinking(true)
-      botConsole.info(`Asking bot ${selectedBot.name} for move suggestion to ${thinkingFen}...`)
+      botConsole.info(`[Bot] Asking '${selectedBot.name}' for move suggestion to ${thinkingFen}...`)
 
       selectedBot.bot
         .move(thinkingFen)
@@ -75,7 +83,7 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
             console.warn(`Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`)
             return
         }*/
-          botConsole.info(`Bot ${selectedBot.name} found move from ${from} to ${to}.`)
+          botConsole.info(`[Bot] '${selectedBot.name}' found move from ${from} to ${to}.`)
 
           setIsThinking(false)
           setSuggestion({
@@ -98,7 +106,7 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
             return copy
           })
         })
-        .catch((e: Error) => console.warn('Error during move suggestion', e))
+        .catch((e: Error) => botConsole.warn('[Bot] Error during move suggestion', e))
     }, 100)
 
     return () => {
