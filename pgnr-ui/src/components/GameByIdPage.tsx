@@ -878,11 +878,11 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <pre className="py-4" style={{ overflowX: 'scroll' }}>
                 <div>{`jesterId: ${jesterId}`}</div>
                 <div>{`gameId: ${gameId}`}</div>
-                <div>{`currentHeadId: ${currentGameHead?.event().id}`}</div>
-                <div>{`Moves: ${currentGameMoves.length}`}</div>
+                <div>{`currentHead.event.id: ${currentGameHead?.event().id}`}</div>
+                <div>{`currentGameStart.isStart: ${currentGameStart?.isStart()}`}</div>
                 <div>{`isLoading: ${isLoading}`}</div>
                 <div>{`isSearchingHead: ${isSearchingHead}`}</div>
-                <div>{`currentGameStart: ${currentGameStart?.isStart()}`}</div>
+                <div>{`Moves: ${currentGameMoves.length}`}</div>
               </pre>
             </div>
           </div>

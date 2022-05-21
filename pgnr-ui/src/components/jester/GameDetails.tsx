@@ -3,13 +3,14 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useGameStore } from '../../context/GameEventStoreContext'
 
-import { GameStartEvent } from '../../util/app_db'
+import { GameStartEvent, GameMoveEvent } from '../../util/app_db'
 import { PubKey } from '../../util/nostr/nip01'
 
 type GameDetailsResult = {
   moveCount: number | null
   player1PubKey: PubKey
   player2PubKey: PubKey | null
+  moves: GameMoveEvent[] | null
 }
 
 interface GameDetailsProps {
@@ -23,6 +24,15 @@ export function GameDetails({ game, children }: GameDetailsProps) {
   const moveCount = useLiveQuery(
     async () => {
       return await gameStore.game_move.where('gameId').equals(game.id).count()
+    },
+    [game],
+    null
+  )
+
+  const moves = useLiveQuery(
+    async () => {
+      const events = await gameStore.game_move.where('gameId').equals(game.id).sortBy('moveCounter')
+      return events
     },
     [game],
     null
@@ -43,9 +53,10 @@ export function GameDetails({ game, children }: GameDetailsProps) {
   return (
     <>
       {(children as (game: GameDetailsResult) => React.ReactNode)({
-        moveCount,
         player1PubKey,
         player2PubKey,
+        moveCount,
+        moves,
       } as GameDetailsResult)}
     </>
   )

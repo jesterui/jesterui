@@ -42,11 +42,12 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
 
   return (
     <GameDetails game={game}>
-      {({ moveCount, player1PubKey, player2PubKey }) => {
+      {({ player1PubKey, player2PubKey, moves }) => {
         const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
         const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
 
-        const isLoading = moveCount === null
+        const isLoading = moves === null
+        const moveCount = moves !== null ? moves.length : null
         const canJoinGame = publicKeyOrNull !== null && player1PubKey !== publicKeyOrNull && player2PubKey === null
         const isAlreadyJoined =
           publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
@@ -140,11 +141,12 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
   return (
     <GameDetails game={game}>
-      {({ moveCount, player1PubKey, player2PubKey }) => {
+      {({ player1PubKey, player2PubKey, moves }) => {
         const displayPlayer1PubKey = AppUtils.pubKeyDisplayName(player1PubKey)
         const displayPlayer2PubKey = player2PubKey && AppUtils.pubKeyDisplayName(player2PubKey)
 
-        const isLoading = moveCount === null
+        const isLoading = moves === null
+        const moveCount = moves !== null ? moves.length : null
         const canJoinGame = publicKeyOrNull !== null && player1PubKey !== publicKeyOrNull && player2PubKey === null
         const isAlreadyJoined =
           publicKeyOrNull !== null && (player1PubKey === publicKeyOrNull || player2PubKey === publicKeyOrNull)
@@ -206,16 +208,20 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
                   </code>
                 </div>
               */}
-                {moveCount && moveCount > 0 ? (
+                {moves && moveCount && moveCount > 0 ? (<>
                   <span className="mb-1 text-sm text-gray-400">
                     {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
                   </span>
-                ) : (
-                  <></>
+                  <div className="mb-1 text-sm text-gray-400">
+                    <Small color="">Last move {timeElapsed(moves[moveCount-1].created_at * 1_000)}</Small>
+                  </div>
+                  </>
+                ) : (<>
+                  <div className="mb-1 text-sm text-gray-400">
+                    <Small color="">Started {timeElapsed(game.created_at * 1_000)}</Small>
+                  </div>
+                  </>
                 )}
-                <span className="mb-1 text-sm text-gray-400">
-                  <Small color=""> Started at {new Date(game.created_at * 1_000).toLocaleString()}</Small>
-                </span>
                 <div className="px-4 mt-2 w-full">
                   {isLoading ? (
                     <Spinner />
