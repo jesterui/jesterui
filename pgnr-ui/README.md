@@ -2,7 +2,6 @@
 
 ## TODO
 ### primary
-- [ ] update images!
 - [x] let user rechallenge the bot when game is over
 - [ ] bot should give up hopeless positions
   - Resign must be implemented!
