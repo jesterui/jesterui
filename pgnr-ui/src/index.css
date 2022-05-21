@@ -185,7 +185,6 @@ code {
   .lg\:flex {
     display: flex !important;
   }
-
   .lg\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -222,6 +221,10 @@ code {
   }
   .lg\:h-48 {
     height: 12rem !important;
+  }
+  .lg\:text-6xl {
+    font-size: 3.75rem !important;
+    line-height: 1 !important;
   }
 }
 @media (min-width: 1440px) {

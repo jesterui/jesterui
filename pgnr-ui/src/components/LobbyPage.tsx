@@ -5,7 +5,7 @@ import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 
-import { GameStartOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
+import { CreateGameOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
 import { GameCard } from '../components/GameCard'
@@ -175,14 +175,14 @@ export default function LobbyPage() {
         <>
           <div className="flex justify-center my-4">
             {!settings.currentGameJesterId ? (
-              <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+              <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
             ) : (
               <GameById jesterId={settings.currentGameJesterId}>
                 {(game) => {
                   if (game === undefined) {
                     return <Spinner />
                   } else if (game === null) {
-                    return <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                    return <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
                   } else {
                     return <></>
                   }

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { CreateGameAndRedirectButton } from './CreateGameButton'
+import { CreateGameAndRedirectButtonHook } from './CreateGameButton'
 import { NoConnectionAlert } from './NoConnectionAlert'
 
 // @ts-ignore
@@ -32,7 +32,7 @@ export default function NoCurrentGamePage() {
               className="w-48 h-16"
             >
               Start A new game
-              <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
+              <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
             </Button>
           </>
         )}

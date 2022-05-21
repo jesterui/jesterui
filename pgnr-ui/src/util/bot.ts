@@ -35,7 +35,8 @@ export const Bots: AvailableBots = {
   Alice: prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1', // 0 - 20
     'setoption name Contempt value 0', // -100 - 100
-    'go depth 1']),
+    'go depth 1',
+  ]),
   'Risky Alice': prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1', // 0 - 20
     'setoption name Contempt value 21', // -100 - 100

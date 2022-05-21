@@ -9,7 +9,7 @@ import { useGameStore } from '../context/GameEventStoreContext'
 import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { CopyButtonWithConfirmation } from '../components/CopyButton'
-import { GameStartOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/GameStartOrNewIdentityButton'
+import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 
@@ -183,7 +183,7 @@ const GameStateMessage = ({
 }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-sm lg:text-2xl font-serif font-bold mt-0 mb-0">
+      <h6 className="text-blue-gray-500 lg:text-2xl font-serif font-bold mt-0 mb-0">
         {isLoading && game === null && 'Loading...'}
         {isLoading && game !== null && 'Loading...'}
         {!isLoading && game !== null && titleMessage(game, color)}
@@ -614,7 +614,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
         <div className="flex justify-between items-center mx-1">
           <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">Game not found...</div>
           <div className="mx-4">
-            <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} hasPublicKey={!!publicKeyOrNull} />
+            <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} hasPublicKey={!!publicKeyOrNull} />
           </div>
         </div>
       </div>
@@ -635,7 +635,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                         <GameOverMessage game={currentChessInstance} />
                       </div>
                       <div className="ml-4">
-                        <GameStartOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
+                        <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
                       </div>
                     </div>
                   </>
@@ -814,7 +814,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                       <div className="my-2">
                         {privateKeyOrNull !== null && publicKeyOrNull !== null && (
                           /* This should be a "Start new game" button only.. */
-                          <GameStartOrNewIdentityButton hasPrivateKey={true} />
+                          <CreateGameOrNewIdentityButton hasPrivateKey={true} />
                         )}
                       </div>
                     </>

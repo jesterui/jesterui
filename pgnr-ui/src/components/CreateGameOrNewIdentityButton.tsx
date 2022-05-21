@@ -1,12 +1,12 @@
 import { useRef } from 'react'
-import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
+import { CreateGameAndRedirectButtonHook } from '../components/CreateGameButton'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
 import { useNavigate } from 'react-router-dom'
 
-export function GameStartOrNewIdentityButton({
+export function CreateGameOrNewIdentityButton({
   hasPrivateKey,
   hasPublicKey,
 }: {
@@ -32,7 +32,7 @@ export function GameStartOrNewIdentityButton({
             className="w-40"
           >
             Start new game
-            <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
+            <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
           </Button>
         </>
       ) : (

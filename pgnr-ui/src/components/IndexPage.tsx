@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
-import { CreateGameAndRedirectButton } from '../components/CreateGameButton'
+import {
+  CreateDirectChallengeAndRedirectButtonHook,
+  CreateDirectChallengeButtonHook,
+  CreateGameAndRedirectButtonHook,
+} from '../components/CreateGameButton'
 
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
@@ -12,12 +16,13 @@ import LeadText from '@material-tailwind/react/LeadText'
 
 import { Identity, useSettings } from '../context/SettingsContext'
 import { getSession } from '../util/session'
-import { pubKeyDisplayName } from '../util/app'
+import { createPersonalBotKeyPair, KeyPair, pubKeyDisplayName } from '../util/app'
 import { GameById } from './jester/GameById'
 import { Spinner } from './Spinner'
 import { CurrentGameCard } from './GameCard'
 import { NoConnectionAlert } from './NoConnectionAlert'
 import { RoboHashImg } from './RoboHashImg'
+import { PubKey } from '../util/nostr/nip01'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()
@@ -154,92 +159,114 @@ function IdentityStep({ identity }: { identity: Identity | null }) {
 
 function SetupCompleteStep({ identity }: { identity: Identity }) {
   const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
+  const challengeBotButtonRef = useRef<HTMLButtonElement>(null)
+
   const settings = useSettings()
   const navigate = useNavigate()
 
   const displayPubKey = useMemo(() => pubKeyDisplayName(identity.pubkey), [identity])
+  const privateKey = getSession()!.privateKey!
+
+  const botPublicKey = useMemo<PubKey>(() => {
+    return createPersonalBotKeyPair(privateKey).publicKey
+  }, [privateKey])
 
   const viewLobbyButtonClicked = () => navigate(`/lobby`)
-
-  const challengeRobotButtonClicked = () => navigate(`/lobby`)
 
   return (
     <>
       <div className="flex justify-center">
-      <RoboHashImg
-                  className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500"
-                  value={identity.pubkey}
-                  alt={displayPubKey}
-                />
+        <RoboHashImg
+          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500"
+          value={identity.pubkey}
+          alt={displayPubKey}
+        />
       </div>
-      <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mb-0">
+      <h1 className="text-center text-blue-gray-500 text-4xl lg:text-6xl font-serif font-bold mb-0">
         {`Hello, ${displayPubKey}.`}
       </h1>
 
-      {!settings.currentGameJesterId ? (
-        <div className="flex justify-center text-center">
-          <LeadText color="">Join another player or start your own game. <br />Also, why not challenge your personal robot?</LeadText>
-        </div>
-      ) : (
-        <GameById jesterId={settings.currentGameJesterId}>
-          {(game) => {
-            if (game === undefined) {
-              return <Spinner />
-            } else if (game === null) {
-              return (
+      <GameById jesterId={settings.currentGameJesterId || null}>
+        {(game) => {
+          if (game === undefined) {
+            return <Spinner />
+          } else if (game === null) {
+            return (
+              <>
                 <div className="flex justify-center text-center">
-                  <LeadText color="">Join another player or start your own game.</LeadText>
+                  <LeadText color="">
+                    Join another player or start a new game. <br />
+                    Also, why not challenge your own personal robot?
+                  </LeadText>
                 </div>
-              )
-            } else {
-              return (
-                <>
-                  <div className="flex justify-center text-center">
-                    <LeadText color="">Your current game already started</LeadText>
+                <div className="my-4">
+                  <div className="flex justify-center items-center space-x-4 my-4">
+                    <Button
+                      color="teal"
+                      buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
+                      size="regular"
+                      rounded={false}
+                      block={false}
+                      iconOnly={false}
+                      ripple="light"
+                      className="w-48"
+                      ref={challengeBotButtonRef}
+                    >
+                      Challenge robot
+                      <CreateDirectChallengeAndRedirectButtonHook
+                        buttonRef={challengeBotButtonRef}
+                        opponentPubKey={botPublicKey}
+                      />
+                    </Button>
                   </div>
-                  <div className="flex justify-center my-4">
-                    <CurrentGameCard game={game} />
+                  <div className="flex justify-center items-center space-x-4 my-4">
+                    <Button
+                      color="blueGray"
+                      buttonType="outline"
+                      size="regular"
+                      rounded={false}
+                      block={false}
+                      iconOnly={false}
+                      ripple="light"
+                      className="w-48"
+                      onClick={viewLobbyButtonClicked}
+                    >
+                      Browse all games
+                    </Button>
                   </div>
-                </>
-              )
-            }
-          }}
-        </GameById>
-      )}
-
-      <div className="my-4">
-        <div className="flex justify-center items-center space-x-4 my-4">
-          <Button
-            color="blueGray"
-            buttonType="outline"
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            className="w-48"
-            onClick={viewLobbyButtonClicked}
-          >
-            Browse all games
-          </Button>
-        </div>
-        <div className="flex justify-center items-center space-x-4 my-4">
-          <Button
-            color="green"
-            buttonType={'outline'}
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            ref={createNewGameButtonRef}
-            className="w-48"
-          >
-            Start a new game
-            <CreateGameAndRedirectButton buttonRef={createNewGameButtonRef} />
-          </Button>
-        </div>
-      </div>
+                  <div className="flex justify-center items-center space-x-4 my-4">
+                    <Button
+                      color="green"
+                      buttonType={'outline'}
+                      size="regular"
+                      rounded={false}
+                      block={false}
+                      iconOnly={false}
+                      ripple="light"
+                      className="w-48"
+                      ref={createNewGameButtonRef}
+                    >
+                      Start a new game
+                      <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )
+          } else {
+            return (
+              <>
+                <div className="flex justify-center text-center">
+                  <LeadText color="">Your current game already started</LeadText>
+                </div>
+                <div className="flex justify-center my-4">
+                  <CurrentGameCard game={game} />
+                </div>
+              </>
+            )
+          }
+        }}
+      </GameById>
     </>
   )
 }

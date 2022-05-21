@@ -208,18 +208,20 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
                   </code>
                 </div>
               */}
-                {moves && moveCount && moveCount > 0 ? (<>
-                  <span className="mb-1 text-sm text-gray-400">
-                    {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
-                  </span>
-                  <div className="mb-1 text-sm text-gray-400">
-                    <Small color="">Last move {timeElapsed(moves[moveCount-1].created_at * 1_000)}</Small>
-                  </div>
+                {moves && moveCount && moveCount > 0 ? (
+                  <>
+                    <span className="mb-1 text-sm text-gray-400">
+                      {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
+                    </span>
+                    <div className="mb-1 text-sm text-gray-400">
+                      <Small color="">Last move {timeElapsed(moves[moveCount - 1].created_at * 1_000)}</Small>
+                    </div>
                   </>
-                ) : (<>
-                  <div className="mb-1 text-sm text-gray-400">
-                    <Small color="">Started {timeElapsed(game.created_at * 1_000)}</Small>
-                  </div>
+                ) : (
+                  <>
+                    <div className="mb-1 text-sm text-gray-400">
+                      <Small color="">Started {timeElapsed(game.created_at * 1_000)}</Small>
+                    </div>
                   </>
                 )}
                 <div className="px-4 mt-2 w-full">

@@ -3,7 +3,7 @@ import React, { useRef, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../../context/NostrEventsContext'
 import { getSession } from '../../util/session'
-import CreateGameButton from '../CreateGameButton'
+import { CreateGameButton } from '../CreateGameButton'
 
 const NOOP = () => {}
 

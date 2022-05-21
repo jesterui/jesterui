@@ -7,7 +7,6 @@ import useBotSuggestion from '../hooks/BotMoveSuggestion'
 import { SelectedBot } from '../components/BotSelector'
 
 import { useOutgoingNostrEvents } from './NostrEventsContext'
-import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
 import { useGameStore } from './GameEventStoreContext'
 import { ChessInstance } from '../components/ChessJsTypes'
 
@@ -15,7 +14,7 @@ import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
 import { GameMoveEvent } from '../util/app_db'
-import { randomNumberBetween } from '../util/app'
+import { KeyPair, createPersonalBotKeyPair, randomNumberBetween } from '../util/app'
 import { getSession } from '../util/session'
 import { historyToMinimalPgn } from '../util/chess'
 import * as Bot from '../util/bot'
@@ -56,9 +55,15 @@ const instantiateBotByName = (botName: string | null): SelectedBot | null => {
   return createDefaultBot()
 }
 
-type KeyPair = {
-  publicKey: NIP01.PubKey
-  privateKey: NostrEvents.PrivKey
+const randomBotWaitTime = (moveCount: number) => {
+  const minMillisWaitTime = randomNumberBetween(2_000, 6_000)
+  const maxMillisWaitTime = randomNumberBetween(10_000, 15_000)
+  const isFirstFewMoves = moveCount <= randomNumberBetween(10, 20)
+  return moveCount === 0 || moveCount === 1
+    ? 1
+    : isFirstFewMoves
+    ? randomNumberBetween(1, minMillisWaitTime)
+    : randomNumberBetween(minMillisWaitTime, maxMillisWaitTime)
 }
 
 interface JesterBotContextEntry {
@@ -76,10 +81,18 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   const userPublicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const userPrivateKeyOrNull = getSession()?.privateKey || null
 
+  const botKeyPair = useMemo<KeyPair | null>(() => {
+    return userPrivateKeyOrNull ? createPersonalBotKeyPair(userPrivateKeyOrNull) : null
+  }, [userPrivateKeyOrNull])
+
+  const privateStartGameRef: NIP01.EventId | null = useMemo(
+    () => botKeyPair && JesterUtils.jesterPrivateStartGameRef(botKeyPair.publicKey),
+    [botKeyPair]
+  )
+
   const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
   const selectedBotName = useMemo(() => settings.botName, [settings])
 
-  const [botKeyPair, setBotKeyPair] = useState<KeyPair | null>(null)
   const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(null)
   const [watchGameId, setWatchGameId] = useState<NIP01.EventId | null>(null)
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
@@ -106,6 +119,22 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     [botKeyPair],
     null
   )
+
+  const allDirectChallengesForBot = useLiveQuery(
+    async () => {
+      if (!privateStartGameRef) return null
+      const events = await gameStore.game_start.where('event_tags').equals(privateStartGameRef).toArray()
+
+      return events
+    },
+    [privateStartGameRef],
+    null
+  )
+
+  const eligibleGamesForBot = useMemo(() => {
+    return [...(allGamesCreatedByBot || []), ...(allDirectChallengesForBot || [])]
+  }, [allGamesCreatedByBot, allDirectChallengesForBot])
+
   const currentWatchGameStartEvent = useLiveQuery(async () => {
     if (!watchGameId) return
 
@@ -140,19 +169,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       return instantiateBotByName(selectedBotName)
     })
   }, [selectedBotName])
-
-  useEffect(() => {
-    if (!userPrivateKeyOrNull) {
-      setBotKeyPair(null)
-    } else {
-      const hashOrNull = JesterUtils.hashWithSha256(userPrivateKeyOrNull)
-      const botPrivateKey = hashToPrivateKey(hashOrNull + hashOrNull)
-      setBotKeyPair({
-        privateKey: botPrivateKey,
-        publicKey: publicKey(botPrivateKey),
-      })
-    }
-  }, [userPrivateKeyOrNull])
 
   useEffect(() => {
     botConsole.debug(`[Bot] Bot changed to`, selectedBot?.name)
@@ -194,7 +210,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       .then((event) => {
         botConsole.info('[Bot] Sent event via nostr..', event?.id)
         if (!abortCtrl.signal.aborted) {
-          botConsole.info('[Bot] Sent event dddddddddddddddddddddddddddddddddvia nostr..', event?.id)
           setWatchGameId(event?.id || null)
         }
       })
@@ -208,7 +223,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   }, [selectedBot, allGamesCreatedByBot, userPublicKeyOrNull, botKeyPair, outgoingNostr])
 
   useEffect(() => {
-    if (allGamesCreatedByBot === null || allGamesCreatedByBot.length === 0) {
+    if (eligibleGamesForBot === null || eligibleGamesForBot.length === 0) {
       setWatchGameId(null)
       return
     }
@@ -222,20 +237,20 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
         return current
       }
 
-      const matchingGames = allGamesCreatedByBot.filter((it) => it.id === currentGameId)
+      const matchingGames = eligibleGamesForBot.filter((it) => it.id === currentGameId)
       const matchingGame = matchingGames.length > 0 ? matchingGames[0] : null
       if (matchingGame !== null) {
         return matchingGame.id
       }
       return current
     })
-  }, [currentGameJesterId, allGamesCreatedByBot])
+  }, [currentGameJesterId, eligibleGamesForBot])
 
   useEffect(() => {
     if (!watchGameId) return
     if (!selectedBot) return
 
-    botConsole.info(`[Bot] '${selectedBot.name}': I have a purpose now - playing game `, watchGameId)
+    botConsole.info(`[Bot] '${selectedBot.name}': I have a purpose now - playing game ${watchGameId}`)
   }, [selectedBot, watchGameId])
 
   useEffect(() => {
@@ -280,8 +295,10 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     if (!currentWatchGameStartEvent) return
     if (!currentBotMoveSuggestion || !currentBotMoveSuggestion.move) return
 
-    // TODO: currently, the bot is always white - this means a user cannot challenge a bot at the moment
-    if (currentChessInstance.turn() !== 'w') return
+    const gameIsCreatedByBot = currentWatchGameStartEvent.pubkey === botKeyPair.publicKey
+    const botColor = gameIsCreatedByBot ? 'w' : 'b'
+
+    if (currentChessInstance.turn() !== botColor) return
     if (currentChessInstance.fen() !== currentBotMoveSuggestion.move.fen) return
 
     const abortCtrl = new AbortController()
@@ -291,6 +308,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     const chessboardWithNewMove = new Chess.Chess()
     if (!isGameStart) {
       // load pgn does not work when the game has no moves - only load pgn if it is not game start!
+      // TODO: but even then the second move will have the pgn empty.. so the error message is still logged
       if (!chessboardWithNewMove.load_pgn(currentChessInstance.pgn())) {
         botConsole.error('The current chessboard is not valid.. wtf?')
         return
@@ -303,16 +321,9 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     }
 
     const moveCount = chessboardWithNewMove.history().length
+
     // no matter which bot is selected, add a random wait time to every move
-    const minMillisWaitTime = randomNumberBetween(2_000, 6_000)
-    const maxMillisWaitTime = randomNumberBetween(10_000, 21_000)
-    const isFirstFewMoves = moveCount <= randomNumberBetween(10, 20)
-    const botWaitTimeInMillis =
-      moveCount === 1
-        ? randomNumberBetween(1, 2_000)
-        : isFirstFewMoves
-        ? minMillisWaitTime
-        : randomNumberBetween(minMillisWaitTime, maxMillisWaitTime)
+    const botWaitTimeInMillis = randomBotWaitTime(moveCount)
 
     const moveEvent = JesterUtils.constructGameMoveEvent(
       botKeyPair.publicKey,

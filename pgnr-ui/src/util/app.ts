@@ -1,6 +1,8 @@
 import * as NIP01 from './nostr/nip01'
 import { GameStartEvent } from './app_db'
-import { JesterId, JESTER_ID_PREFIX } from './jester'
+import { JesterId, JESTER_ID_PREFIX, hashWithSha256 } from './jester'
+import { PrivKey } from './nostr/events'
+import { hashToPrivateKey, publicKey } from './nostr/identity'
 
 export const shortenString = (value: string, chars = 8, separator = '...') => {
   const prefixLength = Math.max(Math.floor(chars / 2), 1)
@@ -24,3 +26,17 @@ export const displayJesterIdShort = (jesterId: JesterId, length = 12) => {
 export const pubKeyDisplayName = (pubKey: NIP01.PubKey, length = 8) => pubKey.substring(0, length)
 
 export const randomNumberBetween = (min: number, max: number) => min + Math.round(Math.random() * (max - min))
+
+export type KeyPair = {
+  publicKey: NIP01.PubKey
+  privateKey: PrivKey
+}
+
+export const createPersonalBotKeyPair = (privKey: PrivKey): KeyPair => {
+  const hash = hashWithSha256(privKey)
+  const botPrivateKey = hashToPrivateKey(hash + hash)
+  return {
+    privateKey: botPrivateKey,
+    publicKey: publicKey(botPrivateKey),
+  }
+}

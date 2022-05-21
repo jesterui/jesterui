@@ -4,7 +4,7 @@ import { Buffer } from 'buffer'
 import { sha256 } from '@noble/hashes/sha256'
 import { schnorr } from '@alephium/noble-secp256k1'
 
-export type PrivKey = NIP01.Hex | bigint | number
+export type PrivKey = NIP01.Hex // | bigint | number
 
 export const blankEvent = (): NIP01.EventInConstruction => {
   return {

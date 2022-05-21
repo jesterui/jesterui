@@ -7,6 +7,7 @@ import * as NostrEvents from '../util/nostr/events'
 import { getSession } from '../util/session'
 import * as JesterUtils from '../util/jester'
 import { useNavigate } from 'react-router-dom'
+import { displayKey, pubKeyDisplayName } from '../util/app'
 
 // TODO: extract functionality in a "CreateGameButtonHook" or something..
 interface CreateGameButtonProps {
@@ -16,7 +17,7 @@ interface CreateGameButtonProps {
   text?: string
 }
 
-export default function CreateGameButton({
+export function CreateGameButton({
   buttonRef,
   className,
   onGameCreated,
@@ -81,12 +82,11 @@ export default function CreateGameButton({
   )
 }
 
-interface CreateGameAndRedirectButtonProps {
-  buttonRef?: RefObject<HTMLButtonElement>
-  className?: string
+interface CreateGameAndRedirectButtonHookProps {
+  buttonRef: RefObject<HTMLButtonElement>
 }
 
-export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGameAndRedirectButtonProps) {
+export function CreateGameAndRedirectButtonHook({ buttonRef }: CreateGameAndRedirectButtonHookProps) {
   const navigate = useNavigate()
 
   const onGameCreated = async (jesterId: JesterUtils.JesterId) => {
@@ -96,7 +96,7 @@ export function CreateGameAndRedirectButton({ buttonRef, className }: CreateGame
     navigate(`/redirect/game/${jesterId}`)
   }
 
-  return <CreateGameButton buttonRef={buttonRef} className={className} onGameCreated={onGameCreated} />
+  return <CreateGameButton buttonRef={buttonRef} onGameCreated={onGameCreated} />
 }
 
 interface GameRedirectButtonHookProps {
@@ -120,4 +120,82 @@ export function GameRedirectButtonHook({ buttonRef, jesterId }: GameRedirectButt
   }, [buttonRef, onClick])
 
   return <></>
+}
+
+interface CreateDirectChallengeButtonHookProps {
+  opponentPubKey: string
+  buttonRef: RefObject<HTMLButtonElement>
+  onGameCreated?: (jesterId: JesterUtils.JesterId) => void
+}
+
+export function CreateDirectChallengeButtonHook({
+  opponentPubKey,
+  buttonRef,
+  onGameCreated,
+}: CreateDirectChallengeButtonHookProps) {
+  const outgoingNostr = useOutgoingNostrEvents()
+  const settings = useSettings()
+
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
+  const privateKeyOrNull = getSession()?.privateKey || null
+
+  const onStartGameButtonClicked = useCallback(async () => {
+    // TODO: do not use window.alert..
+    if (!outgoingNostr) {
+      window.alert('Nostr EventBus not ready..')
+      return
+    }
+    if (!publicKeyOrNull) {
+      window.alert('PubKey not available..')
+      return
+    }
+    if (!privateKeyOrNull) {
+      window.alert('PrivKey not available..')
+      return
+    }
+
+    const publicKey = publicKeyOrNull!
+    const privateKey = privateKeyOrNull!
+
+    const event = JesterUtils.constructPrivateStartGameEvent(publicKey, opponentPubKey)
+    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+
+    onGameCreated && onGameCreated(JesterUtils.gameIdToJesterId(signedEvent.id))
+  }, [outgoingNostr, publicKeyOrNull, privateKeyOrNull, onGameCreated])
+
+  const onClick = useCallback(() => onStartGameButtonClicked(), [onStartGameButtonClicked])
+
+  useEffect(() => {
+    if (!buttonRef) return
+    if (!buttonRef.current) return
+
+    buttonRef.current.onclick = (e) => {
+      e.preventDefault()
+      onClick()
+    }
+  }, [buttonRef, onClick])
+
+  return <></>
+}
+
+export function CreateDirectChallengeAndRedirectButtonHook({
+  buttonRef,
+  opponentPubKey,
+  onGameCreated,
+}: CreateDirectChallengeButtonHookProps) {
+  const navigate = useNavigate()
+
+  const onGameCreatedInternal = async (jesterId: JesterUtils.JesterId) => {
+    navigate(`/redirect/game/${jesterId}`)
+    onGameCreated && onGameCreated(jesterId)
+  }
+
+  return (
+    <CreateDirectChallengeButtonHook
+      buttonRef={buttonRef}
+      opponentPubKey={opponentPubKey}
+      onGameCreated={onGameCreatedInternal}
+    />
+  )
 }
