@@ -1,10 +1,9 @@
-# jester-ui
-
+# 🃏 jester-ui
 
 ## TODO
 ### primary
 - [ ] update images!
-- [ ] let user rechallenge the bot when game is over
+- [x] let user rechallenge the bot when game is over
 - [ ] bot should give up hopeless positions
   - Resign must be implemented!
 - [x] http not working -> needs https

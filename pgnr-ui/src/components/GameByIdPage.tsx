@@ -65,6 +65,37 @@ const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'developme
 
 const titleMessage = (game: ChessInstance, color: MovableColor) => {
   if (game.game_over()) {
+    if (color.length !== 1) {
+      if (game.in_draw()) {
+        return 'Draw'
+      }
+      return 'Game Over'
+    } else {
+      if (game.in_draw()) {
+        return '💪 Draw'
+      }
+
+      if (color[0].charAt(0) === game.turn()) {
+        return '💀 Game Over'
+      } else {
+        return '🏆 Game Over'
+      }
+    }
+  } else {
+    if (color.length !== 1) {
+      return `${game.turn() === 'w' ? '♘ White' : '♞ Black'} to move`
+    }
+
+    if (color[0].charAt(0) === game.turn()) {
+      return `👋 Your turn`
+    } else {
+      return `💤 Waiting for opponent`
+    }
+  }
+}
+
+const gameStateMessage = (game: ChessInstance, color: MovableColor) => {
+  if (game.game_over()) {
     if (game.in_draw()) {
       return 'Draw'
     }
@@ -193,7 +224,7 @@ const GameStateMessage = ({
       <h6 className="text-blue-gray-500 lg:text-2xl font-serif font-bold mt-0 mb-0">
         {isLoading && game === null && 'Loading...'}
         {isLoading && game !== null && 'Loading...'}
-        {!isLoading && game !== null && titleMessage(game, color)}
+        {!isLoading && game !== null && gameStateMessage(game, color)}
         {!isLoading && game === null && '...'}
       </h6>
     </div>

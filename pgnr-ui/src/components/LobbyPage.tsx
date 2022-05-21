@@ -199,19 +199,7 @@ export default function LobbyPage() {
         <NoConnectionAlert />
       ) : (
         <>
-          <div className="flex justify-center my-4">
-            <GameById jesterId={settings.currentGameJesterId || null}>
-              {(game) => {
-                if (game === undefined) {
-                  return <Spinner />
-                } else if (game === null && privateKeyOrNull === null) {
-                  return <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />
-                } else {
-                  return <></>
-                }
-              }}
-            </GameById>
-          </div>
+          {privateKeyOrNull === null && <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />}
 
           {process.env.NODE_ENV === 'development' && settings.dev && (
             <div className="my-4">

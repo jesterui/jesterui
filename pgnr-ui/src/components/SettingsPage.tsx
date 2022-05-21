@@ -377,7 +377,7 @@ export default function SettingsPage() {
       <Heading1 color="blueGray">Settings</Heading1>
 
       <div className="pb-16">
-        <Heading2 color="blueGray">jester</Heading2>
+        <Heading2 color="blueGray">&#127183; jester</Heading2>
         <Checkbox
           color="blueGray"
           text="Developer Mode"

@@ -39,7 +39,7 @@ export default function AppNavbar() {
           <div className="flex-1 text-sm font-bold inline-block mr-4 whitespace-no-wrap text-white">
             <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
               <div className="grid grid-cols-1">
-                <div>
+                <div className="flex items-center">
                   jester
                   <span className="ml-1">
                     <WebsocketIndicator />
