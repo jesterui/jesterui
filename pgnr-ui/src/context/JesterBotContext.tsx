@@ -1,14 +1,13 @@
 import React, { useState, createContext, useContext, useMemo, ProviderProps, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { useSettings } from './SettingsContext'
+import { useSettings } from '../context/SettingsContext'
+import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
+import { useGameStore } from '../context/GameEventStoreContext'
+
 import useBotSuggestion from '../hooks/BotMoveSuggestion'
 
 import { SelectedBot } from '../components/BotSelector'
-
-import { useOutgoingNostrEvents } from './NostrEventsContext'
-import { useGameStore } from './GameEventStoreContext'
-import { ChessInstance } from '../components/ChessJsTypes'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -21,6 +20,7 @@ import * as Bot from '../util/bot'
 
 // @ts-ignore
 import * as Chess from 'chess.js'
+import { ChessInstance } from '../components/ChessJsTypes'
 
 const botConsole =
   process.env.NODE_ENV === 'development'
@@ -59,10 +59,10 @@ const randomBotWaitTime = (moveCount: number) => {
   const minMillisWaitTime = randomNumberBetween(2_000, 6_000)
   const maxMillisWaitTime = randomNumberBetween(10_000, 15_000)
   const isFirstFewMoves = moveCount <= randomNumberBetween(10, 20)
-  return moveCount === 0 || moveCount === 1
-    ? 1
+  return moveCount <= 1
+    ? 4
     : isFirstFewMoves
-    ? randomNumberBetween(1, minMillisWaitTime)
+    ? randomNumberBetween(4, minMillisWaitTime)
     : randomNumberBetween(minMillisWaitTime, maxMillisWaitTime)
 }
 

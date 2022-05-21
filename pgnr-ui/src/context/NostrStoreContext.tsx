@@ -1,7 +1,8 @@
 import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
 
-import * as NIP01 from '../util/nostr/nip01'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
+
+import * as NIP01 from '../util/nostr/nip01'
 import { AppNostrDexie, NostrEventRef, db } from '../util/nostr_db'
 
 interface NostrStoreEntry {

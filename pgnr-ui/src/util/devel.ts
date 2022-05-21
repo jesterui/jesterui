@@ -1,10 +1,11 @@
+import { ChessInstance } from '../components/ChessJsTypes'
+
+import { Pgn } from '../util/chess'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
 // @ts-ignore
 import * as Chess from 'chess.js'
-import { ChessInstance } from '../components/ChessJsTypes'
-import { Pgn } from './chess'
 
 const DEFAULT_EXAMPLE_DEVEL_GAME_PGN = '1. f3 e5 2. g4 Qh4#'
 

@@ -1,10 +1,11 @@
 import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { CreateGameAndRedirectButtonHook } from '../components/CreateGameButton'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
-import { useNavigate } from 'react-router-dom'
 
 export function CreateGameOrNewIdentityButton({
   hasPrivateKey,

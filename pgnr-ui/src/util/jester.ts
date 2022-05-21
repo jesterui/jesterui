@@ -1,12 +1,14 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
-import * as NIP01 from './nostr/nip01'
-import * as NostrEvents from './nostr/events'
-import { arrayEquals } from './utils'
-import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from './chess'
-import { ChessInstance } from '../components/ChessJsTypes'
 import { Buffer } from 'buffer'
 import { bech32m, bech32 } from 'bech32'
+
+import { ChessInstance } from '../components/ChessJsTypes'
+
+import * as NIP01 from '../util/nostr/nip01'
+import * as NostrEvents from '../util/nostr/events'
+import { arrayEquals } from '../util/utils'
+import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
 
 export const hashWithSha256 = (val: string): NIP01.Sha256 => {
   let eventHash = sha256.init().update(Buffer.from(val)).digest()

@@ -1,6 +1,6 @@
 // @ts-ignore
 import * as Chess from 'chess.js'
-import { prepareEngine, UninitialisedEngine } from './uci'
+import { prepareEngine, UninitialisedEngine } from '../util/uci'
 
 export type AvailableBots = Record<string, UninitialisedEngine>
 

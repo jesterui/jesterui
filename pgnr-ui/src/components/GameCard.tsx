@@ -6,10 +6,12 @@ import { AppSettings, useSettings, useSettingsDispatch } from '../context/Settin
 import { GameRedirectButtonHook } from '../components/CreateGameButton'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 import { GameDetails } from '../components/jester/GameDetails'
+import { Spinner } from '../components/Spinner'
 
 import * as JesterUtils from '../util/jester'
 import * as AppUtils from '../util/app'
 import { GameStartEvent } from '../util/app_db'
+import { timeElapsed } from '../util/utils'
 
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
@@ -17,8 +19,6 @@ import Small from '@material-tailwind/react/Small'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
-import { Spinner } from './Spinner'
-import { timeElapsed } from '../util/utils'
 
 interface GameCardProps {
   game: GameStartEvent

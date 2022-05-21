@@ -1,8 +1,8 @@
-import * as NIP01 from './nostr/nip01'
-import { GameStartEvent } from './app_db'
-import { JesterId, JESTER_ID_PREFIX, hashWithSha256 } from './jester'
-import { PrivKey } from './nostr/events'
-import { hashToPrivateKey, publicKey } from './nostr/identity'
+import * as NIP01 from '../util/nostr/nip01'
+import { GameStartEvent } from '../util/app_db'
+import { JesterId, JESTER_ID_PREFIX, hashWithSha256 } from '../util/jester'
+import { PrivKey } from '../util/nostr/events'
+import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
 
 export const shortenString = (value: string, chars = 8, separator = '...') => {
   const prefixLength = Math.max(Math.floor(chars / 2), 1)

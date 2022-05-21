@@ -1,4 +1,4 @@
-import './ActivityIndicator.css'
+import '../components/ActivityIndicator.css'
 
 export const ActivityIndicator = ({ isOn, isError = false }: { isOn: boolean; isError?: boolean | null }) => {
   return (

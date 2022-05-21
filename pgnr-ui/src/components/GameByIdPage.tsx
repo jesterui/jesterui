@@ -16,11 +16,18 @@ import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 import { useResize } from '../hooks/ElementDimensions'
 
 import * as NIP01 from '../util/nostr/nip01'
-import { GameMoveEvent } from '../util/app_db'
 import * as NostrEvents from '../util/nostr/events'
-import * as JesterUtils from '../util/jester'
-import { JesterMove, GameStart, GameMove } from '../util/jester'
+import {
+  JesterId,
+  JesterMove,
+  GameStart,
+  GameMove,
+  tryParseJesterId,
+  jesterIdToGameId,
+  constructGameMoveEvent,
+} from '../util/jester'
 import * as AppUtils from '../util/app'
+import { GameMoveEvent } from '../util/app_db'
 import { getSession } from '../util/session'
 // @ts-ignore
 import * as Chess from 'chess.js'
@@ -352,16 +359,14 @@ function ActionButtons({ isLoading, isSearchingHead, vertical = false }: ActionB
   )
 }
 
-export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: JesterUtils.JesterId }) {
-  const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterUtils.JesterId }>()
+export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: JesterId }) {
+  const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterId }>()
 
-  const [jesterId] = useState<JesterUtils.JesterId | undefined>(
-    JesterUtils.tryParseJesterId(argJesterId) || JesterUtils.tryParseJesterId(paramsJesterId) || undefined
+  const [jesterId] = useState<JesterId | undefined>(
+    tryParseJesterId(argJesterId) || tryParseJesterId(paramsJesterId) || undefined
   )
 
-  const [gameId] = useState<NIP01.EventId | undefined>(
-    (jesterId && JesterUtils.jesterIdToGameId(jesterId)) || undefined
-  )
+  const [gameId] = useState<NIP01.EventId | undefined>((jesterId && jesterIdToGameId(jesterId)) || undefined)
 
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
@@ -485,7 +490,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(async () => {
         try {
-          const event = JesterUtils.constructGameMoveEvent(publicKey, startId, headId, chessboard)
+          const event = constructGameMoveEvent(publicKey, startId, headId, chessboard)
           const signedEvent = await NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
@@ -547,13 +552,13 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     })
   }, [isSearchingHead, currentGameHead])
 
-  const findChildren = useCallback((move: JesterUtils.JesterMove, moves: GameMoveEvent[]) => {
+  const findChildren = useCallback((move: JesterMove, moves: GameMoveEvent[]) => {
     const searchParentMoveId = move.isStart() ? null : move.event().id
     return moves.filter((move) => move.parentMoveId === searchParentMoveId)
   }, [])
 
   const findNextHead = useCallback(
-    (currentHead: JesterUtils.JesterMove, moves: GameMoveEvent[]): JesterUtils.JesterMove => {
+    (currentHead: JesterMove, moves: GameMoveEvent[]): JesterMove => {
       const children = findChildren(currentHead, moves)
 
       if (children.length === 0) {

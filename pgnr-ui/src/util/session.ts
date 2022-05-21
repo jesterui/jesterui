@@ -1,4 +1,4 @@
-import * as NIP01 from './nostr/nip01'
+import * as NIP01 from '../util/nostr/nip01'
 
 const SESSION_KEY = 'jester-ui'
 

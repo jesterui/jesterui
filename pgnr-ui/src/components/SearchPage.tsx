@@ -6,7 +6,7 @@ import { useSettings } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 
 import JesterId from '../components/jester/JesterId'
-import { NoConnectionAlert } from './NoConnectionAlert'
+import { NoConnectionAlert } from '../components/NoConnectionAlert'
 
 import * as JesterUtils from '../util/jester'
 

@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useEffect, useState, useContext, ProviderProps } from 'react'
-import { useOutgoingNostrEvents } from './NostrEventsContext'
+
+import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
 import * as NIP01 from '../util/nostr/nip01'
 

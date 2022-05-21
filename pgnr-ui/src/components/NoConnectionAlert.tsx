@@ -1,8 +1,8 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 // @ts-ignore
 import Alert from '@material-tailwind/react/Alert'
-import { Link } from 'react-router-dom'
 
 export function NoConnectionAlert() {
   return (

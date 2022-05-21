@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useMemo, PropsWithRef, PropsWithChildren, useRef } from 'react'
+import React, { useEffect, useState, useMemo, PropsWithChildren, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 
-import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
+import { LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
 import { CurrentGameCard, GameCard } from '../components/GameCard'
@@ -13,10 +13,10 @@ import { Spinner } from '../components/Spinner'
 import { GameById } from '../components/jester/GameById'
 import { NoConnectionAlert } from '../components/NoConnectionAlert'
 
-import { getSession } from '../util/session'
-import { GameStartEvent } from '../util/app_db'
 import * as NIP01 from '../util/nostr/nip01'
 import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
+import { GameStartEvent } from '../util/app_db'
+import { getSession } from '../util/session'
 
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'

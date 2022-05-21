@@ -1,8 +1,9 @@
 import React, { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
 
+import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
+
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrDOMEvents from '../util/nostr/events'
-import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
 import { once } from '../util/utils'
 
 type WithAbortSignal = {

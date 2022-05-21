@@ -1,6 +1,7 @@
 import React, { RefObject, useEffect, useCallback } from 'react'
 
 import { AppSettings, Identity, useSettingsDispatch } from '../context/SettingsContext'
+
 import { setSessionAttribute } from '../util/session'
 import * as NostrIdentity from '../util/nostr/identity'
 

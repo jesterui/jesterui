@@ -1,4 +1,7 @@
 import React from 'react'
+
+import styles from '../components/BotSelector.module.css'
+
 import { AvailableBots } from '../util/bot'
 import * as UCI from '../util/uci'
 
@@ -6,8 +9,6 @@ import * as UCI from '../util/uci'
 import Dropdown from '@material-tailwind/react/Dropdown'
 // @ts-ignore
 import DropdownItem from '@material-tailwind/react/DropdownItem'
-
-import styles from './BotSelector.module.css'
 
 export type SelectedBot = {
   name: string

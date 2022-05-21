@@ -1,13 +1,13 @@
 import React, { RefObject, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useSettings } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
+
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { getSession } from '../util/session'
 import * as JesterUtils from '../util/jester'
-import { useNavigate } from 'react-router-dom'
-import { displayKey, pubKeyDisplayName } from '../util/app'
+import { getSession } from '../util/session'
 
 // TODO: extract functionality in a "CreateGameButtonHook" or something..
 interface CreateGameButtonProps {

@@ -1,5 +1,6 @@
 // @ts-ignore
 import * as Chess from 'chess.js'
+
 import { ChessInstance, Move } from '../components/ChessJsTypes'
 
 // e.g. 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'

@@ -1,8 +1,8 @@
-import * as NIP01 from './nip01'
-
 import { Buffer } from 'buffer'
 import { sha256 } from '@noble/hashes/sha256'
 import { schnorr } from '@alephium/noble-secp256k1'
+
+import * as NIP01 from '../../util/nostr/nip01'
 
 export type PrivKey = NIP01.Hex // | bigint | number
 

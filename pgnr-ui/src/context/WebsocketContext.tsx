@@ -1,5 +1,6 @@
 import React, { ProviderProps, createContext, useEffect, useMemo, useState, useContext } from 'react'
-import { useSettings } from './SettingsContext'
+
+import { useSettings } from '../context/SettingsContext'
 
 const WEBSOCKET_RECONNECT_DELAY_STEP = 1_000
 const WEBSOCKET_RECONNECT_MAX_DELAY = 10_000

@@ -1,4 +1,4 @@
-import { ActivityIndicator } from './ActivityIndicator'
+import { ActivityIndicator } from '../components/ActivityIndicator'
 import { useWebsocket } from '../context/WebsocketContext'
 
 export const WebsocketIndicator = () => {

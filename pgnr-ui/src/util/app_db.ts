@@ -1,5 +1,6 @@
 import Dexie, { Table } from 'dexie'
-import * as NIP01 from './nostr/nip01'
+
+import * as NIP01 from '../util/nostr/nip01'
 
 export interface GameStartEvent extends NIP01.Event {
   event_tags: NIP01.EventId[]

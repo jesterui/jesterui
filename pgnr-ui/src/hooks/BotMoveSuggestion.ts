@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 
 import { SelectedBot } from '../components/BotSelector'
+import { ChessInstance } from '../components/ChessJsTypes'
 
 import * as UCI from '../util/uci'
-import { ChessInstance } from '../components/ChessJsTypes'
 import { AnalyticsEngine } from '../util/bot'
 
 interface MoveAndFen {

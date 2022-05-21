@@ -1,7 +1,8 @@
 import React, { useRef } from 'react'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
-import { CreateGameAndRedirectButtonHook } from './CreateGameButton'
-import { NoConnectionAlert } from './NoConnectionAlert'
+
+import { CreateGameAndRedirectButtonHook } from '../components/CreateGameButton'
+import { NoConnectionAlert } from '../components/NoConnectionAlert'
 
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'

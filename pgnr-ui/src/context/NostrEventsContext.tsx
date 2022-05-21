@@ -1,10 +1,11 @@
 import React, { createContext, useContext, ProviderProps, useEffect, useState } from 'react'
+import { Dexie, DexieEvent } from 'dexie'
 
+import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
+
+import { once } from '../util/utils'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
-import { once } from '../util/utils'
-import { Dexie, DexieEvent } from 'dexie'
 
 type WithAbortSignal = {
   signal: AbortSignal

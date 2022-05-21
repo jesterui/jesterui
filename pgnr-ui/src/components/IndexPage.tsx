@@ -2,27 +2,27 @@ import React, { useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
+import { Identity, useSettings } from '../context/SettingsContext'
+
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
+import { GameById } from '../components/jester/GameById'
+import { Spinner } from '../components/Spinner'
+import { CurrentGameCard } from '../components/GameCard'
+import { NoConnectionAlert } from '../components/NoConnectionAlert'
+import { RoboHashImg } from '../components/RoboHashImg'
 import {
   CreateDirectChallengeAndRedirectButtonHook,
-  CreateDirectChallengeButtonHook,
   CreateGameAndRedirectButtonHook,
 } from '../components/CreateGameButton'
+
+import { getSession } from '../util/session'
+import { createPersonalBotKeyPair, pubKeyDisplayName } from '../util/app'
+import { PubKey } from '../util/nostr/nip01'
 
 // @ts-ignore
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import LeadText from '@material-tailwind/react/LeadText'
-
-import { Identity, useSettings } from '../context/SettingsContext'
-import { getSession } from '../util/session'
-import { createPersonalBotKeyPair, KeyPair, pubKeyDisplayName } from '../util/app'
-import { GameById } from './jester/GameById'
-import { Spinner } from './Spinner'
-import { CurrentGameCard } from './GameCard'
-import { NoConnectionAlert } from './NoConnectionAlert'
-import { RoboHashImg } from './RoboHashImg'
-import { PubKey } from '../util/nostr/nip01'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()

@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
 
+import { useSettings } from '../context/SettingsContext'
+
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
-import { useSettings } from '../context/SettingsContext'
 
 export default function FaqPage() {
   const settings = useSettings()
