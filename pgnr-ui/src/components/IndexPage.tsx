@@ -17,6 +17,7 @@ import { GameById } from './jester/GameById'
 import { Spinner } from './Spinner'
 import { CurrentGameCard } from './GameCard'
 import { NoConnectionAlert } from './NoConnectionAlert'
+import { RoboHashImg } from './RoboHashImg'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()
@@ -156,19 +157,28 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
   const settings = useSettings()
   const navigate = useNavigate()
 
+  const displayPubKey = useMemo(() => pubKeyDisplayName(identity.pubkey), [identity])
+
   const viewLobbyButtonClicked = () => navigate(`/lobby`)
+
+  const challengeRobotButtonClicked = () => navigate(`/lobby`)
 
   return (
     <>
       <div className="flex justify-center">
-        <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-          {`Hello, ${pubKeyDisplayName(identity.pubkey)}.`}
-        </h1>
+      <RoboHashImg
+                  className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500"
+                  value={identity.pubkey}
+                  alt={displayPubKey}
+                />
       </div>
+      <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mb-0">
+        {`Hello, ${displayPubKey}.`}
+      </h1>
 
       {!settings.currentGameJesterId ? (
         <div className="flex justify-center text-center">
-          <LeadText color="">Join another player or start your own game.</LeadText>
+          <LeadText color="">Join another player or start your own game. <br />Also, why not challenge your personal robot?</LeadText>
         </div>
       ) : (
         <GameById jesterId={settings.currentGameJesterId}>
@@ -213,10 +223,10 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
             Browse all games
           </Button>
         </div>
-        <div className="flex justify-center items-center space-x-4 my-1">
+        <div className="flex justify-center items-center space-x-4 my-4">
           <Button
             color="green"
-            buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
+            buttonType={'outline'}
             size="regular"
             rounded={false}
             block={false}
@@ -248,7 +258,7 @@ export default function IndexPage() {
       <div className="flex justify-center items-center">
         <div className="w-full grid grid-cols-1">
           {!incomingNostr && <NoConnectionAlert />}
-          <div className="mt-8">
+          <div className="mt-2">
             {showIdentityStep ? <IdentityStep identity={identity} /> : <SetupCompleteStep identity={identity} />}
           </div>
         </div>
