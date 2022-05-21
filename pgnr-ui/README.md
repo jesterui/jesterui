@@ -3,6 +3,13 @@
 
 ## TODO
 ### primary
+- [ ] update images!
+- [ ] let user rechallenge the bot when game is over
+- [ ] bot should give up hopeless positions
+  - Resign must be implemented!
+- [x] http not working -> needs https
+- [ ] wait a little bit before starting a bot game (random 1 to 3 secs -> "isStartEventScheduled")
+ 
 - [ ] only let validated moves into "game event store" -> currently received out of order
       with ability to insert invalid events.
 - [ ] strip down contents of "game move" to bare minimum, e.g. does it really need the fen?
@@ -10,33 +17,26 @@
 - [ ] currently, player started the game is always white 
   - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
 
-- [ ] let the user rechallenge the bot
-
-- [x] let user play against a bot via nostr
-  - bot should make move even when currentGameId is other game
+- bot should make move even when currentGameId is other game
 - [ ] Color scheme: More clean interface, use bright, warm colors
-- [ ] Dark Mode
 - [ ] Move Menu from Navbar to Sidebar - only necessary stuff in navbar
 - [ ] Identity Wizard with Description, pregenerate identity?
-- [ ] new identity on game page -> so that the links are useful
-- [x] http not working -> needs https
 - [ ] hide lobby behind dev flag for now - call it "challenges" or smth
 - [ ] make a "my created games" site till lobby is only in dev mode
-- [ ] show current game card on index page
-- [ ] privacy on subscription names - randomize on demand
 - [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
-- [ ] "Robots lovingly delivered by Robohash.org"
+- [x] show current game card on index page
+- [x] new identity on game page -> so that the links are useful
+- [x] privacy on subscription names - randomize on demand
+- [x] "Robots lovingly delivered by Robohash.org"
 
 ### Secondary
+- [ ] Dark Mode
 - [ ] show current identity and nostr server (tooltip?) in navbar
-- [x] use first nostr server in list for auto-connect
   - [ ] cycle through till first connection is successful
 - [ ] update FLOW.md to actual workflow
-- [x] encode and shorten gameIds
 - [ ] search by fen! games by fen -> send fen as hash in event!
 - [ ] ability to delete data in indexeddb
 - [ ] add ability to watch games next to "currentGameJesterId" aka pinning games
-- [x] ability to load game by id
 - [ ] ability to use nos2x (browser extension)
 - [ ] ability for multiple nostr gateways
   - [ ] save relay an event was first seen and try to subscribe to it when fetching?
@@ -48,6 +48,9 @@
 - [ ] "promote to other piece than queen"
 - [ ] support more NIPs!
 - [ ] crashes in firefox private mode (indexeddb is read-only..)
+- [x] use first nostr server in list for auto-connect
+- [x] encode and shorten gameIds
+- [x] ability to load game by id
 
 - [ ] Tournaments? How can they be implemented
 - [ ] PWA compatibility
