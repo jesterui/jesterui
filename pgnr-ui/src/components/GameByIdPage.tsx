@@ -372,6 +372,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
   const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
   const [color, setColor] = useState<MovableColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
+  const isGameOver = useMemo(() => currentChessInstance && currentChessInstance.game_over(), [currentChessInstance])
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
@@ -628,7 +629,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
           <div className="lg:hidden">
             {!isLoading && currentChessInstance !== null && (
               <>
-                {!isSearchingHead && currentChessInstance.game_over() ? (
+                {!isSearchingHead && isGameOver ? (
                   <>
                     <div className="mb-2 flex justify-between items-center">
                       <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
@@ -679,13 +680,9 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 </h6>
                 <div className="flex-1"></div>
                 <div className="flex justify-center items-center">
-                  {privateKeyOrNull &&
-                    publicKeyOrNull &&
-                    publicKeyOrNull === player1PubKey &&
-                    currentChessInstance !== null &&
-                    !currentChessInstance.game_over() && (
-                      <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
-                    )}
+                  {privateKeyOrNull && publicKeyOrNull && publicKeyOrNull === player1PubKey && isGameOver === false && (
+                    <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
+                  )}
                 </div>
 
                 {color === MOVE_COLOR_BLACK && (
@@ -702,7 +699,8 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
             <div
               className="order-2"
               style={{
-                filter: settings.currentGameJesterId !== jesterId ? 'brightness(0.5)' : undefined,
+                filter:
+                  settings.currentGameJesterId !== jesterId || isGameOver === true ? 'brightness(0.75)' : undefined,
               }}
             >
               <GameboardWithLoader
@@ -730,13 +728,9 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
 
                 <div className="flex-1"></div>
                 <div className="flex justify-center items-center">
-                  {privateKeyOrNull &&
-                    publicKeyOrNull &&
-                    publicKeyOrNull === player2PubKey &&
-                    currentChessInstance !== null &&
-                    !currentChessInstance.game_over() && (
-                      <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
-                    )}
+                  {privateKeyOrNull && publicKeyOrNull && publicKeyOrNull === player2PubKey && isGameOver === false && (
+                    <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} />
+                  )}
                 </div>
 
                 {color !== MOVE_COLOR_BLACK && (
@@ -788,8 +782,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               {privateKeyOrNull &&
                 publicKeyOrNull &&
                 (publicKeyOrNull === player1PubKey || publicKeyOrNull === player2PubKey) &&
-                currentChessInstance !== null &&
-                !currentChessInstance.game_over() && (
+                isGameOver === false && (
                   <ActionButtons isLoading={isLoading} isSearchingHead={isSearchingHead} vertical={true} />
                 )}
               <div>
@@ -797,16 +790,14 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 {!isLoading && currentChessInstance !== null && <ColorMessage color={color} />}
 
                 {(privateKeyOrNull === null || publicKeyOrNull === null) && (
-                  <>
-                    <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />
-                  </>
+                  <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />
                 )}
               </div>
             </div>
             <div>
               {!isLoading && currentChessInstance !== null && (
                 <>
-                  {!isSearchingHead && currentChessInstance.game_over() ? (
+                  {!isSearchingHead && isGameOver ? (
                     <>
                       <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
                         <GameOverMessage game={currentChessInstance} />

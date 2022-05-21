@@ -40,6 +40,10 @@ code {
   padding-bottom: 0.825rem;
 }
 
+.h-64 {
+  height: 16rem;
+}
+
 .border-opacity-50 {
   --tw-border-opacity: 0.5;
 }

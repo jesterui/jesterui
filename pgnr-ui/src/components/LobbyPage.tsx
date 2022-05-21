@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, PropsWithRef, PropsWithChildren, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 
-import { CreateGameOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
+import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
 import CreateDevelGameButton from '../components/devel/CreateDevelGameButton'
 import CreateMultipleGamesButton from '../components/devel/CreateMultipleGamesButton'
-import { GameCard } from '../components/GameCard'
+import { CurrentGameCard, GameCard } from '../components/GameCard'
 import { Spinner } from '../components/Spinner'
 import { GameById } from '../components/jester/GameById'
 import { NoConnectionAlert } from '../components/NoConnectionAlert'
@@ -24,6 +24,9 @@ import Heading6 from '@material-tailwind/react/Heading6'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+import { CreateDirectChallengeAndRedirectButtonHook, CreateGameAndRedirectButtonHook } from './CreateGameButton'
+import { createPersonalBotKeyPair } from '../util/app'
+import { RoboHashImg } from './RoboHashImg'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 10 : 10
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -48,21 +51,36 @@ const createGameOverviewFilter = (now: Date) => {
 interface GameListProps {
   games: GameStartEvent[]
   currentGameId?: string
+  filterCurrentGame?: boolean
+  childrenFirst?: boolean
 }
 
-function GameList(props: GameListProps) {
+function GameList({
+  games,
+  currentGameId,
+  filterCurrentGame = false,
+  childrenFirst = false,
+  children,
+}: PropsWithChildren<GameListProps>) {
   return (
     <>
       <div className="w-full max-w-md rounded-lg ">
         <div className="grid justify-items-center items-center gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {props.games.map((game) => {
-            const isCurrentGame = game.id === props.currentGameId
-            return (
-              <div key={game.id} className="w-full max-w-sm">
-                <GameCard game={game} isCurrentGame={isCurrentGame} />
-              </div>
-            )
-          })}
+          {childrenFirst && (children || <></>)}
+          <>
+            {games.map((game) => {
+              const isCurrentGame = game.id === currentGameId
+              if (isCurrentGame && filterCurrentGame) {
+                return <div key={game.id} className="hidden"></div>
+              }
+              return (
+                <div key={game.id} className="w-full max-w-sm">
+                  <GameCard game={game} isCurrentGame={isCurrentGame} />
+                </div>
+              )
+            })}
+          </>
+          {!childrenFirst && (children || <></>)}
         </div>
       </div>
     </>
@@ -70,6 +88,9 @@ function GameList(props: GameListProps) {
 }
 
 export default function LobbyPage() {
+  const challengeBotButtonRef = useRef<HTMLButtonElement>(null)
+  const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
+
   const renderedAt = new Date()
   const settings = useSettings()
   const incomingNostr = useIncomingNostrEvents()
@@ -89,6 +110,10 @@ export default function LobbyPage() {
     () => publicKeyOrNull && jesterPrivateStartGameRef(publicKeyOrNull),
     [publicKeyOrNull]
   )
+
+  const botPublicKeyOrNull = useMemo<NIP01.PubKey | null>(() => {
+    return privateKeyOrNull && createPersonalBotKeyPair(privateKeyOrNull).publicKey
+  }, [privateKeyOrNull])
 
   const [tick, setTick] = useState<number>(Date.now())
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -146,6 +171,7 @@ export default function LobbyPage() {
   const listOfPrivateStartGamesLiveQuery = useLiveQuery(
     async () => {
       if (!privateStartGameRef) return null
+
       const events = await gameStore.game_start.where('event_tags').equals(privateStartGameRef).limit(12).toArray()
 
       return events
@@ -156,10 +182,10 @@ export default function LobbyPage() {
 
   useEffect(() => {
     const previousTitle = document.title
-    if (!listOfStartGamesLiveQuery || listOfStartGamesLiveQuery.length === 0) {
-      document.title = `Lobby`
-    } else {
+    if (listOfStartGamesLiveQuery && listOfStartGamesLiveQuery.length > 0) {
       document.title = `Lobby (${listOfStartGamesLiveQuery.length})`
+    } else {
+      document.title = `Lobby`
     }
 
     return () => {
@@ -174,21 +200,17 @@ export default function LobbyPage() {
       ) : (
         <>
           <div className="flex justify-center my-4">
-            {!settings.currentGameJesterId ? (
-              <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-            ) : (
-              <GameById jesterId={settings.currentGameJesterId}>
-                {(game) => {
-                  if (game === undefined) {
-                    return <Spinner />
-                  } else if (game === null) {
-                    return <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} />
-                  } else {
-                    return <></>
-                  }
-                }}
-              </GameById>
-            )}
+            <GameById jesterId={settings.currentGameJesterId || null}>
+              {(game) => {
+                if (game === undefined) {
+                  return <Spinner />
+                } else if (game === null && privateKeyOrNull === null) {
+                  return <LoginOrNewIdentityButton hasPublicKey={!!publicKeyOrNull} />
+                } else {
+                  return <></>
+                }
+              }}
+            </GameById>
           </div>
 
           {process.env.NODE_ENV === 'development' && settings.dev && (
@@ -202,15 +224,46 @@ export default function LobbyPage() {
             </div>
           )}
 
-          {listOfPrivateStartGamesLiveQuery && listOfPrivateStartGamesLiveQuery.length > 0 && (
+          {listOfPrivateStartGamesLiveQuery && (
             <>
               <div className="my-4">
-                <Heading6 color="blueGray">
-                  Direct Challenges ({listOfPrivateStartGamesLiveQuery?.length || 0})
-                </Heading6>
+                <Heading6 color="blueGray">Direct Challenges ({listOfPrivateStartGamesLiveQuery.length})</Heading6>
               </div>
               <div className="my-4">
-                <GameList games={listOfPrivateStartGamesLiveQuery || []} currentGameId={currentGameId} />
+                <GameList games={listOfPrivateStartGamesLiveQuery} currentGameId={currentGameId}>
+                  <>
+                    {!currentGameId && botPublicKeyOrNull && (
+                      <div className="w-full max-w-sm">
+                        <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
+                          <div className="grid grid-cols-1 justify-items-center items-center py-4 px-4 h-64">
+                            <RoboHashImg
+                              className="w-32 h-32 rounded-full shadow-sm-gray bg-blue-gray-500"
+                              value={botPublicKeyOrNull}
+                              alt={botPublicKeyOrNull}
+                            />
+                            <Button
+                              color="teal"
+                              buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
+                              size="regular"
+                              rounded={false}
+                              block={false}
+                              iconOnly={false}
+                              ripple="light"
+                              className="w-48"
+                              ref={challengeBotButtonRef}
+                            >
+                              Challenge robot
+                              <CreateDirectChallengeAndRedirectButtonHook
+                                buttonRef={challengeBotButtonRef}
+                                opponentPubKey={botPublicKeyOrNull}
+                              />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                </GameList>
               </div>
             </>
           )}
@@ -258,14 +311,54 @@ export default function LobbyPage() {
           </div>
 
           <div className="mt-4 mb-24">
-            <GameList games={listOfStartGames || []} currentGameId={currentGameId} />
-
             {listOfStartGames !== null && listOfStartGames.length === 0 && (
               <div className="flex items-center gap-3 text-white p-4 pr-12 border-0 bg-gray-500 bg-opacity-20 rounded-lg relative mb-4 transition-all duration-300">
                 <div className="text-gray-500">Currently, no games are being played.</div>
                 {isLoading && <Spinner size={24} />}
               </div>
             )}
+
+            <GameList
+              games={listOfStartGames || []}
+              currentGameId={currentGameId}
+              filterCurrentGame={true}
+              childrenFirst={!!currentGameId}
+            >
+              <GameById jesterId={settings.currentGameJesterId || null}>
+                {(game) => {
+                  if (game === undefined) {
+                    return <Spinner />
+                  } else if (game === null) {
+                    return privateKeyOrNull !== null ? (
+                      <div className="w-full max-w-sm">
+                        <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
+                          <div className="grid grid-cols-1 items-center justify-items-center py-4 px-4 h-64">
+                            <Button
+                              color="green"
+                              buttonType={'outline'}
+                              size="regular"
+                              rounded={false}
+                              block={false}
+                              iconOnly={false}
+                              ripple="light"
+                              className="w-48"
+                              ref={createNewGameButtonRef}
+                            >
+                              Start a new game
+                              <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <></>
+                    )
+                  } else {
+                    return <CurrentGameCard game={game} />
+                  }
+                }}
+              </GameById>
+            </GameList>
 
             {listOfStartGames && listOfStartGames.length >= maxAmountOfGamesDisplayed && (
               <div className="flex justify-center my-4">

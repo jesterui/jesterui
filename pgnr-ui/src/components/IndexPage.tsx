@@ -259,7 +259,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
                 <div className="flex justify-center text-center">
                   <LeadText color="">Your current game already started</LeadText>
                 </div>
-                <div className="flex justify-center my-4">
+                <div className="flex justify-center my-2">
                   <CurrentGameCard game={game} />
                 </div>
               </>

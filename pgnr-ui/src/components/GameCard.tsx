@@ -59,7 +59,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
             <div
               className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800`}
             >
-              <div className="flex flex-col items-center pb-4 pt-4">
+              <div className="flex flex-col items-center py-4 px-4">
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
                     className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
@@ -94,7 +94,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                 <div className="mb-1 text-sm text-gray-400">
                   <Small color="">Started {timeElapsed(game.created_at * 1_000)}</Small>
                 </div>
-                <div className="px-4 mt-2 w-full">
+                <div className="mt-2 w-full">
                   {isLoading ? (
                     <Spinner />
                   ) : (
