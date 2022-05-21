@@ -390,7 +390,7 @@ export default function SettingsPage() {
           <>
             <div className="pb-4" style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
               <BotSelector
-                label="Companion"
+                label="Personal robot"
                 availableBots={Bot.Bots}
                 selectedBotName={selectedBotName}
                 setSelectedBotName={updateSelectedBotName}

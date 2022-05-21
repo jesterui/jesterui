@@ -16,6 +16,10 @@ code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 /* missing tailwind classes from material-tailwind */
 /* TODO: integrate plain tailwind and get rif of material-tailwind to remove these classes again */
 
@@ -142,6 +146,9 @@ code {
 
 .content-between {
   align-content: space-between;
+}
+.content-center {
+  align-content: center;
 }
 .min-w-xs {
   min-width: 20rem;

@@ -7,7 +7,7 @@ import * as NostrIdentity from '../util/nostr/identity'
 
 interface GenerateRandomIdentityButtonProps {
   onIdentityCreated?: (identity: Identity) => void
-  buttonRef?: RefObject<HTMLButtonElement>
+  buttonRef?: RefObject<HTMLElement>
   className?: string
   text?: string
 }

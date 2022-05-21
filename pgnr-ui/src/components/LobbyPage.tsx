@@ -88,8 +88,8 @@ function GameList({
 }
 
 export default function LobbyPage() {
-  const challengeBotButtonRef = useRef<HTMLButtonElement>(null)
-  const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
+  const challengeBotButtonRef = useRef<HTMLDivElement>(null)
+  const createNewGameButtonRef = useRef<HTMLDivElement>(null)
 
   const renderedAt = new Date()
   const settings = useSettings()
@@ -221,30 +221,28 @@ export default function LobbyPage() {
                 <GameList games={listOfPrivateStartGamesLiveQuery} currentGameId={currentGameId}>
                   <>
                     {!currentGameId && botPublicKeyOrNull && (
-                      <div className="w-full max-w-sm">
+                      <div className="w-full max-w-sm cursor-pointer" ref={challengeBotButtonRef}>
+                        <CreateDirectChallengeAndRedirectButtonHook
+                          buttonRef={challengeBotButtonRef}
+                          opponentPubKey={botPublicKeyOrNull}
+                        />
                         <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
-                          <div className="grid grid-cols-1 justify-items-center items-center py-4 px-4 h-64">
+                          <div className="grid grid-cols-1 justify-items-center content-center items-center py-4 px-4 h-64">
                             <RoboHashImg
-                              className="w-32 h-32 rounded-full shadow-sm-gray bg-blue-gray-500"
+                              className="w-32 h-32 mb-4 rounded-full shadow-sm-gray bg-blue-gray-500"
                               value={botPublicKeyOrNull}
                               alt={botPublicKeyOrNull}
                             />
                             <Button
                               color="teal"
-                              buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
-                              size="regular"
+                              buttonType="link"
+                              size="lg"
                               rounded={false}
                               block={false}
                               iconOnly={false}
                               ripple="light"
-                              className="w-48"
-                              ref={challengeBotButtonRef}
                             >
                               Challenge robot
-                              <CreateDirectChallengeAndRedirectButtonHook
-                                buttonRef={challengeBotButtonRef}
-                                opponentPubKey={botPublicKeyOrNull}
-                              />
                             </Button>
                           </div>
                         </div>
@@ -318,22 +316,20 @@ export default function LobbyPage() {
                     return <Spinner />
                   } else if (game === null) {
                     return privateKeyOrNull !== null ? (
-                      <div className="w-full max-w-sm">
+                      <div className="w-full max-w-sm cursor-pointer" ref={createNewGameButtonRef}>
+                        <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
                         <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
                           <div className="grid grid-cols-1 items-center justify-items-center py-4 px-4 h-64">
                             <Button
                               color="green"
-                              buttonType={'outline'}
-                              size="regular"
+                              buttonType="link"
+                              size="lg"
                               rounded={false}
                               block={false}
                               iconOnly={false}
                               ripple="light"
-                              className="w-48"
-                              ref={createNewGameButtonRef}
                             >
                               Start a new game
-                              <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
                             </Button>
                           </div>
                         </div>

@@ -12,7 +12,7 @@ import { getSession } from '../util/session'
 // TODO: extract functionality in a "CreateGameButtonHook" or something..
 interface CreateGameButtonProps {
   onGameCreated: (jesterId: JesterUtils.JesterId) => void
-  buttonRef?: RefObject<HTMLButtonElement>
+  buttonRef?: RefObject<HTMLElement>
   className?: string
   text?: string
 }
@@ -83,7 +83,7 @@ export function CreateGameButton({
 }
 
 interface CreateGameAndRedirectButtonHookProps {
-  buttonRef: RefObject<HTMLButtonElement>
+  buttonRef: RefObject<HTMLElement>
 }
 
 export function CreateGameAndRedirectButtonHook({ buttonRef }: CreateGameAndRedirectButtonHookProps) {
@@ -100,7 +100,7 @@ export function CreateGameAndRedirectButtonHook({ buttonRef }: CreateGameAndRedi
 }
 
 interface GameRedirectButtonHookProps {
-  buttonRef: RefObject<HTMLButtonElement>
+  buttonRef: RefObject<HTMLElement>
   jesterId: JesterUtils.JesterId
 }
 
@@ -124,7 +124,7 @@ export function GameRedirectButtonHook({ buttonRef, jesterId }: GameRedirectButt
 
 interface CreateDirectChallengeButtonHookProps {
   opponentPubKey: string
-  buttonRef: RefObject<HTMLButtonElement>
+  buttonRef: RefObject<HTMLElement>
   onGameCreated?: (jesterId: JesterUtils.JesterId) => void
 }
 
