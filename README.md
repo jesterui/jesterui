@@ -1,6 +1,6 @@
 
 <p align="center">
-    <img src="https://github.com/theborakompanioni/pgnrui/raw/master/pgnr-ui/public/logo512.png" alt="Logo" width="256" />
+    <img src="https://github.com/jesterui/jesterui/raw/master/public/logo512.png" alt="Logo" width="256" />
 </p>
 
 🃏 jester-ui
@@ -55,7 +55,7 @@ The page will reload if you make edits. You will also see any lint errors in the
 ## Attribution
 
 ### Logo
-[This file](https://github.com/theborakompanioni/pgnrui/raw/master/pgnr-ui/public/logo512.png) is licensed under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) license.
+[This file](https://github.com/jesterui/jesterui/raw/master/public/logo512.png) is licensed under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) license.
 
 Attribution: [Vincent Le Moign](https://commons.wikimedia.org/wiki/File:683-joker.svg)
 
