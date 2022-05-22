@@ -162,7 +162,7 @@ export function CreateDirectChallengeButtonHook({
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
     onGameCreated && onGameCreated(JesterUtils.gameIdToJesterId(signedEvent.id))
-  }, [outgoingNostr, publicKeyOrNull, privateKeyOrNull, onGameCreated])
+  }, [outgoingNostr, publicKeyOrNull, privateKeyOrNull, opponentPubKey, onGameCreated])
 
   const onClick = useCallback(() => onStartGameButtonClicked(), [onStartGameButtonClicked])
 

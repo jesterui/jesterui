@@ -18,7 +18,7 @@ export function useSetWindowTitle({ text, transform = DEFAULT_TRANSFORM }: SetWi
     return () => {
       document.title = previousTitle
     }
-  }, [previousTitle, title])
+  }, [transform, previousTitle, title])
 
   return setTitle
 }

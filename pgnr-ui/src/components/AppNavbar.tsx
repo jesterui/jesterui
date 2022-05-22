@@ -51,7 +51,7 @@ export default function AppNavbar() {
                     beta
                   </span>
                 </div>
-                <div style={{marginLeft: '-1px'}}>
+                <div style={{ marginLeft: '-1px' }}>
                   {settings.dev ? (
                     <span
                       style={{ whiteSpace: 'nowrap' }}
