@@ -10,7 +10,7 @@ import Heading1 from '@material-tailwind/react/Heading1'
 import Heading6 from '@material-tailwind/react/Heading6'
 
 const NostrQuote = () => (
-  <blockquote className="relative p-4 mb-4 border-l bg-neutral-100 text-neutral-600 border-neutral-500 quote">
+  <blockquote className="relative p-4 mb-4 border-l font-serif quote">
     <span className="block absolute top-0 leading-none opacity-10 text-8xl" aria-hidden="true">
       &ldquo;
     </span>
@@ -38,9 +38,8 @@ export default function FaqPage() {
       <p className="mb-8 font-serif">A chess app on nostr.</p>
 
       <Heading6 color="blueGray">What is nostr?</Heading6>
+      <NostrQuote />
       <p className="mb-8 font-serif">
-        <NostrQuote />
-
         <a className="underline" target="_blank" rel="noopener noreferrer" href="https://github.com/fiatjaf/nostr">
           Read more about nostr on GitHub.
         </a>

@@ -12,10 +12,14 @@ import { CurrentGameCard, GameCard } from '../components/GameCard'
 import { Spinner } from '../components/Spinner'
 import { GameById } from '../components/jester/GameById'
 import { NoConnectionAlert } from '../components/NoConnectionAlert'
+import { RoboHashImg } from '../components/RoboHashImg'
+
+import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 import * as NIP01 from '../util/nostr/nip01'
 import { jesterIdToGameId, jesterPrivateStartGameRef } from '../util/jester'
 import { GameStartEvent } from '../util/app_db'
+import { createPersonalBotKeyPair } from '../util/app'
 import { getSession } from '../util/session'
 
 // @ts-ignore
@@ -24,10 +28,10 @@ import Heading6 from '@material-tailwind/react/Heading6'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Icon from '@material-tailwind/react/Icon'
+// @ts-ignore
+import Paragraph from '@material-tailwind/react/Paragraph'
+
 import { CreateDirectChallengeAndRedirectButtonHook, CreateGameAndRedirectButtonHook } from './CreateGameButton'
-import { createPersonalBotKeyPair } from '../util/app'
-import { RoboHashImg } from './RoboHashImg'
-import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 10 : 10
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -89,8 +93,8 @@ function GameList({
 }
 
 export default function LobbyPage() {
-  const challengeBotButtonRef = useRef<HTMLDivElement>(null)
-  const createNewGameButtonRef = useRef<HTMLDivElement>(null)
+  const challengeBotButtonRef = useRef<HTMLButtonElement>(null)
+  const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
 
   const renderedAt = new Date()
   const settings = useSettings()
@@ -219,7 +223,7 @@ export default function LobbyPage() {
                 <GameList games={listOfPrivateStartGamesLiveQuery} currentGameId={currentGameId}>
                   <>
                     {!currentGameId && botPublicKeyOrNull && (
-                      <div className="w-full max-w-sm cursor-pointer" ref={challengeBotButtonRef}>
+                      <button className="w-full max-w-sm cursor-pointer" ref={challengeBotButtonRef}>
                         <CreateDirectChallengeAndRedirectButtonHook
                           buttonRef={challengeBotButtonRef}
                           opponentPubKey={botPublicKeyOrNull}
@@ -231,20 +235,12 @@ export default function LobbyPage() {
                               value={botPublicKeyOrNull}
                               alt={botPublicKeyOrNull}
                             />
-                            <Button
-                              color="teal"
-                              buttonType="link"
-                              size="lg"
-                              rounded={false}
-                              block={false}
-                              iconOnly={false}
-                              ripple="light"
-                            >
-                              Challenge robot
-                            </Button>
+                            <Paragraph color="teal">
+                              <span className="font-bold uppercase">Challenge robot</span>
+                            </Paragraph>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     )}
                   </>
                 </GameList>
@@ -314,24 +310,16 @@ export default function LobbyPage() {
                     return <Spinner />
                   } else if (game === null) {
                     return privateKeyOrNull !== null ? (
-                      <div className="w-full max-w-sm cursor-pointer" ref={createNewGameButtonRef}>
+                      <button className="w-full max-w-sm cursor-pointer" ref={createNewGameButtonRef}>
                         <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
                         <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
                           <div className="grid grid-cols-1 items-center justify-items-center py-4 px-4 h-64">
-                            <Button
-                              color="green"
-                              buttonType="link"
-                              size="lg"
-                              rounded={false}
-                              block={false}
-                              iconOnly={false}
-                              ripple="light"
-                            >
-                              Start a new game
-                            </Button>
+                            <Paragraph color="green">
+                              <span className="font-bold uppercase">Start a new game</span>
+                            </Paragraph>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ) : (
                       <></>
                     )
