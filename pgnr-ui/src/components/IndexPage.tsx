@@ -47,7 +47,9 @@ function CreateIdentityStep() {
         </h1>
       </div>
       <div className="flex justify-center text-center">
-        <LeadText color="">Wanna start playing immediately? Let's go!</LeadText>
+        <LeadText color="white">
+          <span className="font-bold">Wanna start playing immediately? Let's go!</span>
+        </LeadText>
       </div>
       <div className="flex justify-center items-center space-x-4 my-4">
         <Button
@@ -87,6 +89,7 @@ function CreateIdentityStep() {
 
 function LoginIdentityStep({ identity }: { identity: Identity }) {
   const navigate = useNavigate()
+  const displayPubKey = useMemo(() => pubKeyDisplayName(identity.pubkey), [identity])
 
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -96,10 +99,15 @@ function LoginIdentityStep({ identity }: { identity: Identity }) {
   return (
     <>
       <div className="flex justify-center">
-        <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-          {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
-        </h1>
+        <RoboHashImg
+          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500"
+          value={identity.pubkey}
+          alt={displayPubKey}
+        />
       </div>
+      <h1 className="text-center text-blue-gray-500 text-4xl lg:text-6xl font-serif font-bold mb-0">
+        {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
+      </h1>
       <div className="flex justify-center text-center">
         <LeadText color="white">
           <span className="font-bold">

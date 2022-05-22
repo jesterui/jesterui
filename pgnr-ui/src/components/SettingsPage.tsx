@@ -372,7 +372,18 @@ export default function SettingsPage() {
       <Heading1 color="blueGray">Settings</Heading1>
 
       <div className="pb-16">
-        <Heading2 color="blueGray">&#127183; jester</Heading2>
+        <Heading2 color="blueGray">
+          <div className="flex items-center">
+            <div>jester</div>
+            <img
+              className="w-16 h-16 mr-1 ml-1"
+              src="logo192.png"
+              alt="&#127183;"
+              title="&#127183; jester • chess over nostr"
+            />
+          </div>
+        </Heading2>
+
         <Checkbox
           color="blueGray"
           text="Developer Mode"

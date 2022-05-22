@@ -1,4 +1,10 @@
-# 🃏 jester-ui
+
+<p align="center">
+    <img src="https://github.com/theborakompanioni/pgnrui/raw/master/pgnr-ui/public/logo512.png" alt="Logo" width="256" />
+</p>
+
+🃏 jester-ui
+===
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
@@ -28,6 +34,13 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+
+### Logo attribution
+[This file](https://github.com/theborakompanioni/pgnrui/raw/master/pgnr-ui/public/logo512.png) is licensed under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) license. 	
+[Attribution: Vincent Le Moign](https://commons.wikimedia.org/wiki/File:683-joker.svg)
+No changes to the file were made.
+
 
 ## Resources
 - nostr (GitHub): https://github.com/fiatjaf/nostr
