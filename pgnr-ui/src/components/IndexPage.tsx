@@ -241,7 +241,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
                           <PopoverHeader>Challenge declined.</PopoverHeader>
                           <PopoverBody>
                             <figure>
-                              <blockquote cite="https://www.huxley.net/bnw/four.html">
+                              <blockquote cite="https://www.example.com">
                                 <p>
                                   "It's an entire world of 64 squares. I will dominate it and crush my opponent’s mind."
                                 </p>

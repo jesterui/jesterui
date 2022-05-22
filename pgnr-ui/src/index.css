@@ -48,6 +48,10 @@ code {
   height: 16rem;
 }
 
+.border-l {
+  border-left-width: 1px;
+}
+
 .border-opacity-50 {
   --tw-border-opacity: 0.5;
 }
@@ -89,6 +93,9 @@ code {
 
 .opacity-95 {
   opacity: 0.95;
+}
+.opacity-10 {
+  opacity: 0.1;
 }
 .hover\:opacity-100:hover {
   opacity: 1;
