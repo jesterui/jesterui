@@ -1,7 +1,5 @@
 import React from 'react'
 
-import { useSettings } from '../context/SettingsContext'
-
 import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 // @ts-ignore
@@ -28,8 +26,6 @@ const NostrQuote = () => (
 export default function FaqPage() {
   useSetWindowTitle({ text: 'FAQ' })
 
-  const settings = useSettings()
-
   return (
     <div className="screen-faq">
       <Heading1 color="blueGray">FAQ</Heading1>
@@ -49,15 +45,16 @@ export default function FaqPage() {
       <p className="mb-8 font-serif">You probably can't. The current functionality is very limited.</p>
       <Heading6 color="blueGray">I found a bug. How can I report it?</Heading6>
       <p className="mb-8 font-serif">
-        Please open an issue on the project's GitHub repo:{' '}
+        Please open an issue{' '}
         <a
           className="underline"
           target="_blank"
           rel="noopener noreferrer"
           href="https://github.com/jesterui/jesterui/issues"
         >
-          https://github.com/jesterui/jesterui
+          on the project's GitHub repo
         </a>
+        .
       </p>
       <Heading6 color="blueGray">This is in beta. Is this just a demo application?</Heading6>
       <p className="mb-8 font-serif">Yes.</p>

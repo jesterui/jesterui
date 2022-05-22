@@ -9,7 +9,7 @@ import { GameById } from '../components/jester/GameById'
 import { Spinner } from '../components/Spinner'
 import { CurrentGameCard } from '../components/GameCard'
 import { NoConnectionAlert } from '../components/NoConnectionAlert'
-import { RoboHashImg } from '../components/RoboHashImg'
+import { RoboHashImgWithLoader } from '../components/RoboHashImg'
 import {
   CreateDirectChallengeAndRedirectButtonHook,
   CreateGameAndRedirectButtonHook,
@@ -24,13 +24,13 @@ import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import LeadText from '@material-tailwind/react/LeadText'
 // @ts-ignore
-import Popover from '@material-tailwind/react/Popover'
+//import Popover from '@material-tailwind/react/Popover'
 // @ts-ignore
-import PopoverContainer from '@material-tailwind/react/PopoverContainer'
+//import PopoverContainer from '@material-tailwind/react/PopoverContainer'
 // @ts-ignore
-import PopoverHeader from '@material-tailwind/react/PopoverHeader'
+//import PopoverHeader from '@material-tailwind/react/PopoverHeader'
 // @ts-ignore
-import PopoverBody from '@material-tailwind/react/PopoverBody'
+//import PopoverBody from '@material-tailwind/react/PopoverBody'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()
@@ -99,7 +99,7 @@ function LoginIdentityStep({ identity }: { identity: Identity }) {
   return (
     <>
       <div className="flex justify-center">
-        <RoboHashImg
+        <RoboHashImgWithLoader
           className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500"
           value={identity.pubkey}
           alt={displayPubKey}
@@ -178,7 +178,7 @@ function IdentityStep({ identity }: { identity: Identity | null }) {
 function SetupCompleteStep({ identity }: { identity: Identity }) {
   const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
   const challengePersonalRobotButtonRef = useRef<HTMLButtonElement>(null)
-  const challengeJesterButtonRef = useRef<HTMLButtonElement>(null)
+  // const challengeJesterButtonRef = useRef<HTMLButtonElement>(null)
 
   const settings = useSettings()
   const navigate = useNavigate()
@@ -194,9 +194,9 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
 
   return (
     <>
-      <div className="flex justify-center">
-        <RoboHashImg
-          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500"
+      <div className="grid grid-cols-1 justify-center justify-items-center content-center">
+        <RoboHashImgWithLoader
+          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-blue-gray-500 grid"
           value={identity.pubkey}
           alt={displayPubKey}
         />
