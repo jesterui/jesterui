@@ -4,6 +4,8 @@ import { JesterId, JESTER_ID_PREFIX, hashWithSha256 } from '../util/jester'
 import { PrivKey } from '../util/nostr/events'
 import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
 
+export const windowTitle = (text: string) => `jester • ${text}`
+
 export const shortenString = (value: string, chars = 8, separator = '...') => {
   const prefixLength = Math.max(Math.floor(chars / 2), 1)
   if (value.length <= prefixLength * 2) {

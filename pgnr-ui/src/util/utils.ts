@@ -1,5 +1,10 @@
 export const isFunction = (obj: any): obj is Function => typeof obj === 'function'
 
+const NOOP = () => {}
+export const noop = () => NOOP
+
+export const identity = (val: any) => val
+
 export const arrayEquals = (a: any, b: any): boolean => {
   return (
     Array.isArray(a) &&

@@ -13,6 +13,7 @@ import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../comp
 import { ChessInstance } from '../components/ChessJsTypes'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 
+import { useSetWindowTitle } from '../hooks/WindowTitle'
 import { useResize } from '../hooks/ElementDimensions'
 
 import * as NIP01 from '../util/nostr/nip01'
@@ -27,6 +28,7 @@ import {
   constructGameMoveEvent,
 } from '../util/jester'
 import * as AppUtils from '../util/app'
+import * as Utils from '../util/utils'
 import { GameMoveEvent } from '../util/app_db'
 import { getSession } from '../util/session'
 // @ts-ignore
@@ -398,11 +400,13 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
   )
 
   const [gameId] = useState<NIP01.EventId | undefined>((jesterId && jesterIdToGameId(jesterId)) || undefined)
+  const gameNameShort = useMemo(() => gameId && AppUtils.displayGameNameShort(gameId), [gameId])
 
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const gameStore = useGameStore()
+  const setWindowTitle = useSetWindowTitle({ transform: Utils.identity })
 
   const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
@@ -418,16 +422,11 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
   const privateKeyOrNull = getSession()?.privateKey || null
 
   useEffect(() => {
-    if (!gameId) return
+    if (!gameNameShort) return
 
-    const previousTitle = document.title
     let titlePrefix = currentChessInstance && !isSearchingHead ? `${titleMessage(currentChessInstance, color)} – ` : ''
-    document.title = `${titlePrefix}Game ${AppUtils.displayGameNameShort(gameId)}`
-
-    return () => {
-      document.title = previousTitle
-    }
-  }, [isSearchingHead, gameId, color, currentChessInstance])
+    setWindowTitle(`${titlePrefix}Game ${gameNameShort}`)
+  }, [setWindowTitle, isSearchingHead, gameNameShort, color, currentChessInstance])
 
   /********************** SUBSCRIBE TO GAME */
   const unsubscribeFromCurrentGame = useCallback(() => {

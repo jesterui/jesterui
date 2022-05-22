@@ -27,6 +27,7 @@ import Icon from '@material-tailwind/react/Icon'
 import { CreateDirectChallengeAndRedirectButtonHook, CreateGameAndRedirectButtonHook } from './CreateGameButton'
 import { createPersonalBotKeyPair } from '../util/app'
 import { RoboHashImg } from './RoboHashImg'
+import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 10 : 10
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
@@ -95,6 +96,8 @@ export default function LobbyPage() {
   const settings = useSettings()
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
+  const setWindowTitle = useSetWindowTitle({ text: 'Lobby' })
+
   const [gameStartEventFilter, setGameStartEventFilter] = useState(createGameOverviewFilter(new Date()))
   const currentGameId: NIP01.EventId | undefined = useMemo(
     () => settings.currentGameJesterId && jesterIdToGameId(settings.currentGameJesterId),
@@ -181,17 +184,12 @@ export default function LobbyPage() {
   )
 
   useEffect(() => {
-    const previousTitle = document.title
     if (listOfStartGamesLiveQuery && listOfStartGamesLiveQuery.length > 0) {
-      document.title = `Lobby (${listOfStartGamesLiveQuery.length})`
+      setWindowTitle(`Lobby (${listOfStartGamesLiveQuery.length})`)
     } else {
-      document.title = `Lobby`
+      setWindowTitle(`Lobby`)
     }
-
-    return () => {
-      document.title = previousTitle
-    }
-  }, [listOfStartGamesLiveQuery])
+  }, [setWindowTitle, listOfStartGamesLiveQuery])
 
   return (
     <div className="screen-games-overview">

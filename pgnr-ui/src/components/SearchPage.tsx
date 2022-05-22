@@ -22,6 +22,7 @@ import Input from '@material-tailwind/react/Input'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import Small from '@material-tailwind/react/Small'
+import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 interface SearchFromProps {
   onSearchButtonClicked: (val: string) => void
@@ -89,10 +90,13 @@ const SearchFrom = (props: SearchFromProps) => {
 }
 
 export default function SearchPage() {
+  useSetWindowTitle({ text: 'Search' })
+
   const settings = useSettings()
   const navigate = useNavigate()
   const incomingNostr = useIncomingNostrEvents()
   const gameStore = useGameStore()
+
   const [searchResults, setSearchResults] = useState<string[] | null>(null)
   const [inputLooksLikeJesterId, setInputLooksLikeJesterId] = useState<boolean | null>(null)
   const [inputIsJesterId, setInputIsJesterId] = useState<boolean | null>(null)

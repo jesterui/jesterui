@@ -2,22 +2,17 @@ import React, { useEffect } from 'react'
 
 import { useSettings } from '../context/SettingsContext'
 
+import { useSetWindowTitle } from '../hooks/WindowTitle'
+
 // @ts-ignore
 import Heading1 from '@material-tailwind/react/Heading1'
 // @ts-ignore
 import Heading6 from '@material-tailwind/react/Heading6'
 
 export default function FaqPage() {
+  useSetWindowTitle({ text: 'FAQ' })
+
   const settings = useSettings()
-
-  useEffect(() => {
-    const previousTitle = document.title
-    document.title = `FAQ`
-
-    return () => {
-      document.title = previousTitle
-    }
-  }, [])
 
   return (
     <div className="screen-faq">

@@ -10,6 +10,8 @@ import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 import { BotSelector } from '../components/BotSelector'
 
+import { useSetWindowTitle } from '../hooks/WindowTitle'
+
 import { getSession, setSessionAttribute } from '../util/session'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
@@ -318,18 +320,11 @@ const KeyPairForm = () => {
 }
 
 export default function SettingsPage() {
+  useSetWindowTitle({ text: 'Settings' })
+
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
-
-  useEffect(() => {
-    const previousTitle = document.title
-    document.title = `Settings`
-
-    return () => {
-      document.title = previousTitle
-    }
-  }, [])
 
   const relays = useMemo(() => settings.relays, [settings])
   const selectedBotName = useMemo(() => settings.botName, [settings])
