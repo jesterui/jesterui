@@ -6,6 +6,19 @@
 🃏 jester-ui
 ===
 
+> Jester is Chess over nostr.
+
+`jester-ui` is a proof of concept application for Chess over nostr.\
+It is a work-in-progress demo with many, many bugs and missing features.
+
+## Demo
+Download the source and run the application locally, if you want to try things for yourself.
+
+Or see [jesterui.github.io](https://jesterui.github.io) for a current snapshot of the code.\
+Please keep in mind that this is using public relays.
+
+See [FLOW.md](FLOW.md) (still in progress) for a short technical overview.
+
 ## Available Scripts
 
 In the project directory, you can run:
