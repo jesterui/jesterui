@@ -1,60 +1,5 @@
 # 🃏 jester-ui
 
-## TODO
-### primary
-- [x] let user rechallenge the bot when game is over
-- [ ] bot should give up hopeless positions
-  - Resign must be implemented!
-- [x] http not working -> needs https
-- [ ] wait a little bit before starting a bot game (random 1 to 3 secs -> "isStartEventScheduled")
- 
-- [ ] only let validated moves into "game event store" -> currently received out of order
-      with ability to insert invalid events.
-- [ ] strip down contents of "game move" to bare minimum, e.g. does it really need the fen?
-  - [ ] Send nostr events `content` as chess json proto?
-- [ ] currently, player started the game is always white 
-  - others players can make moves for black -> it is not locked to the first mover and basically a one vs. all
-
-- bot should make move even when currentGameId is other game
-- [ ] Color scheme: More clean interface, use bright, warm colors
-- [ ] Move Menu from Navbar to Sidebar - only necessary stuff in navbar
-- [ ] Identity Wizard with Description, pregenerate identity?
-- [ ] hide lobby behind dev flag for now - call it "challenges" or smth
-- [ ] make a "my created games" site till lobby is only in dev mode
-- [ ] on private 1-on-1 games, never let other (non-participating) pubkeys create moves
-- [x] show current game card on index page
-- [x] new identity on game page -> so that the links are useful
-- [x] privacy on subscription names - randomize on demand
-- [x] "Robots lovingly delivered by Robohash.org"
-
-### Secondary
-- [ ] Dark Mode
-- [ ] show current identity and nostr server (tooltip?) in navbar
-  - [ ] cycle through till first connection is successful
-- [ ] update FLOW.md to actual workflow
-- [ ] search by fen! games by fen -> send fen as hash in event!
-- [ ] ability to delete data in indexeddb
-- [ ] add ability to watch games next to "currentGameJesterId" aka pinning games
-- [ ] ability to use nos2x (browser extension)
-- [ ] ability for multiple nostr gateways
-  - [ ] save relay an event was first seen and try to subscribe to it when fetching?
-- [ ] 2nd: Readonly mode (no priv key), white (game start), black (joining a game)
-- [ ] make "multichess" option - users are either black/white and vote on moves
-- [ ] add POW if necessary
-- [ ] rename to jester
-- [ ] ability to "offer draw", "draw by agreement", "give up"
-- [ ] "promote to other piece than queen"
-- [ ] support more NIPs!
-- [ ] crashes in firefox private mode (indexeddb is read-only..)
-- [x] use first nostr server in list for auto-connect
-- [x] encode and shorten gameIds
-- [x] ability to load game by id
-
-- [ ] Tournaments? How can they be implemented
-- [ ] PWA compatibility
-
----
-
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -99,8 +44,6 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 - Stockfish (GitHub): https://github.com/nmrugg/stockfish.js
 - chessbot-typescript (GitHub): https://github.com/eddmann/chessbot-typescript
-
-- CTX Chess Tournament Exchange format (XML): https://github.com/fnogatz/CTX
 
 - material-tailwind (GitHub): https://github.com/creativetimofficial/material-tailwind
 
