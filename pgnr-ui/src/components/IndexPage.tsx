@@ -23,6 +23,14 @@ import { PubKey } from '../util/nostr/nip01'
 import Button from '@material-tailwind/react/Button'
 // @ts-ignore
 import LeadText from '@material-tailwind/react/LeadText'
+// @ts-ignore
+import Popover from '@material-tailwind/react/Popover'
+// @ts-ignore
+import PopoverContainer from '@material-tailwind/react/PopoverContainer'
+// @ts-ignore
+import PopoverHeader from '@material-tailwind/react/PopoverHeader'
+// @ts-ignore
+import PopoverBody from '@material-tailwind/react/PopoverBody'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()
@@ -93,8 +101,10 @@ function LoginIdentityStep({ identity }: { identity: Identity }) {
         </h1>
       </div>
       <div className="flex justify-center text-center">
-        <LeadText color="" className="">
-          Since nos2x is not yet supported, provide your private key or simply create a new identity.
+        <LeadText color="white">
+          <span className="font-bold">
+            Since nos2x is not yet supported, provide your private key or simply create a new identity.
+          </span>
         </LeadText>
       </div>
       <div className="flex justify-center items-center space-x-4 my-4">
@@ -159,7 +169,8 @@ function IdentityStep({ identity }: { identity: Identity | null }) {
 
 function SetupCompleteStep({ identity }: { identity: Identity }) {
   const createNewGameButtonRef = useRef<HTMLButtonElement>(null)
-  const challengeBotButtonRef = useRef<HTMLButtonElement>(null)
+  const challengePersonalRobotButtonRef = useRef<HTMLButtonElement>(null)
+  const challengeJesterButtonRef = useRef<HTMLButtonElement>(null)
 
   const settings = useSettings()
   const navigate = useNavigate()
@@ -167,7 +178,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
   const displayPubKey = useMemo(() => pubKeyDisplayName(identity.pubkey), [identity])
   const privateKey = getSession()!.privateKey!
 
-  const botPublicKey = useMemo<PubKey>(() => {
+  const personalRobotPublicKey = useMemo<PubKey>(() => {
     return createPersonalBotKeyPair(privateKey).publicKey
   }, [privateKey])
 
@@ -194,62 +205,101 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
             return (
               <>
                 <div className="flex justify-center text-center">
-                  <LeadText color="">
-                    Join another player or start a new game. <br />
-                    Also, why not challenge your own personal robot?
-                  </LeadText>
+                  <div className="w-full max-w-sm sm:w-full">
+                    <LeadText color="white">
+                      <span className="font-bold">Are you ready?</span>
+                    </LeadText>
+                  </div>
                 </div>
-                <div className="my-4">
-                  <div className="flex justify-center items-center space-x-4 my-4">
-                    <Button
-                      color="teal"
-                      buttonType={settings.currentGameJesterId ? 'outline' : 'filled'}
-                      size="regular"
-                      rounded={false}
-                      block={false}
-                      iconOnly={false}
-                      ripple="light"
-                      className="w-48"
-                      ref={challengeBotButtonRef}
-                    >
-                      Challenge robot
-                      <CreateDirectChallengeAndRedirectButtonHook
-                        buttonRef={challengeBotButtonRef}
-                        opponentPubKey={botPublicKey}
-                      />
-                    </Button>
+                <div className="grid grid-cols-1 justify-items-center space-y-4">
+                  {/*
+                    <>
+                      <Button
+                        color="gray"
+                        buttonType="link"
+                        size="lg"
+                        rounded={false}
+                        block={false}
+                        iconOnly={false}
+                        ripple="light"
+                        className="w-full max-w-sm"
+                        ref={challengeJesterButtonRef}
+                      >
+                        Challenge Jester
+                      </Button>
+
+                      <Popover placement="top" ref={challengeJesterButtonRef} trigger={'hover'}>
+                        <PopoverContainer style={{ position: 'absolute', margin: '0 auto' }}>
+                          <PopoverHeader>Challenge declined.</PopoverHeader>
+                          <PopoverBody>
+                            <figure>
+                              <blockquote cite="https://www.huxley.net/bnw/four.html">
+                                <p>
+                                  "It's an entire world of 64 squares. I will dominate it and crush my opponent’s mind."
+                                </p>
+                              </blockquote>
+                              <figcaption>—Jester</figcaption>
+                            </figure>
+                            <p className="mt-2">Jester laughs and declines your challenge. You are not ready yet.</p>
+                          </PopoverBody>
+                        </PopoverContainer>
+                      </Popover>
+                    </>
+                  */}
+                  <Button
+                    color="teal"
+                    buttonType="filled"
+                    size="lg"
+                    rounded={false}
+                    block={false}
+                    iconOnly={false}
+                    ripple="light"
+                    className="w-full max-w-sm"
+                    ref={challengePersonalRobotButtonRef}
+                  >
+                    Challenge your robot
+                    <CreateDirectChallengeAndRedirectButtonHook
+                      buttonRef={challengePersonalRobotButtonRef}
+                      opponentPubKey={personalRobotPublicKey}
+                    />
+                  </Button>
+                </div>
+
+                <div className="flex justify-center text-center">
+                  <div className="w-full max-w-sm sm:w-full">
+                    <LeadText color="white">
+                      <span className="font-bold">…or practice with another human.</span>
+                    </LeadText>
                   </div>
-                  <div className="flex justify-center items-center space-x-4 my-4">
-                    <Button
-                      color="blueGray"
-                      buttonType="outline"
-                      size="regular"
-                      rounded={false}
-                      block={false}
-                      iconOnly={false}
-                      ripple="light"
-                      className="w-48"
-                      onClick={viewLobbyButtonClicked}
-                    >
-                      Browse all games
-                    </Button>
-                  </div>
-                  <div className="flex justify-center items-center space-x-4 my-4">
-                    <Button
-                      color="green"
-                      buttonType={'outline'}
-                      size="regular"
-                      rounded={false}
-                      block={false}
-                      iconOnly={false}
-                      ripple="light"
-                      className="w-48"
-                      ref={createNewGameButtonRef}
-                    >
-                      Start a new game
-                      <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
-                    </Button>
-                  </div>
+                </div>
+                <div className="grid grid-cols-1 justify-items-center space-y-4">
+                  <Button
+                    color="blueGray"
+                    buttonType="outline"
+                    size="lg"
+                    rounded={false}
+                    block={false}
+                    iconOnly={false}
+                    ripple="light"
+                    className="w-full max-w-sm"
+                    onClick={viewLobbyButtonClicked}
+                  >
+                    Browse all games
+                  </Button>
+                  <Button
+                    color="green"
+                    buttonType={'outline'}
+                    size="lg"
+                    rounded={false}
+                    block={false}
+                    iconOnly={false}
+                    ripple="light"
+                    className="w-full max-w-sm"
+                    ref={createNewGameButtonRef}
+                  >
+                    Start a new game
+                    <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
+                  </Button>
                 </div>
               </>
             )
@@ -257,7 +307,9 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
             return (
               <>
                 <div className="flex justify-center text-center">
-                  <LeadText color="">Your current game already started</LeadText>
+                  <LeadText color="white">
+                    <span className="font-bold">Game is running…</span>
+                  </LeadText>
                 </div>
                 <div className="flex justify-center my-2">
                   <CurrentGameCard game={game} />
