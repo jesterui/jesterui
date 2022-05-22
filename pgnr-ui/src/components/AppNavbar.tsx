@@ -38,7 +38,7 @@ export default function AppNavbar() {
         <NavbarWrapper>
           <div className="flex-1 text-sm font-bold inline-block mr-4 whitespace-no-wrap text-white">
             <ReactNavLink to="/" className={({ isActive }) => (isActive ? '' : '')}>
-              <div className="grid grid-cols-1">
+              <div className="grid grid-cols-1 justify-items-center w-24">
                 <div className="flex items-center">
                   jester
                   <span className="ml-1">
@@ -51,7 +51,7 @@ export default function AppNavbar() {
                     beta
                   </span>
                 </div>
-                <div>
+                <div style={{marginLeft: '-1px'}}>
                   {settings.dev ? (
                     <span
                       style={{ whiteSpace: 'nowrap' }}
