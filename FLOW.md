@@ -44,14 +44,6 @@ A subscription to game start events
 }]
 ```
 
-```shell
-game_start_filter := ["REQ", "game_start", {
-  "#e": ["b1791d7fc9ae3d38966568c257ffb3a02cbf8394cdb4805bc70f64fc3c0b6879"],
-  "kinds": [30],
-  "since": 1234567890
-}]
-```
-
 #### Game Start Event
 ```json
 {
@@ -80,6 +72,15 @@ e.g.
 ```
 
 #### Game Start Examples
+
+```shell
+game_start_filter := ["REQ", "game_start", {
+  "#e": ["b1791d7fc9ae3d38966568c257ffb3a02cbf8394cdb4805bc70f64fc3c0b6879"],
+  "kinds": [30],
+  "since": 1234567890
+}]
+```
+
 ##### No game started
 ```mermaid
 sequenceDiagram
@@ -124,7 +125,7 @@ The first move event in a game has no previous move and references the start eve
 
 Contents of a move event consists of properties:
 - `version`
-- `kind` (always `1`)
+- `kind` (always `30`)
 - `fen`
 - `move`
 - `history`
@@ -136,7 +137,7 @@ Example:
 ```json
 {
   "version": "0",
-  "kind": 1,
+  "kind": 30,
   "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
   "move": "e4",
   "history": ["e4"]
@@ -150,11 +151,11 @@ a subscription must created that fetches move events referencing the game start 
 
 ```json
 ["REQ", "current_game", {
-    "ids":["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
-    "kinds":[30]
+    "ids": ["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
+    "kinds": [30]
   }, {
-    "#e":["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
-    "kinds":[30]
+    "#e": ["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
+    "kinds": [30]
   }
 ]
 ```
@@ -163,11 +164,11 @@ a subscription must created that fetches move events referencing the game start 
 
 ```shell
 selected_game_filter := ["REQ","current_game", {
-    "ids":["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
-    "kinds":[30]
+    "ids": ["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
+    "kinds": [30]
   }, {
-    "#e":["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
-    "kinds":[30]
+    "#e": ["f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
+    "kinds": [30]
   }
 ]
 ```
@@ -189,16 +190,16 @@ TBD
 First move in a game:
 ```json
 {
-  "id":"690aba4203682f5d0c33b75dd7687042f46323d56d76b3042c5ee36a92ff4571",
-  "kind":30,
-  "pubkey":"147ad8c3426f80647c69fb73a947c9d15b07ce4073d18bab9d36c27a8543fc91",
-  "content":"{\"version\":\"0\",\"kind\":1,\"fen\":\"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1\",\"move\":\"e4\",\"history\":[\"e4\"]}",
-  "tags":[
-    ["e","f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
-    ["e","f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"]
+  "id": "690aba4203682f5d0c33b75dd7687042f46323d56d76b3042c5ee36a92ff4571",
+  "kind": 30,
+  "pubkey": "147ad8c3426f80647c69fb73a947c9d15b07ce4073d18bab9d36c27a8543fc91",
+  "content": "{\"version\":\"0\",\"kind\":1,\"fen\":\"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1\",\"move\":\"e4\",\"history\":[\"e4\"]}",
+  "tags": [
+    ["e", "f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"],
+    ["e", "f2663b7b5f26e334e7bf89b19afa6aa138a46d4af02c37f98b07e1e18eaefd4f"]
   ],
-  "created_at":1653237822,
-  "sig":"0151a2bbd7271e29af47f7a8d1449b513cc3d7f7eb586e021120c8a6d2f69ea2ff00c9186bf286b47e47116333b25573fe1a3f17dc705c2c64ad0e8dcbd67109"
+  "created_at": 1653237822,
+  "sig": "0151a2bbd7271e29af47f7a8d1449b513cc3d7f7eb586e021120c8a6d2f69ea2ff00c9186bf286b47e47116333b25573fe1a3f17dc705c2c64ad0e8dcbd67109"
 }
 ```
 
