@@ -8,6 +8,20 @@ body {
   background-color: #282c34;
 }
 
+#forkme {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 20;
+}
+
+@media only screen and (min-width: 1500px) {
+  #forkme {
+    display: block;
+  }
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }

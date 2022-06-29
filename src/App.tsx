@@ -29,6 +29,9 @@ export default function App() {
         <NostrManageRelays />
         {settings.dev && <NostrLogIncomingRelayEvents />}
       </>
+      <a href="https://github.com/jesterui/jesterui" rel="noopener noreferrer">
+        <img alt="Fork me on GitHub" title="Fork me on GitHub" src="fork_me.png" id="forkme" />
+      </a>
       <div className="App pb-4 min-w-xs">
         <header className="App-header w-full">
           <AppNavbar />
@@ -59,11 +62,7 @@ export default function App() {
             </Route>
           </Routes>
         </section>
-        <footer className="App-footer">
-          <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-            View on GitHub
-          </a>
-        </footer>
+        <footer className="App-footer"></footer>
       </div>
     </>
   )
