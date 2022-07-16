@@ -15,6 +15,8 @@ import {
   CreateGameAndRedirectButtonHook,
 } from '../components/CreateGameButton'
 
+import { useSetWindowTitle } from '../hooks/WindowTitle'
+
 import { getSession } from '../util/session'
 import { createPersonalBotKeyPair, pubKeyDisplayName } from '../util/app'
 import { PubKey } from '../util/nostr/nip01'
@@ -332,6 +334,8 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
 }
 
 export default function IndexPage() {
+  useSetWindowTitle({ text: 'chess over nostr' })
+  
   const incomingNostr = useIncomingNostrEvents()
   const settings = useSettings()
 
