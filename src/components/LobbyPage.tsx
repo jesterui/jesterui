@@ -33,7 +33,7 @@ import Paragraph from '@material-tailwind/react/Paragraph'
 
 import { CreateDirectChallengeAndRedirectButtonHook, CreateGameAndRedirectButtonHook } from './CreateGameButton'
 
-const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 10 : 10
+const GAMES_FILTER_PAST_DURATION_IN_MINUTES = process.env.NODE_ENV === 'development' ? 60 : 60
 const GAMES_FILTER_PAST_DURATION_IN_SECONDS = GAMES_FILTER_PAST_DURATION_IN_MINUTES * 60
 const INITIAL_MAX_AMOUNT_OF_GAMES = 21
 const MIN_UPDATE_IN_SECONDS = 60

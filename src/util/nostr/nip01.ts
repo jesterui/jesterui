@@ -136,13 +136,14 @@ type KindIdValue = EIdValues | PIdValues | Other
 
 export interface Filter {
   ids?: ListOfEventIdsOrPrefixes
+  authors?: ListOfPublicKeysOrPrefix
   kinds?: Kinds
   '#e'?: EIdValues
   '#p'?: PIdValues
   [kindId: KindId]: KindIdValue
   since?: Timestamp
   until?: Timestamp
-  authors?: ListOfPublicKeysOrPrefix
+  limit?: number
 }
 
 export type SubscriptionId = string
