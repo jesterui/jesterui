@@ -46,7 +46,7 @@ const createPrivateGameStartFilterOrEmpty = (
         {
           ...JesterUtils.createPrivateGameStartFilter(publicKey),
           since: createSinceFilterValue(sinceMinutesBack),
-          limit: FILTER_LIMIT
+          limit: FILTER_LIMIT,
         },
       ]
     : []
@@ -80,7 +80,7 @@ export default function NostrManageSubscriptions() {
     {
       ...JesterUtils.JESTER_START_GAME_FILTER,
       since: createSinceFilterValue(FILTER_TIME_IN_MINUTES),
-      limit: FILTER_LIMIT
+      limit: FILTER_LIMIT,
     },
   ])
 

@@ -335,7 +335,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
 
 export default function IndexPage() {
   useSetWindowTitle({ text: 'chess over nostr' })
-  
+
   const incomingNostr = useIncomingNostrEvents()
   const settings = useSettings()
 

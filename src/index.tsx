@@ -4,6 +4,9 @@ import { HashRouter } from 'react-router-dom'
 
 import './index.css'
 import '@material-tailwind/react/tailwind.css'
+import 'chessground/assets/chessground.base.css'
+import 'chessground/assets/chessground.brown.css'
+import 'chessground/assets/chessground.cburnett.css'
 import App from './App'
 
 import { SettingsProvider } from './context/SettingsContext'
