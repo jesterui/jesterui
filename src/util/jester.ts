@@ -1,7 +1,7 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 import { Buffer } from 'buffer'
-import { bech32m, bech32 } from 'bech32'
+import { bech32m } from 'bech32'
 
 import { ChessInstance } from '../components/ChessJsTypes'
 
@@ -306,7 +306,7 @@ export const jesterIdToGameId = (jesterId: JesterId): NIP01.EventId => {
     throw new Error('Cannot decode jesterId: invalid prefix')
   }
 
-  const bytes = Buffer.from(bech32.fromWords(decoded.words))
+  const bytes = Buffer.from(bech32m.fromWords(decoded.words))
   return bytes.toString('hex')
 }
 
