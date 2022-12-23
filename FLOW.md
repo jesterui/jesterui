@@ -27,7 +27,7 @@ TBD.
 
 ### Game Start
 
-Game start events are identified by referencing a special event id which is derived from the start fen value:
+Game `Start` events are identified by referencing a special event id which is derived from the start fen value:
 ```shell
 start_fen := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 start_fen_event_id = sha256(start_fen)
@@ -35,7 +35,7 @@ start_fen_event_id = sha256(start_fen)
 ```
 
 #### Game Start Subscription
-A subscription to game start events
+A subscription to `Start` events
 ```json
 ["REQ", "game_start", {
   "#e": ["b1791d7fc9ae3d38966568c257ffb3a02cbf8394cdb4805bc70f64fc3c0b6879"],
@@ -45,6 +45,28 @@ A subscription to game start events
 ```
 
 #### Game Start Event
+
+Contents of a `Start` event consists of properties:
+- `version`
+- `kind` (always `0` for `Start` events)
+- `history` (empty array)
+- `nonce`
+
+Example:
+```json
+{
+  "version": "0",
+  "kind": 0,
+  "history": [],
+  "nonce": "abcdef42"
+}
+```
+
+This format is subject to change and may include game specific settings in upcoming versions.
+e.g. time related settings, different starting positions, etc.
+As of now, it just contains a minimum of info to signal the start of a game.
+
+
 ```json
 {
   "kind": 30,
@@ -123,9 +145,9 @@ sequenceDiagram
 A game move is something that references a previous move and the game start event it belongs to.
 The first move event in a game has no previous move and references the start event only.
 
-Contents of a move event consists of properties:
+Contents of a `Move` event consists of properties:
 - `version`
-- `kind` (always `30`)
+- `kind` (always `1` for `Move` events)
 - `fen`
 - `move`
 - `history`
@@ -137,7 +159,7 @@ Example:
 ```json
 {
   "version": "0",
-  "kind": 30,
+  "kind": 1,
   "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
   "move": "e4",
   "history": ["e4"]
