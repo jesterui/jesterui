@@ -3,6 +3,7 @@ const developmentRelays = ['ws://localhost:7000', 'wss://non-existing-nostr-rela
 const publicRelays = [
   'wss://nostr-pub.wellorder.net',
   'wss://relay.damus.io',
+  'wss://nostr.swiss-enigma.ch',
   'wss://relay.nostr.info',
   'wss://nostr.rocks',
   'wss://nostr-relay.wlvs.space',
