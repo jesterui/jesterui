@@ -1,14 +1,7 @@
-import React from 'react'
-
-import styles from '../components/BotSelector.module.css'
+import { Select } from 'react-daisyui'
 
 import { AvailableBots } from '../util/bot'
 import * as UCI from '../util/uci'
-
-// @ts-ignore
-import Dropdown from '@material-tailwind/react/Dropdown'
-// @ts-ignore
-import DropdownItem from '@material-tailwind/react/DropdownItem'
 
 export type SelectedBot = {
   name: string
@@ -23,33 +16,33 @@ interface BotSelectorProps {
   disabled: boolean
 }
 
-export const BotSelector = ({ label, availableBots, selectedBotName, setSelectedBotName }: BotSelectorProps) => {
+export const BotSelector = ({
+  label,
+  availableBots,
+  selectedBotName,
+  setSelectedBotName,
+  disabled,
+}: BotSelectorProps) => {
   return (
-    <div className={`${styles.BotSelector} flex items-center`}>
-      <div>
-        <label>{label}</label>
-      </div>
-
-      <div>
-        <Dropdown
-          color="blueGray"
-          placement="bottom-start"
-          buttonText={selectedBotName ? selectedBotName : 'Default'}
-          buttonType="filled"
-          size="regular"
-          rounded={false}
-          block={true}
-          ripple="light"
+    <div className="flex items-center gap-2 font-sans">
+      <div className="form-control w-full max-w-xs">
+        <label className="label">
+          <span className="label-text">{label}</span>
+        </label>
+        <Select
+          value={selectedBotName || undefined}
+          onChange={(event) => setSelectedBotName(event.target.value || null)}
+          disabled={disabled}
         >
-          <DropdownItem color="blueGray" ripple="light" onClick={() => setSelectedBotName(null)}>
-            Default
-          </DropdownItem>
-          {Object.keys(availableBots).map((name) => (
-            <DropdownItem color="blueGray" ripple="light" onClick={() => setSelectedBotName(name)} key={name}>
-              {name}
-            </DropdownItem>
-          ))}
-        </Dropdown>
+          <Select.Option value={undefined}>Default</Select.Option>
+          <>
+            {Object.keys(availableBots).map((name) => (
+              <Select.Option value={name} key={name}>
+                {name}
+              </Select.Option>
+            ))}
+          </>
+        </Select>
       </div>
     </div>
   )

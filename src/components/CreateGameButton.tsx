@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useCallback, useMemo } from 'react'
+import { RefObject, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useSettings } from '../context/SettingsContext'

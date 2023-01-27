@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react'
+import { useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
@@ -21,18 +21,8 @@ import { getSession } from '../util/session'
 import { createPersonalBotKeyPair, pubKeyDisplayName } from '../util/app'
 import { PubKey } from '../util/nostr/nip01'
 
-// @ts-ignore
-import Button from '@material-tailwind/react/Button'
-// @ts-ignore
-import LeadText from '@material-tailwind/react/LeadText'
-// @ts-ignore
-//import Popover from '@material-tailwind/react/Popover'
-// @ts-ignore
-//import PopoverContainer from '@material-tailwind/react/PopoverContainer'
-// @ts-ignore
-//import PopoverHeader from '@material-tailwind/react/PopoverHeader'
-// @ts-ignore
-//import PopoverBody from '@material-tailwind/react/PopoverBody'
+import { H1 } from './Headings'
+import { Button } from 'react-daisyui'
 
 function CreateIdentityStep() {
   const navigate = useNavigate()
@@ -43,27 +33,19 @@ function CreateIdentityStep() {
 
   return (
     <>
-      <div className="flex justify-center">
-        <h1 className="text-center text-blue-gray-500 text-6xl font-serif font-bold mt-0 mb-0">
-          Hello, fellow chess player.
-        </h1>
-      </div>
       <div className="flex justify-center text-center">
-        <LeadText color="white">
-          <span className="font-bold">Wanna start playing immediately? Let's go!</span>
-        </LeadText>
+        <H1>Hello, fellow chess player.</H1>
+      </div>
+      <div className="mt-6 mb-4 flex justify-center text-center">
+        <span className="font-bold">Wanna start playing immediately? Let's go!</span>
       </div>
       <div className="flex justify-center items-center space-x-4 my-4">
         <Button
-          color="deepOrange"
-          buttonType="filled"
+          color="secondary"
+          variant="outline"
           size="lg"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
           ref={generateRandomIdentityButtonRef}
-          className="w-48"
+          className="w-full max-w-sm"
         >
           New Identity
           <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
@@ -71,17 +53,7 @@ function CreateIdentityStep() {
       </div>
 
       <div className="flex justify-center items-center space-x-4 my-4">
-        <Button
-          color="blueGray"
-          buttonType="link"
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          className="w-48"
-          onClick={viewLobbyButtonClicked}
-        >
+        <Button color="ghost" variant="link" size="lg" className="w-full max-w-sm" onClick={viewLobbyButtonClicked}>
           Browse all games
         </Button>
       </div>
@@ -107,61 +79,29 @@ function LoginIdentityStep({ identity }: { identity: Identity }) {
           alt={displayPubKey}
         />
       </div>
-      <h1 className="text-center text-blue-gray-500 text-4xl lg:text-6xl font-serif font-bold mb-0">
-        {`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}
-      </h1>
       <div className="flex justify-center text-center">
-        <LeadText color="white">
-          <span className="font-bold">
-            Since nos2x is not yet supported, provide your private key or simply create a new identity.
-          </span>
-        </LeadText>
+        <H1>{`Welcome back, ${pubKeyDisplayName(identity.pubkey)}.`}</H1>
+      </div>
+      <div className="mt-6 mb-4 flex justify-center text-center">
+        <span className="font-bold">
+          Since nos2x is not yet supported, provide your private key or simply create a new identity.
+        </span>
       </div>
       <div className="flex justify-center items-center space-x-4 my-4">
-        <Button
-          color="blueGray"
-          buttonType="filled"
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          className="w-40"
-          onClick={loginButtonClicked}
-        >
+        <Button color="primary" className="w-40" onClick={loginButtonClicked}>
           Login
         </Button>
 
         <div>or</div>
 
-        <Button
-          color="deepOrange"
-          buttonType="outline"
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          ref={generateRandomIdentityButtonRef}
-          className="w-40"
-        >
+        <Button color="secondary" variant="outline" ref={generateRandomIdentityButtonRef} className="w-40">
           New Identity
           <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
         </Button>
       </div>
 
       <div className="flex justify-center items-center space-x-4 my-4">
-        <Button
-          color="blueGray"
-          buttonType="link"
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          className="w-48"
-          onClick={viewLobbyButtonClicked}
-        >
+        <Button color="ghost" variant="link" className="w-48" onClick={viewLobbyButtonClicked}>
           Browse all games
         </Button>
       </div>
@@ -203,9 +143,9 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           alt={displayPubKey}
         />
       </div>
-      <h1 className="text-center text-blue-gray-500 text-4xl lg:text-6xl font-serif font-bold mb-0">
-        {`Hello, ${displayPubKey}.`}
-      </h1>
+      <div className="flex justify-center text-center">
+        <H1>{`Hello, ${displayPubKey}.`}</H1>
+      </div>
 
       <GameById jesterId={settings.currentGameJesterId || null}>
         {(game) => {
@@ -214,12 +154,8 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           } else if (game === null) {
             return (
               <>
-                <div className="flex justify-center text-center">
-                  <div className="w-full max-w-sm sm:w-full">
-                    <LeadText color="white">
-                      <span className="font-bold">Are you ready?</span>
-                    </LeadText>
-                  </div>
+                <div className="mt-6 mb-4 flex justify-center">
+                  <span className="font-bold">Are you ready?</span>
                 </div>
                 <div className="grid grid-cols-1 justify-items-center space-y-4">
                   {/*
@@ -256,17 +192,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
                       </Popover>
                     </>
                   */}
-                  <Button
-                    color="teal"
-                    buttonType="filled"
-                    size="lg"
-                    rounded={false}
-                    block={false}
-                    iconOnly={false}
-                    ripple="light"
-                    className="w-full max-w-sm"
-                    ref={challengePersonalRobotButtonRef}
-                  >
+                  <Button color="accent" size="lg" className="w-full max-w-sm" ref={challengePersonalRobotButtonRef}>
                     Challenge your robot
                     <CreateDirectChallengeAndRedirectButtonHook
                       buttonRef={challengePersonalRobotButtonRef}
@@ -275,35 +201,23 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
                   </Button>
                 </div>
 
-                <div className="flex justify-center text-center">
-                  <div className="w-full max-w-sm sm:w-full">
-                    <LeadText color="white">
-                      <span className="font-bold">…or practice with another human.</span>
-                    </LeadText>
-                  </div>
+                <div className="mt-6 mb-4 flex justify-center text-center">
+                  <span className="font-bold">… or practice with another human.</span>
                 </div>
                 <div className="grid grid-cols-1 justify-items-center space-y-4">
                   <Button
-                    color="blueGray"
-                    buttonType="outline"
+                    color="ghost"
+                    variant="outline"
                     size="lg"
-                    rounded={false}
-                    block={false}
-                    iconOnly={false}
-                    ripple="light"
                     className="w-full max-w-sm"
                     onClick={viewLobbyButtonClicked}
                   >
                     Browse all games
                   </Button>
                   <Button
-                    color="green"
-                    buttonType={'outline'}
+                    color="success"
+                    variant="outline"
                     size="lg"
-                    rounded={false}
-                    block={false}
-                    iconOnly={false}
-                    ripple="light"
                     className="w-full max-w-sm"
                     ref={createNewGameButtonRef}
                   >
@@ -316,10 +230,8 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
           } else {
             return (
               <>
-                <div className="flex justify-center text-center">
-                  <LeadText color="white">
-                    <span className="font-bold">Game is running…</span>
-                  </LeadText>
+                <div className="mt-6 mb-4 flex justify-center text-center">
+                  <span className="font-bold">Game is active…</span>
                 </div>
                 <div className="flex justify-center my-2">
                   <CurrentGameCard game={game} />

@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Button, Input, Tooltip, Modal } from 'react-daisyui'
+import { ArrowUturnLeftIcon, ScaleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -34,27 +36,6 @@ import { getSession } from '../util/session'
 // @ts-ignore
 import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
-
-// @ts-ignore
-import Icon from '@material-tailwind/react/Icon'
-// @ts-ignore
-import Input from '@material-tailwind/react/Input'
-// @ts-ignore
-import Button from '@material-tailwind/react/Button'
-// @ts-ignore
-import Popover from '@material-tailwind/react/Popover'
-// @ts-ignore
-import PopoverContainer from '@material-tailwind/react/PopoverContainer'
-// @ts-ignore
-import PopoverHeader from '@material-tailwind/react/PopoverHeader'
-// @ts-ignore
-import PopoverBody from '@material-tailwind/react/PopoverBody'
-// @ts-ignore
-import Tooltips from '@material-tailwind/react/Tooltips'
-// @ts-ignore
-import TooltipsContent from '@material-tailwind/react/TooltipsContent'
-// @ts-ignore
-import Small from '@material-tailwind/react/Small'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -154,27 +135,14 @@ function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProp
 const CopyGameUrlInput = ({ value }: { value: string }) => {
   return (
     <div>
-      <div className="flex items-center">
-        <Input
-          type="text"
-          color="lightBlue"
-          size="md"
-          outline={true}
-          value={value}
-          placeholder="Link to Game"
-          readOnly={true}
-          style={{ color: 'currentColor' }}
-        />
-        <CopyButtonWithConfirmation
-          className="h-11 ml-1 px-4 flex items-center justify-center font-bold outline-none uppercase tracking-wider focus:outline-none focus:shadow-none transition-all duration-300 rounded-lg text-xs leading-normal text-white bg-blue-gray-500 hover:bg-blue-gray-700 focus:bg-blue-gray-400 active:bg-blue-gray-800 shadow-md-blue-gray hover:shadow-lg-blue-gray"
-          value={value}
-          text="Copy"
-          successText="Copied"
-          disabled={!value}
-        />
+      <div className="flex items-center gap-1">
+        <div className="grow form-control">
+          <Input type="text" value={value} placeholder="Link to Game" readOnly={true} />
+        </div>
+        <CopyButtonWithConfirmation value={value} text="Copy" successText="Copied" disabled={!value} />
       </div>
       <div className="flex justify-center my-1">
-        <Small color="amber">Share this link with anyone to join in!</Small>
+        <small className="text-secondary">Share this link with anyone to join in!</small>
       </div>
     </div>
   )
@@ -234,75 +202,72 @@ const GameStateMessage = ({
 }
 
 function ProposeTakebackButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
-  const buttonRef = useRef()
-
+  const [modalOpen, setModalOpen] = useState(false)
   const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
-  const popoverPlacement = useMemo(() => (vertical ? 'right' : 'bottom'), [vertical])
 
   return (
     <>
-      <Button className="w-8 mx-2 md:mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
-        <Icon name="undo" size="xl" />
-      </Button>
-      <Tooltips placement={tooltipPlacement} ref={buttonRef}>
-        <TooltipsContent>Propose a takeback</TooltipsContent>
-      </Tooltips>
+      <Tooltip message="Propose a takeback" position={tooltipPlacement}>
+        <Button shape="circle" color="ghost" onClick={() => setModalOpen(true)} disabled={disabled}>
+          <ArrowUturnLeftIcon className="w-6 h-6" />
+        </Button>
+      </Tooltip>
 
-      <Popover placement={popoverPlacement} ref={buttonRef}>
-        <PopoverContainer>
-          <PopoverHeader>Propose a takeback</PopoverHeader>
-          <PopoverBody>Proposing to take back your move is not yet implemented.</PopoverBody>
-        </PopoverContainer>
-      </Popover>
+      <Modal open={modalOpen} onClickBackdrop={() => setModalOpen(false)}>
+        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => setModalOpen(false)}>
+          ✕
+        </Button>
+        <Modal.Header className="font-bold">Propose a takeback</Modal.Header>
+
+        <Modal.Body>Proposing to take back your move is not yet implemented.</Modal.Body>
+      </Modal>
     </>
   )
 }
 function ResignButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
-  const buttonRef = useRef()
-
+  const [modalOpen, setModalOpen] = useState(false)
   const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
-  const popoverPlacement = useMemo(() => (vertical ? 'right' : 'bottom'), [vertical])
 
   return (
     <>
-      <Button className="w-8 mx-2 md:mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
-        <Icon name="cancel" size="xl" />
-      </Button>
-      <Tooltips placement={tooltipPlacement} ref={buttonRef}>
-        <TooltipsContent>Resign</TooltipsContent>
-      </Tooltips>
+      <Tooltip message="Resign" position={tooltipPlacement}>
+        <Button shape="circle" color="ghost" onClick={() => setModalOpen(true)} disabled={disabled}>
+          <XCircleIcon className="w-6 h-6" />
+        </Button>
+      </Tooltip>
 
-      <Popover placement={popoverPlacement} ref={buttonRef}>
-        <PopoverContainer>
-          <PopoverHeader>Resign</PopoverHeader>
-          <PopoverBody>Don't resign! It is not yet implemented, keep playing!</PopoverBody>
-        </PopoverContainer>
-      </Popover>
+      <Modal open={modalOpen} onClickBackdrop={() => setModalOpen(false)}>
+        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => setModalOpen(false)}>
+          ✕
+        </Button>
+        <Modal.Header className="font-bold">Resign</Modal.Header>
+
+        <Modal.Body>Don't resign! It is not yet implemented, keep playing!</Modal.Body>
+      </Modal>
     </>
   )
 }
 
 function OfferDrawButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
-  const buttonRef = useRef()
-
+  const [modalOpen, setModalOpen] = useState(false)
   const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
-  const popoverPlacement = useMemo(() => (vertical ? 'right' : 'bottom'), [vertical])
 
   return (
     <>
-      <Button className="w-8 mx-2 md:mx-4" color="" ref={buttonRef} ripple="light" disabled={disabled}>
-        <Icon name="handshake" size="xl" />
-      </Button>
-      <Tooltips placement={tooltipPlacement} ref={buttonRef}>
-        <TooltipsContent>Offer Draw</TooltipsContent>
-      </Tooltips>
+      <Tooltip message="Offer draw" position={tooltipPlacement}>
+        <Button shape="circle" color="ghost" onClick={() => setModalOpen(true)} disabled={disabled}>
+          <ScaleIcon className="w-6 h-6" />
+        </Button>
+      </Tooltip>
 
-      <Popover placement={popoverPlacement} ref={buttonRef}>
-        <PopoverContainer>
-          <PopoverHeader>Offer Draw</PopoverHeader>
-          <PopoverBody>Offering a draw is not yet impelemented.</PopoverBody>
-        </PopoverContainer>
-      </Popover>
+      <Modal open={modalOpen} onClickBackdrop={() => setModalOpen(false)}>
+        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => setModalOpen(false)}>
+          ✕
+        </Button>
+        <Modal.Header className="font-bold">Offer draw</Modal.Header>
+
+        <Modal.Body>Offering a draw is not yet impelemented.</Modal.Body>
+      </Modal>
     </>
   )
 }
@@ -813,7 +778,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
             </div>
           </div>
           <div className="order-2 ml-2">
-            <div className="flex justify-start items-center">
+            <div className="flex justify-start items-center gap-2">
               {privateKeyOrNull &&
                 publicKeyOrNull &&
                 (publicKeyOrNull === player1PubKey || publicKeyOrNull === player2PubKey) &&
@@ -877,42 +842,31 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
         </div>
       </div>
       {settings.dev && (
-        <>
-          <div style={{ margin: '2.5rem 0' }}></div>
-          <div className="my-4">
-            <div className="mb-4">
-              {settings.currentGameJesterId === jesterId ? (
-                <button
-                  type="button"
-                  className="bg-white bg-opacity-20 rounded px-2 py-1"
-                  onClick={() => unsubscribeFromCurrentGame()}
-                >
-                  Unsubscribe
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="bg-white bg-opacity-20 rounded px-2 py-1"
-                  onClick={() => subscribeToGame()}
-                >
-                  Subscribe
-                </button>
-              )}
-            </div>
-
-            <div>
-              <pre className="py-4" style={{ overflowX: 'scroll' }}>
-                <div>{`jesterId: ${jesterId}`}</div>
-                <div>{`gameId: ${gameId}`}</div>
-                <div>{`currentHead.event.id: ${currentGameHead?.event().id}`}</div>
-                <div>{`currentGameStart.isStart: ${currentGameStart?.isStart()}`}</div>
-                <div>{`isLoading: ${isLoading}`}</div>
-                <div>{`isSearchingHead: ${isSearchingHead}`}</div>
-                <div>{`Moves: ${currentGameMoves.length}`}</div>
-              </pre>
-            </div>
+        <div className="my-4">
+          <div className="mb-4">
+            {settings.currentGameJesterId === jesterId ? (
+              <Button color="warning" variant="outline" onClick={() => unsubscribeFromCurrentGame()}>
+                Unsubscribe
+              </Button>
+            ) : (
+              <Button color="warning" variant="outline" onClick={() => subscribeToGame()}>
+                Subscribe
+              </Button>
+            )}
           </div>
-        </>
+
+          <div>
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
+              <div>{`jesterId: ${jesterId}`}</div>
+              <div>{`gameId: ${gameId}`}</div>
+              <div>{`currentHead.event.id: ${currentGameHead?.event().id}`}</div>
+              <div>{`currentGameStart.isStart: ${currentGameStart?.isStart()}`}</div>
+              <div>{`isLoading: ${isLoading}`}</div>
+              <div>{`isSearchingHead: ${isSearchingHead}`}</div>
+              <div>{`Moves: ${currentGameMoves.length}`}</div>
+            </pre>
+          </div>
+        </div>
       )}
     </div>
   )

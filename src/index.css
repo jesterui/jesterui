@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
@@ -33,6 +37,14 @@ code {
 .cursor-pointer {
   cursor: pointer;
 }
+
+/* tailwind overrides */
+
+.tooltip::before {
+  z-index: 99;
+}
+
+/* tailwind overrides - end */
 
 /* missing tailwind classes from material-tailwind */
 /* TODO: integrate plain tailwind and get rif of material-tailwind to remove these classes again */
@@ -278,29 +290,11 @@ code {
   }
 }
 
-.fill-deep-orange-500 {
-  fill: rgba(255, 87, 34, 1);
-}
-.fill-orange-500 {
-  fill: rgba(255, 152, 0, 1);
-}
 .fill-gray-200 {
   fill: rgba(238, 238, 238, 1);
 }
 
-/* missing tailwind classes from material-tailwind - end */
-
-/* quick fix for material-tailwind oddities */
-.App-header button.capitalize {
-  text-transform: unset !important;
-}
-.App-header .uppercase {
-  text-transform: unset !important;
-}
-.App button:disabled {
-  filter: brightness(0.9) grayscale(); /*grayscale()*/
-}
-/* quick fix for material-tailwind oddities - end */
+/* missing tailwind classes from material-tailwind - end
 
 /* Chessground adaptions */
 cg-board {

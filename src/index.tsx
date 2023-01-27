@@ -1,13 +1,6 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
-
-import './index.css'
-import '@material-tailwind/react/tailwind.css'
-import 'chessground/assets/chessground.base.css'
-import 'chessground/assets/chessground.brown.css'
-import 'chessground/assets/chessground.cburnett.css'
-import App from './App'
 
 import { SettingsProvider } from './context/SettingsContext'
 import { WebsocketProvider } from './context/WebsocketContext'
@@ -16,6 +9,13 @@ import { NostrStoreProvider } from './context/NostrStoreContext'
 import { NostrSubscriptionsProvider } from './context/NostrSubscriptionsContext'
 import { GameEventStoreProvider } from './context/GameEventStoreContext'
 import { JesterBotProvider } from './context/JesterBotContext'
+import App from './App'
+
+import '@material-tailwind/react/tailwind.css'
+import 'chessground/assets/chessground.base.css'
+import 'chessground/assets/chessground.brown.css'
+import 'chessground/assets/chessground.cburnett.css'
+import './index.css'
 
 declare global {
   interface AppGlobal {
@@ -29,7 +29,9 @@ declare global {
   }
 }
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
+
+root.render(
   <React.StrictMode>
     {/*Using HashRouter for GitHub Pages compatibility */}
     <HashRouter>
@@ -48,6 +50,5 @@ ReactDOM.render(
         </WebsocketProvider>
       </SettingsProvider>
     </HashRouter>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 )

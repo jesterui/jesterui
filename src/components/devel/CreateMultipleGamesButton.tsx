@@ -1,4 +1,5 @@
-import React, { useRef, useMemo } from 'react'
+import { useRef, useMemo } from 'react'
+import { Button } from 'react-daisyui'
 
 import { useSettings } from '../../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../../context/NostrEventsContext'
@@ -8,11 +9,10 @@ import { CreateGameButton } from '../CreateGameButton'
 const NOOP = () => {}
 
 interface CreateMultipleGamesButtonProps {
-  className?: string
   amount: number
 }
 
-export default function CreateMultipleGamesButton({ className, amount = 10 }: CreateMultipleGamesButtonProps) {
+export default function CreateMultipleGamesButton({ amount = 10 }: CreateMultipleGamesButtonProps) {
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
   const createGameButtonRef = useRef<HTMLButtonElement>(null)
@@ -58,13 +58,9 @@ export default function CreateMultipleGamesButton({ className, amount = 10 }: Cr
         <CreateGameButton buttonRef={createGameButtonRef} onGameCreated={NOOP} />
       </div>
 
-      <button
-        type="button"
-        className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1 mx-1'}`}
-        onClick={() => onButtonClicked(amount)}
-      >
+      <Button color="warning" variant="outline" onClick={() => onButtonClicked(amount)}>
         DEV: Start {amount} games
-      </button>
+      </Button>
     </>
   )
 }

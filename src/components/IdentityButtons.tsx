@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useCallback } from 'react'
+import { RefObject, useEffect, useCallback } from 'react'
 
 import { AppSettings, Identity, useSettingsDispatch } from '../context/SettingsContext'
 

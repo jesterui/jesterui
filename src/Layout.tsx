@@ -1,20 +1,33 @@
-import React, { PropsWithChildren } from 'react'
-import { Outlet } from 'react-router-dom'
+import { PropsWithChildren, ReactNode, useState } from 'react'
+import { Drawer, DrawerProps } from 'react-daisyui'
+import { Sidebar } from './components/Sidebar'
+import { Navbar } from './components/Navbar'
 
-type Variant = 'narrow' | 'wide' | null
-
-const Col = ({ variant, children }: PropsWithChildren<{ variant: Variant }>) => {
-  return <div className={`px-4 ${variant ? variant : ''}`}>{children}</div>
+type LayoutProps = {
+  title: ReactNode
+  drawer: Partial<DrawerProps>
 }
 
-const Layout = ({ variant }: { variant: Variant }) => {
+export function Layout({ title, children, drawer }: PropsWithChildren<LayoutProps>) {
+  const [sidebarVisible, setSitebarVisible] = useState(false)
+  const toggleSidebarVisible = () => setSitebarVisible((current) => !current)
+
   return (
-    <div className="container max-w-7xl">
-      <Col variant={variant}>
-        <Outlet />
-      </Col>
-    </div>
+    <>
+      <Drawer
+        {...drawer}
+        side={<Sidebar title={title} />}
+        end={false}
+        mobile={false}
+        open={sidebarVisible}
+        onClickOverlay={toggleSidebarVisible}
+        className="font-sans"
+      >
+        <div className="md:container mx-auto">
+          <Navbar title={title} toggleSidebar={toggleSidebarVisible} />
+          <div className="px-4 pb-32">{children}</div>
+        </div>
+      </Drawer>
+    </>
   )
 }
-
-export default Layout

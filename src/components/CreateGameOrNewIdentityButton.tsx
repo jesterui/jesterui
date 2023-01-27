@@ -1,11 +1,11 @@
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button } from 'react-daisyui'
 
 import { CreateGameAndRedirectButtonHook } from '../components/CreateGameButton'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 
-// @ts-ignore
-import Button from '@material-tailwind/react/Button'
+import ROUTES from '../routes'
 
 export function CreateGameOrNewIdentityButton({
   hasPrivateKey,
@@ -20,18 +20,7 @@ export function CreateGameOrNewIdentityButton({
     <>
       {hasPrivateKey ? (
         <>
-          <Button
-            color="green"
-            buttonType="filled"
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            ref={createNewGameButtonRef}
-            disabled={!hasPrivateKey}
-            className="w-40"
-          >
+          <Button color="success" ref={createNewGameButtonRef} disabled={!hasPrivateKey} className="w-40">
             Start new game
             <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
           </Button>
@@ -50,23 +39,13 @@ export function LoginOrNewIdentityButton({ hasPublicKey }: { hasPublicKey: boole
 
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
 
-  const loginButtonClicked = () => navigate(`/login`)
+  const loginButtonClicked = () => navigate(ROUTES.login)
 
   return (
     <div className="flex justify-center items-center space-x-4 my-4">
       {hasPublicKey && (
         <>
-          <Button
-            color="blueGray"
-            buttonType="filled"
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            className="w-40"
-            onClick={loginButtonClicked}
-          >
+          <Button color="primary" className="w-40" onClick={loginButtonClicked}>
             Login
           </Button>
 
@@ -74,17 +53,7 @@ export function LoginOrNewIdentityButton({ hasPublicKey }: { hasPublicKey: boole
         </>
       )}
 
-      <Button
-        color="deepOrange"
-        buttonType="outline"
-        size="regular"
-        rounded={false}
-        block={false}
-        iconOnly={false}
-        ripple="light"
-        ref={generateRandomIdentityButtonRef}
-        className="w-40"
-      >
+      <Button color="secondary" variant="outline" ref={generateRandomIdentityButtonRef} className="w-40">
         New Identity
         <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
       </Button>

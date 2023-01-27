@@ -1,4 +1,5 @@
-import React, { useMemo, MouseEvent } from 'react'
+import { useMemo, MouseEvent } from 'react'
+import { Button } from 'react-daisyui'
 
 import { useSettings } from '../../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../../context/NostrEventsContext'
@@ -8,10 +9,9 @@ import { createDevelGameEvents } from '../../util/devel'
 
 interface CreateDevelGameButtonProps {
   onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => void
-  className?: string
 }
 
-export default function CreateDevelGameButton({ className, onGameCreated }: CreateDevelGameButtonProps) {
+export default function CreateDevelGameButton({ onGameCreated }: CreateDevelGameButtonProps) {
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
 
@@ -46,22 +46,8 @@ export default function CreateDevelGameButton({ className, onGameCreated }: Crea
   }
 
   return (
-    <button
-      type="button"
-      className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1 mx-1'}`}
-      onClick={(e: MouseEvent<HTMLButtonElement>) => onButtonClicked(e)}
-    >
-      Create Devel Game
-    </button>
+    <Button color="warning" variant="outline" onClick={(e: MouseEvent<HTMLButtonElement>) => onButtonClicked(e)}>
+      DEV: Create Devel Game
+    </Button>
   )
 }
-/*
-interface CreateDefaultDevelGameButtonProps {
-  buttonRef?: RefObject<HTMLButtonElement>
-}
-
-export function CreateDefaultDevelGameButton({ buttonRef }: CreateDefaultDevelGameButtonProps) {
-
-
-  return <CreateGameButton buttonRef={buttonRef} onGameCreated={onGameCreated} />
-}*/

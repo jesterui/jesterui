@@ -1,11 +1,5 @@
-import React from 'react'
-
+import { H1, H6 } from './Headings'
 import { useSetWindowTitle } from '../hooks/WindowTitle'
-
-// @ts-ignore
-import Heading1 from '@material-tailwind/react/Heading1'
-// @ts-ignore
-import Heading6 from '@material-tailwind/react/Heading6'
 
 const NostrQuote = () => (
   <blockquote className="relative p-4 mb-4 border-l font-serif quote">
@@ -28,12 +22,12 @@ export default function FaqPage() {
 
   return (
     <div className="screen-faq">
-      <Heading1 color="blueGray">FAQ</Heading1>
+      <H1>FAQ</H1>
 
-      <Heading6 color="blueGray">What is this?</Heading6>
+      <H6>What is this?</H6>
       <p className="mb-8 font-serif">A chess app on nostr.</p>
 
-      <Heading6 color="blueGray">What is nostr?</Heading6>
+      <H6>What is nostr?</H6>
       <NostrQuote />
       <p className="mb-8 font-serif">
         <a className="underline" target="_blank" rel="noopener noreferrer" href="https://github.com/fiatjaf/nostr">
@@ -41,9 +35,10 @@ export default function FaqPage() {
         </a>
       </p>
 
-      <Heading6 color="blueGray">How can I do X?</Heading6>
+      <H6>How can I do X?</H6>
       <p className="mb-8 font-serif">You probably can't. The current functionality is very limited.</p>
-      <Heading6 color="blueGray">I found a bug. How can I report it?</Heading6>
+
+      <H6>I found a bug. How can I report it?</H6>
       <p className="mb-8 font-serif">
         Please open an issue{' '}
         <a
@@ -56,9 +51,11 @@ export default function FaqPage() {
         </a>
         .
       </p>
-      <Heading6 color="blueGray">This is in beta. Is this just a demo application?</Heading6>
+
+      <H6>This is in beta. Is this just a demo application?</H6>
       <p className="mb-8 font-serif">Yes.</p>
-      <Heading6 color="blueGray">Where are the robots coming from?</Heading6>
+
+      <H6>Where are the robots coming from?</H6>
       <p className="mb-8 font-serif">
         Robots lovingly delivered by{' '}
         <a className="underline" target="_blank" rel="noopener noreferrer" href="https://robohash.org/">

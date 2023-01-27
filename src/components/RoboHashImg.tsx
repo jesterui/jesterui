@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
+
+import { Spinner } from './Spinner'
 
 import { hashWithSha256 } from '../util/jester'
-
-// @ts-ignore
-import Icon from '@material-tailwind/react/Icon'
-import { Spinner } from './Spinner'
 
 interface RoboHashImgProps {
   value: string
@@ -74,7 +73,7 @@ export function UnknownImg({ size = 24 }: UnknownImgProps) {
     <div
       className={`w-${size} h-${size} rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center`}
     >
-      <Icon name="question_mark" size="xxl" />
+      <QuestionMarkCircleIcon className={`w-${size} h-${size}`} />
     </div>
   )
 }

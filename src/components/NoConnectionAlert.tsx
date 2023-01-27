@@ -1,16 +1,13 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
+import { Alert } from 'react-daisyui'
 
-// @ts-ignore
-import Alert from '@material-tailwind/react/Alert'
+import ROUTES from '../routes'
 
 export function NoConnectionAlert() {
   return (
-    <Link to={`/settings`} className="block flex justify-center my-4">
+    <Link to={ROUTES.settings} className="block flex justify-center my-4">
       <div className="w-full max-w-sm">
-        <Alert color="amber">
-          <div className="text-gray-800">No connection to nostr : (</div>
-        </Alert>
+        <Alert status="warning">No connection to nostr : (</Alert>
       </div>
     </Link>
   )

@@ -1,6 +1,8 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Input, Button, Form } from 'react-daisyui'
 
+import { H1, H4, H6 } from './Headings'
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
@@ -10,18 +12,6 @@ import { NoConnectionAlert } from '../components/NoConnectionAlert'
 
 import * as JesterUtils from '../util/jester'
 
-// @ts-ignore
-import Heading1 from '@material-tailwind/react/Heading1'
-// @ts-ignore
-import Heading4 from '@material-tailwind/react/Heading4'
-// @ts-ignore
-import Heading6 from '@material-tailwind/react/Heading6'
-// @ts-ignore
-import Input from '@material-tailwind/react/Input'
-// @ts-ignore
-import Button from '@material-tailwind/react/Button'
-// @ts-ignore
-import Small from '@material-tailwind/react/Small'
 import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 interface SearchFromProps {
@@ -43,7 +33,7 @@ const SearchFrom = (props: SearchFromProps) => {
   }
 
   return (
-    <form
+    <Form
       noValidate
       onSubmit={(e) => {
         e.preventDefault()
@@ -52,40 +42,25 @@ const SearchFrom = (props: SearchFromProps) => {
         props.onSearchButtonClicked(searchInputValue)
       }}
     >
-      <div className="pb-2 w-full">
-        <div className="flex">
-          <div className="grow">
-            <Input
-              type="text"
-              size="lg"
-              outline={true}
-              value={searchInputValue}
-              onChange={onSearchInputChange}
-              placeholder="Search"
-              style={{ color: 'currentColor' }}
-              error={props.error ? ' ' : undefined}
-              success={props.success === true ? ' ' : undefined}
-            />
-          </div>
+      <div className="flex pb-2">
+        <div className="grow form-control">
+          <Input
+            type="text"
+            size="lg"
+            value={searchInputValue}
+            onChange={onSearchInputChange}
+            placeholder="jester1..."
+            color={props.error ? 'error' : undefined}
+          />
+        </div>
 
-          <div className="ml-1 flex-none">
-            <Button
-              className="h-12"
-              type="submit"
-              color="deepOrange"
-              buttonType="filled"
-              size="lg"
-              rounded={false}
-              block={false}
-              iconOnly={false}
-              ripple="light"
-            >
-              Search
-            </Button>
-          </div>
+        <div className="flex-none ml-1">
+          <Button type="submit" size="lg">
+            Search
+          </Button>
         </div>
       </div>
-    </form>
+    </Form>
   )
 }
 
@@ -180,7 +155,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="screen-index">
+    <div className="screen-search">
       <div className="flex justify-center items-center">
         <div className="w-full grid grid-cols-1 lg:w-8/12">
           {!incomingNostr ? (
@@ -189,14 +164,14 @@ export default function SearchPage() {
             <>
               <div className="w-full mt-16 grid grid-cols-1">
                 <div className="flex justify-center">
-                  <Heading1 color="blueGray">Search</Heading1>
+                  <H1>Search</H1>
                 </div>
 
                 <div className="my-1">
-                  <Small color="">
+                  <small>
                     Search for games, <span style={{ textDecoration: 'line-through' }}>players and other stuff.</span>
-                  </Small>
-                  <Small color="orange"> not quite yet... Coming soon!</Small>
+                  </small>
+                  <small className="text-secondary"> not quite yet... Coming soon!</small>
                 </div>
 
                 <SearchFrom
@@ -209,10 +184,10 @@ export default function SearchPage() {
                 <div className="pb-2 grow my-4">
                   {searchResults?.length === 0 && (
                     <>
-                      <Heading4 color="blueGray">No results found. </Heading4>
+                      <H4>No results found. </H4>
                       {inputLooksLikeJesterId ? (
                         <>
-                          <Heading6 color="blueGray">Damn... there must be a typo somewhere... : (</Heading6>
+                          <H6>Damn... there must be a typo somewhere... : (</H6>
                           <p>
                             It kind of looks like a{' '}
                             <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">

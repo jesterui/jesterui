@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef, ChangeEvent } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef, ChangeEvent } from 'react'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -19,18 +19,8 @@ import * as Bot from '../util/bot'
 import { DEFAULT_RELAYS } from '../util/app_nostr'
 import { displayKey } from '../util/app'
 
-// @ts-ignore
-import Checkbox from '@material-tailwind/react/Checkbox'
-// @ts-ignore
-import Button from '@material-tailwind/react/Button'
-// @ts-ignore
-import Heading1 from '@material-tailwind/react/Heading1'
-// @ts-ignore
-import Heading2 from '@material-tailwind/react/Heading2'
-// @ts-ignore
-import Heading3 from '@material-tailwind/react/Heading3'
-// @ts-ignore
-import Input from '@material-tailwind/react/Input'
+import { H1, H2, H3 } from './Headings'
+import { Input, Button, Checkbox, CheckboxProps, Form } from 'react-daisyui'
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
@@ -152,14 +142,13 @@ function TestNostrConnectionButton() {
   }
 
   return (
-    <button
-      type="button"
-      className="bg-white bg-opacity-20 rounded px-2 py-1"
+    <Button
       onClick={() => onButtonClicked()}
-      disabled={statusText !== ''}
+      disabled={waitForEvent !== null}
+      color={statusText === '200 OK' ? 'success' : undefined}
     >
-      {waitForEvent ? 'Testing connection...' : `Test connection ${statusText}`}
-    </button>
+      {waitForEvent ? 'Testing connection...' : statusText !== '' ? statusText : 'Test connection'}
+    </Button>
   )
 }
 
@@ -182,14 +171,6 @@ const validateKeyPair = async (pubKey: PubKey, privKey: PrivKey): Promise<boolea
   }
 }
 
-/*const useForceRerender = () => {
-  const [tick, setTick] = useState(0)
-  const update = useCallback(() => {
-    setTick(tick + 1)
-  }, [tick])
-  return update
-}*/
-
 const KeyPairForm = () => {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
@@ -202,10 +183,7 @@ const KeyPairForm = () => {
   const [privateKeyInputValue, setPrivateKeyInputValue] = useState<PrivKey>(privateKeyOrNull || '')
   const [keyPairValid, setKeyPairValid] = useState<boolean | undefined>(undefined)
 
-  const updatePrivKey = (privKey: PrivKey) => {
-    setSessionAttribute({ privateKey: privKey })
-    // forceRerender()
-  }
+  const updatePrivKey = (privKey: PrivKey) => setSessionAttribute({ privateKey: privKey })
 
   const updatePubKey = useCallback(
     (pubKey: PubKey) => {
@@ -255,63 +233,40 @@ const KeyPairForm = () => {
 
   return (
     <>
-      <div className="pb-4">
-        <div className="pb-2">
-          Public Key: <span className="font-mono">{publicKeyOrNull && displayKey(publicKeyOrNull)}</span>
+      <div className="flex flex-col gap-1 mb-4">
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Public Key:</span>
+            <span className="label-text-alt font-mono">{publicKeyOrNull && displayKey(publicKeyOrNull)}</span>
+          </label>
           <Input
             type="text"
-            size="regular"
-            outline={true}
-            value={publicKeyInputValue}
+            value={publicKeyInputValue as string}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPublicKeyInputValue(e.target.value)}
             placeholder="Public Key"
-            style={{ color: 'currentColor' }}
           />
         </div>
-        <div className="pb-2">
-          Private Key: <span className="font-mono">{privateKeyOrNull && displayKey(privateKeyOrNull)}</span>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Private Key:</span>
+            <span className="label-text-alt font-mono">{privateKeyOrNull && displayKey(privateKeyOrNull)}</span>
+          </label>
           <Input
             type="text"
-            size="regular"
-            outline={true}
-            value={privateKeyInputValue}
+            value={privateKeyInputValue as string}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPrivateKeyInputValue(e.target.value)}
             placeholder="Private Key"
-            style={{ color: 'currentColor' }}
-            error={keyPairValid === false ? ' ' : undefined}
-            success={keyPairValid === true ? ' ' : undefined}
+            color={keyPairValid === false ? 'error' : keyPairValid === true ? 'success' : undefined}
           />
         </div>
       </div>
-      <div className="py-1 flex">
-        <>
-          <Button
-            color="deepOrange"
-            buttonType={privateKeyOrNull === null ? 'filled' : 'outline'}
-            size="regular"
-            rounded={false}
-            block={false}
-            iconOnly={false}
-            ripple="light"
-            ref={generateRandomIdentityButtonRef}
-            className="w-40"
-          >
-            New Identity
-            <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
-          </Button>
-        </>
+      <div className="flex gap-2">
+        <Button ref={generateRandomIdentityButtonRef} className="w-40">
+          New Identity
+          <GenerateRandomIdentityButton buttonRef={generateRandomIdentityButtonRef} />
+        </Button>
 
-        <Button
-          color="blueGray"
-          buttonType={publicKeyOrNull !== null ? 'filled' : 'outline'}
-          size="regular"
-          rounded={false}
-          block={false}
-          iconOnly={false}
-          ripple="light"
-          onClick={deleteIdentityButtonClicked}
-          className="w-40 ml-2"
-        >
+        <Button onClick={deleteIdentityButtonClicked} className="w-40">
           Forget
         </Button>
       </div>
@@ -352,27 +307,27 @@ export default function SettingsPage() {
     settingsDispatch({ dev: !settings.dev } as AppSettings)
   }
 
-  const checkboxColor = (readyState: number | undefined) => {
+  const checkboxColor = (readyState: number | undefined): CheckboxProps['color'] => {
     switch (readyState) {
       case WebSocket.CONNECTING:
-        return 'yellow'
+        return 'ghost'
       case WebSocket.OPEN:
-        return 'green'
+        return 'success'
       case WebSocket.CLOSING:
-        return 'deepOrange'
+        return 'warning'
       case WebSocket.CLOSED:
-        return 'red'
+        return 'error'
       default:
-        return 'gray'
+        return undefined
     }
   }
 
   return (
     <div className="screen-settings pb-4">
-      <Heading1 color="blueGray">Settings</Heading1>
+      <H1>Settings</H1>
 
       <div className="pb-16">
-        <Heading2 color="blueGray">
+        <H2>
           <div className="flex items-center">
             <div>jester</div>
             <img
@@ -382,15 +337,20 @@ export default function SettingsPage() {
               title="&#127183; jester • chess over nostr"
             />
           </div>
-        </Heading2>
+        </H2>
 
-        <Checkbox
-          color="blueGray"
-          text="Developer Mode"
-          id="developer-mode-checkbox"
-          checked={settings.dev}
-          onChange={() => onDeveloperModeToggleClicked()}
-        />
+        <div className="flex gap-2">
+          <div className="flex items-center">
+            <Checkbox
+              id="developer-mode-checkbox"
+              checked={settings.dev}
+              onChange={() => onDeveloperModeToggleClicked()}
+            />
+          </div>
+          <div className="flex flex-col p-2">
+            <Form.Label htmlFor="developer-mode-checkbox" title="Enable Developer Mode" className="p-0" />
+          </div>
+        </div>
 
         {settings.dev && (
           <>
@@ -408,16 +368,16 @@ export default function SettingsPage() {
       </div>
 
       <div className="pb-16">
-        <Heading2 color="blueGray">nostr</Heading2>
+        <H2>nostr</H2>
         <div className="grid gap-x-24 gap-y-4 grid-cols-1 lg:grid-cols-2">
           <div className="flex-1">
-            <Heading3 color="blueGray">Identity</Heading3>
+            <H3>Identity</H3>
             <div>
               <KeyPairForm />
             </div>
           </div>
           <div className="flex-1">
-            <Heading3 color="blueGray">Relays</Heading3>
+            <H3>Relays</H3>
             <div className="pb-4">
               <div className="pb-1">
                 Status:
@@ -441,14 +401,18 @@ export default function SettingsPage() {
               )}
               <div className="py-1">
                 {DEFAULT_RELAYS.map((relay, index) => (
-                  <div key={index} className="mb-1">
-                    <Checkbox
-                      color={checkboxColor(websocket?.readyState)}
-                      text={relay}
-                      id={`relay-checkbox-${index}`}
-                      checked={relays.includes(relay)}
-                      onChange={() => onRelayClicked(relay)}
-                    />
+                  <div key={index} className="flex gap-2 mb-1">
+                    <div className="flex items-center">
+                      <Checkbox
+                        color={relays.includes(relay) ? checkboxColor(websocket?.readyState) : undefined}
+                        id={`relay-checkbox-${index}`}
+                        checked={relays.includes(relay)}
+                        onChange={() => onRelayClicked(relay)}
+                      />
+                    </div>
+                    <div className="flex flex-col p-2">
+                      <Form.Label htmlFor={`relay-checkbox-${index}`} title={relay} className="p-0" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -460,7 +424,7 @@ export default function SettingsPage() {
       <div className="pb-16">
         {settings.dev && (
           <>
-            <Heading2 color="blueGray">Raw</Heading2>
+            <H2>Raw</H2>
             <div>
               <pre>{`${JSON.stringify(settings, null, 2)}`}</pre>
             </div>

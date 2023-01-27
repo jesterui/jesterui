@@ -1,26 +1,27 @@
-import React, { PropsWithChildren, useState, useEffect, useRef } from 'react'
+import { PropsWithChildren, useState, useEffect, useRef } from 'react'
+import { Button, ButtonProps } from 'react-daisyui'
+
 import { copyToClipboard } from '../util/utils'
 
 interface CopyableProps {
   value: string
   onSuccess?: () => void
   onError?: (e: Error) => void
-  className?: string
+  buttonProps?: Partial<ButtonProps>
 }
 
-function Copyable({ value, onError, onSuccess, className, children, ...props }: PropsWithChildren<CopyableProps>) {
+function Copyable({ value, onError, onSuccess, buttonProps, children }: PropsWithChildren<CopyableProps>) {
   const valueFallbackInputRef = useRef(null)
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className={className}
-        {...props}
+        {...buttonProps}
         onClick={() => copyToClipboard(value, valueFallbackInputRef.current!).then(onSuccess, onError)}
       >
         {children}
-      </button>
+      </Button>
       <input
         readOnly
         aria-hidden
@@ -41,7 +42,6 @@ interface CopyButtonProps extends CopyableProps {}
 export function CopyButton({ value, onSuccess, onError, children, ...props }: PropsWithChildren<CopyButtonProps>) {
   return (
     <Copyable
-      className="btn"
       value={value}
       onError={onError}
       onSuccess={onSuccess}
@@ -67,6 +67,7 @@ export function CopyButtonWithConfirmation({
   text,
   successText = text,
   successTextTimeout = 1_500,
+  buttonProps,
   ...props
 }: CopyButtonWithConfirmationProps & { disabled?: boolean }) {
   const [showValueCopiedConfirmation, setShowValueCopiedConfirmation] = useState(false)
@@ -85,7 +86,7 @@ export function CopyButtonWithConfirmation({
 
   return (
     <CopyButton
-      className="btn btn-outline-dark"
+      buttonProps={buttonProps}
       value={value}
       onError={onError}
       onSuccess={() => {
