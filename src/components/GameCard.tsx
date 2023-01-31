@@ -51,7 +51,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
             <div
-              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-current`}
+              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-base-content/20 hover:border-base-content/40`}
             >
               <div className="flex flex-col items-center py-4 px-4">
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
@@ -140,7 +140,7 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
-            <div className="rounded-lg border border-current shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
+            <div className="rounded-lg border border-base-content/20 hover:border-base-content/40 shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
               <div className="flex flex-col items-center pb-4 pt-4">
                 <Button
                   className="absolute right-2 top-2"

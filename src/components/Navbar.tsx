@@ -27,7 +27,7 @@ export function Navbar({ title, toggleSidebar }: NavbarProps) {
   const displayPubKey = useMemo(() => publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull), [publicKeyOrNull])
 
   return (
-    <DaisyNavbar className="w-auto gap-2  shadow-xl border border-current rounded-box m-2 mb-6">
+    <DaisyNavbar className="w-auto gap-2  shadow-xl border border-base-content/20 rounded-box m-2 mb-6">
       <DaisyNavbar.Start className="ml-2">
         <div className="flex-none md:hidden">
           <Button shape="square" color="ghost" onClick={toggleSidebar}>

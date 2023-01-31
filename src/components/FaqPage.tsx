@@ -2,7 +2,7 @@ import { H1, H3 } from './Headings'
 import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 const NostrQuote = () => (
-  <blockquote className="relative p-4 mb-4 border-l border-current font-serif">
+  <blockquote className="relative p-4 mb-4 border-l border-base-content/20 font-serif">
     <span className="block absolute top-0 leading-none opacity-10 text-8xl" aria-hidden="true">
       &ldquo;
     </span>

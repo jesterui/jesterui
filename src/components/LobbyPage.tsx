@@ -219,7 +219,7 @@ export default function LobbyPage() {
                               buttonRef={challengeBotButtonRef}
                               opponentPubKey={botPublicKeyOrNull}
                             />
-                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-current">
+                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-base-content/20 hover:border-base-content/40">
                               <div className="grid grid-cols-1 justify-items-center content-center items-center py-4 px-4 h-64">
                                 <RoboHashImg
                                   className="w-32 h-32 mb-4 rounded-full shadow-sm-gray bg-base-300"
@@ -296,7 +296,7 @@ export default function LobbyPage() {
                         return privateKeyOrNull !== null ? (
                           <button className="w-full max-w-sm" ref={createNewGameButtonRef}>
                             <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
-                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-current">
+                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-base-content/20 hover:border-base-content/40">
                               <div className="grid grid-cols-1 items-center justify-items-center py-4 px-4 h-64">
                                 <span className="font-bold text-success uppercase">Start a new game</span>
                               </div>
