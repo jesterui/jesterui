@@ -226,7 +226,7 @@ export default function LobbyPage() {
                             <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border">
                               <div className="grid grid-cols-1 justify-items-center content-center items-center py-4 px-4 h-64">
                                 <RoboHashImg
-                                  className="w-32 h-32 mb-4 rounded-full shadow-sm-gray bg-blue-gray-500"
+                                  className="w-32 h-32 mb-4 rounded-full shadow-sm-gray bg-neutral-300"
                                   value={botPublicKeyOrNull}
                                   alt={botPublicKeyOrNull}
                                 />
@@ -251,7 +251,7 @@ export default function LobbyPage() {
                 </H6>
 
                 <div className="flex items-center">
-                  <div className="text-sm text-gray-500 font-bold leading-normal mt-0 mb-1">
+                  <div className="text-sm font-bold leading-normal mt-0 mb-1">
                     <div>
                       {`${listOfStartGames?.length || 0}`} games available in the last{' '}
                       {Math.floor((renderedAt.getTime() - gameStartEventFilter.from.getTime()) / 1_000 / 60)} minutes

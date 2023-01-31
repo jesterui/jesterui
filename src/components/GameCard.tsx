@@ -56,14 +56,14 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
               <div className="flex flex-col items-center py-4 px-4">
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
                   <div className="text-xl font-medium">vs.</div>
                   {player2PubKey && displayPlayer2PubKey ? (
                     <RoboHashImg
-                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
                       value={player2PubKey}
                       alt={displayPlayer2PubKey}
                     />
@@ -73,19 +73,19 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                 </div>
 
                 <div className="flex items-center justify-center w-full">
-                  <h6 className="text-xs text-blue-gray-500 font-serif font-bold leading-normal mt-0 mb-1">
+                  <h6 className="text-xs font-bold leading-normal mt-0 mb-1">
                     {displayJesterId}
                   </h6>
                 </div>
 
                 {moveCount && moveCount > 0 ? (
-                  <span className="mb-1 text-sm text-gray-400">
+                  <span className="mb-1 text-sm">
                     {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
                   </span>
                 ) : (
                   <></>
                 )}
-                <div className="mb-1 text-sm text-gray-400">
+                <div className="mb-1 text-sm">
                   <small>Started {timeElapsed(game.created_at * 1_000)}</small>
                 </div>
                 <div className="mt-2 w-full">
@@ -163,14 +163,14 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
                   <div className="text-xl font-medium">vs.</div>
                   {player2PubKey && displayPlayer2PubKey ? (
                     <RoboHashImg
-                      className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
                       value={player2PubKey}
                       alt={displayPlayer2PubKey}
                     />
@@ -181,16 +181,16 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
                 {moves && moveCount && moveCount > 0 ? (
                   <>
-                    <span className="mb-1 text-sm text-gray-400">
+                    <span className="mb-1 text-sm ">
                       {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
                     </span>
-                    <div className="mb-1 text-sm text-gray-400">
+                    <div className="mb-1 text-sm">
                       <small>Last move {timeElapsed(moves[moveCount - 1].created_at * 1_000)}</small>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="mb-1 text-sm text-gray-400">
+                    <div className="mb-1 text-sm">
                       <small>Started {timeElapsed(game.created_at * 1_000)}</small>
                     </div>
                   </>

@@ -53,7 +53,7 @@ export function RoboHashImgWithLoader(props: RoboHashImgWithLoaderProps) {
   return (
     <>
       {showLoader && (
-        <div className={className}>
+        <div className={`grid ${className || ''}`}>
           <Spinner />
         </div>
       )}
@@ -71,7 +71,7 @@ interface UnknownImgProps {
 export function UnknownImg({ size = 24 }: UnknownImgProps) {
   return (
     <div
-      className={`w-${size} h-${size} rounded-full shadow-lg-gray bg-blue-gray-500 flex justify-center items-center`}
+      className={`w-${size} h-${size} rounded-full shadow-lg-gray bg-neutral-300 flex justify-center items-center`}
     >
       <QuestionMarkCircleIcon className={`w-${size} h-${size}`} />
     </div>

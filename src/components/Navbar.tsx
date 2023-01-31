@@ -103,7 +103,7 @@ export function Navbar({ title, toggleSidebar }: NavbarProps) {
               <Menu.Item>
                 <Link to={ROUTES.home} className="p-2 m-0 rounded-lg" title="Profile">
                   <RoboHashImg
-                    className="w-9 h-9 rounded-full shadow-sm-gray bg-blue-gray-500"
+                    className="w-9 h-9 rounded-full shadow-sm-gray bg-neutral-300"
                     value={publicKeyOrNull}
                     alt={displayPubKey}
                   />

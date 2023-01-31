@@ -23,7 +23,7 @@ export default function NavbarTitle({ title }: NavbarProps) {
           </span>
           <span
             style={{ whiteSpace: 'nowrap' }}
-            className="bg-gray-100 text-blue-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
+            className="bg-gray-100 text-gray-800 text-xs font-semibold ml-1 px-1 py-0.5 rounded"
           >
             beta
           </span>
@@ -39,7 +39,7 @@ export default function NavbarTitle({ title }: NavbarProps) {
           ) : (
             <span
               style={{ whiteSpace: 'nowrap' }}
-              className="bg-gray-100 text-blue-gray-800 text-xs font-semibold px-1 py-0.5 rounded"
+              className="bg-gray-100 text-gray-800 text-xs font-semibold px-1 py-0.5 rounded"
             >
               chess on nostr
             </span>

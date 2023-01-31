@@ -173,7 +173,7 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
 const ColorMessage = ({ color }: { color: MovableColor }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 text-sm font-serif font-bold mt-0 mb-0">
+      <h6 className="text-sm font-bold mt-0 mb-0">
         {`You are ${color.length === 0 ? 'in watch-only mode' : color}`}
       </h6>
     </div>
@@ -191,7 +191,7 @@ const GameStateMessage = ({
 }) => {
   return (
     <div>
-      <h6 className="text-blue-gray-500 lg:text-2xl font-serif font-bold mt-0 mb-0">
+      <h6 className="lg:text-2xl font-bold mt-0 mb-0">
         {isLoading && game === null && 'Loading...'}
         {isLoading && game !== null && 'Loading...'}
         {!isLoading && game !== null && gameStateMessage(game, color)}
@@ -613,7 +613,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     return (
       <div className="mb-4">
         <div className="flex justify-between items-center mx-1">
-          <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">Game not found...</div>
+          <div className="text-2xl font-bold mt-0 mb-0">Game not found...</div>
           <div className="mx-4">
             <CreateGameOrNewIdentityButton hasPrivateKey={!!privateKeyOrNull} hasPublicKey={!!publicKeyOrNull} />
           </div>
@@ -632,7 +632,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 {!isSearchingHead && isGameOver ? (
                   <>
                     <div className="mb-2 flex justify-between items-center">
-                      <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
+                      <div className="text-2xl font-bold mt-0 mb-0">
                         <GameOverMessage game={currentChessInstance} />
                       </div>
                       <div className="ml-4">
@@ -668,14 +668,14 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="h-10 flex items-center">
                 {player1PubKey ? (
                   <RoboHashImg
-                    className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    className="w-8 h-8 rounded-full shadow-lg-gray bg-neutral-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
                 ) : (
                   <UnknownImg size={8} />
                 )}
-                <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">
+                <h6 className="mt-0 ml-2 text-xl font-bold leading-normal">
                   White {player1PubKey && player1PubKey === publicKeyOrNull && <span className="text-sm">(you)</span>}
                 </h6>
                 <div className="flex-1"></div>
@@ -715,14 +715,14 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="h-10 flex items-center">
                 {player2PubKey ? (
                   <RoboHashImg
-                    className="w-8 h-8 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    className="w-8 h-8 rounded-full shadow-lg-gray bg-neutral-300"
                     value={player2PubKey}
                     alt={displayPlayer2PubKey}
                   />
                 ) : (
                   <UnknownImg size={8} />
                 )}
-                <h6 className="mt-0 ml-2 text-blue-gray-500 text-xl font-serif font-bold leading-normal">
+                <h6 className="mt-0 ml-2 text-xl font-bold leading-normal">
                   Black {player2PubKey && player2PubKey === publicKeyOrNull && <span className="text-sm">(you)</span>}
                 </h6>
 
@@ -757,12 +757,12 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
           <div className={`flex ${color === MOVE_COLOR_BLACK ? 'order-1' : 'order-3'}`}>
             <div className="grid grid-cols-1">
               <div className="flex justify-center">
-                <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0">White</h6>
+                <h6 className="text-xl font-bold leading-normal mt-0">White</h6>
               </div>
               <div className="flex justify-center">
                 {player1PubKey ? (
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
@@ -772,7 +772,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               </div>
               {player1PubKey && player1PubKey === publicKeyOrNull && (
                 <div className="flex justify-center">
-                  <span className="text-sm font-bold font-serif text-blue-gray-500">(you)</span>
+                  <span className="text-sm font-bold">(you)</span>
                 </div>
               )}
             </div>
@@ -799,7 +799,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 <>
                   {!isSearchingHead && isGameOver ? (
                     <>
-                      <div className="text-blue-gray-500 text-2xl font-serif font-bold mt-0 mb-0">
+                      <div className="text-2xl font-bold mt-0 mb-0">
                         <GameOverMessage game={currentChessInstance} />
                       </div>
                       <div className="my-2">
@@ -821,7 +821,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="flex justify-center">
                 {player2PubKey ? (
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-blue-gray-500"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
                     value={player2PubKey}
                     alt={displayPlayer2PubKey}
                   />
@@ -830,11 +830,11 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                 )}
               </div>
               <div className="flex justify-center">
-                <h6 className="text-blue-gray-500 text-xl font-serif font-bold leading-normal mt-0">Black</h6>
+                <h6 className="text-xl font-bold leading-normal mt-0">Black</h6>
               </div>
               {player2PubKey && player2PubKey === publicKeyOrNull && (
                 <div className="flex justify-center">
-                  <span className="text-sm font-bold font-serif text-blue-gray-500">(you)</span>
+                  <span className="text-sm font-bold">(you)</span>
                 </div>
               )}
             </div>

@@ -11,7 +11,6 @@ import { GameEventStoreProvider } from './context/GameEventStoreContext'
 import { JesterBotProvider } from './context/JesterBotContext'
 import App from './App'
 
-import '@material-tailwind/react/tailwind.css'
 import 'chessground/assets/chessground.base.css'
 import 'chessground/assets/chessground.brown.css'
 import 'chessground/assets/chessground.cburnett.css'
