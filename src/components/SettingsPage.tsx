@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef, ChangeEvent } from 'react'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
-import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useWebsocket, readyStatePhrase } from '../context/WebsocketContext'
 import { useOutgoingNostrEvents, useIncomingNostrEventsBuffer } from '../context/NostrEventsContext'
 import { useUpdateSubscription } from '../context/NostrSubscriptionsContext'
@@ -185,13 +185,8 @@ const KeyPairForm = () => {
 
   const updatePrivKey = (privKey: PrivKey) => setSessionAttribute({ privateKey: privKey })
 
-  const updatePubKey = useCallback(
-    (pubKey: PubKey) => {
-      if (pubKey === null) {
-        settingsDispatch({ identity: undefined } as AppSettings)
-      } else {
-        settingsDispatch({ identity: { pubkey: pubKey } } as AppSettings)
-      }
+  const updatePubKey = useCallback((pubkey: PubKey) => {
+        settingsDispatch({ identity: pubkey !== null ? { pubkey } : undefined })
     },
     [settingsDispatch]
   )
@@ -285,7 +280,7 @@ export default function SettingsPage() {
   const selectedBotName = useMemo(() => settings.botName, [settings])
 
   const updateSelectedBotName = (botName: string | null) => {
-    settingsDispatch({ botName } as AppSettings)
+    settingsDispatch({ botName })
   }
 
   const onRelayClicked = useCallback(
@@ -293,18 +288,18 @@ export default function SettingsPage() {
       const index = relays.indexOf(relay, 0)
       const shouldAdd = index === -1
       if (shouldAdd) {
-        settingsDispatch({ relays: [relay] } as AppSettings)
+        settingsDispatch({ relays: [relay] })
       } else {
         const newVal = [...relays]
         newVal.splice(index, 1)
-        settingsDispatch({ relays: newVal } as AppSettings)
+        settingsDispatch({ relays: newVal })
       }
     },
     [relays, settingsDispatch]
   )
 
   const onDeveloperModeToggleClicked = () => {
-    settingsDispatch({ dev: !settings.dev } as AppSettings)
+    settingsDispatch({ dev: !settings.dev })
   }
 
   const checkboxColor = (readyState: number | undefined): CheckboxProps['color'] => {

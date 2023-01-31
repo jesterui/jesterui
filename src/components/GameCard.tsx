@@ -2,7 +2,7 @@ import { useCallback, useRef, useMemo, MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from 'react-daisyui'
 
-import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 
 import { GameRedirectButtonHook } from '../components/CreateGameButton'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
@@ -121,7 +121,7 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
   const jesterId = useMemo(() => JesterUtils.gameIdToJesterId(game.id), [game])
 
   const unsubscribeFromCurrentGame = useCallback(() => {
-    settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
+    settingsDispatch({ currentGameJesterId: undefined })
   }, [settingsDispatch])
 
   return (

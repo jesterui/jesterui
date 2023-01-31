@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Route, Routes, Navigate, Outlet } from 'react-router-dom'
+import { Theme } from 'react-daisyui'
 import { useSettings } from './context/SettingsContext'
 
 import NostrLogIncomingRelayEvents from './components/nostr/devel/NostrLogIncomingRelayEvents'
@@ -22,7 +23,7 @@ export default function App() {
   const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
 
   return (
-    <>
+    <Theme dataTheme={settings.theme || 'dark'}>
       <>
         <NostrManageSubscriptions />
         <NostrManageRelays />
@@ -63,6 +64,6 @@ export default function App() {
           </Route>
         </Routes>
       </div>
-    </>
+    </Theme>
   )
 }

@@ -1,8 +1,8 @@
-import React from 'react'
+import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 
-import { SettingsProvider } from './context/SettingsContext'
+import { AppSettings, SettingsProvider } from './context/SettingsContext'
 import { WebsocketProvider } from './context/WebsocketContext'
 import { NostrEventsProvider } from './context/NostrEventsContext'
 import { NostrStoreProvider } from './context/NostrStoreContext'
@@ -28,13 +28,23 @@ declare global {
   }
 }
 
+const defaultAppSettings: AppSettings = {
+  dev: process.env.NODE_ENV === 'development',
+  theme: 'dark',
+  relays: [
+    // 'wss://relayer.fiatjaf.com', // good uptime
+    // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
+  ],
+  botName: null,
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     {/*Using HashRouter for GitHub Pages compatibility */}
     <HashRouter>
-      <SettingsProvider value={undefined}>
+      <SettingsProvider value={{ defaultValues: defaultAppSettings }}>
         <WebsocketProvider value={undefined}>
           <NostrEventsProvider value={undefined}>
             <NostrStoreProvider value={undefined}>
@@ -49,5 +59,5 @@ root.render(
         </WebsocketProvider>
       </SettingsProvider>
     </HashRouter>
-  </React.StrictMode>
+  </StrictMode>
 )

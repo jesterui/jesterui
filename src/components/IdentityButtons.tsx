@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useCallback } from 'react'
 
-import { AppSettings, Identity, useSettingsDispatch } from '../context/SettingsContext'
+import { Identity, useSettingsDispatch } from '../context/SettingsContext'
 
 import { setSessionAttribute } from '../util/session'
 import * as NostrIdentity from '../util/nostr/identity'
@@ -19,7 +19,7 @@ export function GenerateRandomIdentityButton({ buttonRef, onIdentityCreated }: G
 
     const identity = { pubkey: publicKey }
     setSessionAttribute({ privateKey })
-    settingsDispatch({ identity: identity } as AppSettings)
+    settingsDispatch({ identity: identity })
 
     if (onIdentityCreated) {
       onIdentityCreated(identity)

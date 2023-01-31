@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Button, Input, Tooltip, Modal } from 'react-daisyui'
 import { ArrowUturnLeftIcon, ScaleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 
-import { AppSettings, useSettings, useSettingsDispatch } from '../context/SettingsContext'
+import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 import { useGameStore } from '../context/GameEventStoreContext'
 
@@ -393,12 +393,12 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
 
   /********************** SUBSCRIBE TO GAME */
   const unsubscribeFromCurrentGame = useCallback(() => {
-    settingsDispatch({ currentGameJesterId: undefined } as AppSettings)
+    settingsDispatch({ currentGameJesterId: undefined })
   }, [settingsDispatch])
 
   const subscribeToGame = useCallback(() => {
     if (!jesterId) return
-    settingsDispatch({ currentGameJesterId: jesterId } as AppSettings)
+    settingsDispatch({ currentGameJesterId: jesterId })
   }, [jesterId, settingsDispatch])
 
   useEffect(() => {

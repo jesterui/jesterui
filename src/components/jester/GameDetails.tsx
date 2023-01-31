@@ -1,4 +1,4 @@
-import React from 'react'
+import { ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useGameStore } from '../../context/GameEventStoreContext'
@@ -15,7 +15,7 @@ type GameDetailsResult = {
 
 interface GameDetailsProps {
   game: GameStartEvent
-  children: (props: GameDetailsResult) => React.ReactNode
+  children: (props: GameDetailsResult) => ReactNode
 }
 
 export function GameDetails({ game, children }: GameDetailsProps) {
@@ -52,7 +52,7 @@ export function GameDetails({ game, children }: GameDetailsProps) {
 
   return (
     <>
-      {(children as (game: GameDetailsResult) => React.ReactNode)({
+      {(children as (game: GameDetailsResult) => ReactNode)({
         player1PubKey,
         player2PubKey,
         moveCount,

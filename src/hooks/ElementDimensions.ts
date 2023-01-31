@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { RefObject, useState, useEffect } from 'react'
 
 function getWindowDimensions() {
   const { innerWidth: width, innerHeight: height } = window
@@ -25,7 +25,7 @@ export function useWindowDimensions() {
   return windowDimensions
 }
 
-export const useResize = (elementRef: React.RefObject<HTMLDivElement>) => {
+export const useResize = (elementRef: RefObject<HTMLDivElement>) => {
   const [width, setWidth] = useState(0)
   const [height, setHeight] = useState(0)
 

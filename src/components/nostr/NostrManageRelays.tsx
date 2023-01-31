@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { AppSettings, useSettings, useSettingsDispatch } from '../../context/SettingsContext'
+import { useSettings, useSettingsDispatch } from '../../context/SettingsContext'
 import { DEFAULT_RELAYS } from '../../util/app_nostr'
 
 export default function NostrManageRelays() {
@@ -14,7 +14,7 @@ export default function NostrManageRelays() {
 
     const noNostrRelayConfigured = !settings.relays || settings.relays.length === 0
     if (noNostrRelayConfigured) {
-      settingsDispatch({ relays: [DEFAULT_RELAYS[0]] } as AppSettings)
+      settingsDispatch({ relays: [DEFAULT_RELAYS[0]] })
     }
 
     setInitialized(true)

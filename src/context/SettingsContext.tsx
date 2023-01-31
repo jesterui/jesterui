@@ -1,4 +1,4 @@
-import React, { ProviderProps, createContext, useReducer, useEffect, useContext } from 'react'
+import { ProviderProps, createContext, useReducer, useEffect, useContext } from 'react'
 
 import * as JesterUtils from '../util/jester'
 
@@ -12,29 +12,20 @@ export type Identity = {
 
 export interface AppSettings {
   dev: boolean
+  theme: string
   relays: Relay[]
   identity?: Identity
   botName: string | null
   currentGameJesterId?: JesterUtils.JesterId
 }
-
-const initialSettings: AppSettings = {
-  dev: process.env.NODE_ENV === 'development',
-  relays: [
-    // 'wss://relayer.fiatjaf.com', // good uptime
-    // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
-  ],
-  botName: null,
-}
-
 interface AppSettingsEntry {
   settings: AppSettings
-  dispatch: (value: AppSettings) => void
+  dispatch: (value: Partial<AppSettings>) => void
 }
 
 const SettingsContext = createContext<AppSettingsEntry | undefined>(undefined)
 
-const settingsReducer = (oldSettings: AppSettings, action: AppSettings) => {
+const settingsReducer = (oldSettings: AppSettings, action: Partial<AppSettings>) => {
   const { ...newSettings } = action
 
   return {
@@ -42,11 +33,14 @@ const settingsReducer = (oldSettings: AppSettings, action: AppSettings) => {
     ...newSettings,
   }
 }
+interface SettingsProviderProps {
+  defaultValues: AppSettings
+}
 
-const SettingsProvider = ({ children }: ProviderProps<AppSettingsEntry | undefined>) => {
+const SettingsProvider = ({ value: { defaultValues }, children }: ProviderProps<SettingsProviderProps>) => {
   const [settings, dispatch] = useReducer(
     settingsReducer,
-    Object.assign({}, initialSettings, JSON.parse(window.localStorage.getItem(localStorageKey()) || '{}'))
+    Object.assign({}, defaultValues, JSON.parse(window.localStorage.getItem(localStorageKey()) || '{}'))
   )
 
   useEffect(() => {

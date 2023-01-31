@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import Chessground from '@react-chess/chessground'
 import * as cg from 'chessground/types'
 import { Config as CgConfig } from 'chessground/config'
