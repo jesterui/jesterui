@@ -16,11 +16,7 @@ interface CreateGameButtonProps {
   text?: string
 }
 
-export function CreateGameButton({
-  buttonRef,
-  onGameCreated,
-  text = 'Start new game',
-}: CreateGameButtonProps) {
+export function CreateGameButton({ buttonRef, onGameCreated, text = 'Start new game' }: CreateGameButtonProps) {
   const outgoingNostr = useOutgoingNostrEvents()
   const settings = useSettings()
 
@@ -63,8 +59,7 @@ export function CreateGameButton({
     }
   }, [buttonRef, onClick])
 
-  
-    return <></>
+  return <></>
 }
 
 interface CreateGameAndRedirectButtonHookProps {

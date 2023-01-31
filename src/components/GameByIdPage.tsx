@@ -173,9 +173,7 @@ const GameOverMessage = ({ game }: { game: ChessInstance }) => {
 const ColorMessage = ({ color }: { color: MovableColor }) => {
   return (
     <div>
-      <h6 className="text-sm font-bold mt-0 mb-0">
-        {`You are ${color.length === 0 ? 'in watch-only mode' : color}`}
-      </h6>
+      <h6 className="text-sm font-bold mt-0 mb-0">{`You are ${color.length === 0 ? 'in watch-only mode' : color}`}</h6>
     </div>
   )
 }

@@ -73,15 +73,11 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
                 </div>
 
                 <div className="flex items-center justify-center w-full">
-                  <h6 className="text-xs font-bold leading-normal mt-0 mb-1">
-                    {displayJesterId}
-                  </h6>
+                  <h6 className="text-xs font-bold leading-normal mt-0 mb-1">{displayJesterId}</h6>
                 </div>
 
                 {moveCount && moveCount > 0 ? (
-                  <span className="mb-1 text-sm">
-                    {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
-                  </span>
+                  <span className="mb-1 text-sm">{`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}</span>
                 ) : (
                   <></>
                 )}
@@ -181,9 +177,7 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
                 {moves && moveCount && moveCount > 0 ? (
                   <>
-                    <span className="mb-1 text-sm ">
-                      {`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}
-                    </span>
+                    <span className="mb-1 text-sm ">{`with ${moveCount} ${moveCount === 1 ? 'move' : 'moves'}`}</span>
                     <div className="mb-1 text-sm">
                       <small>Last move {timeElapsed(moves[moveCount - 1].created_at * 1_000)}</small>
                     </div>

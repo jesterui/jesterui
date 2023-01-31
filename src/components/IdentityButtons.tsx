@@ -10,10 +10,7 @@ interface GenerateRandomIdentityButtonProps {
   buttonRef: RefObject<HTMLElement>
 }
 
-export function GenerateRandomIdentityButton({
-  buttonRef,
-  onIdentityCreated,
-}: GenerateRandomIdentityButtonProps) {
+export function GenerateRandomIdentityButton({ buttonRef, onIdentityCreated }: GenerateRandomIdentityButtonProps) {
   const settingsDispatch = useSettingsDispatch()
 
   const newIdentityButtonClicked = useCallback(async () => {
