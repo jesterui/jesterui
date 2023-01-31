@@ -7,16 +7,12 @@ import * as NostrIdentity from '../util/nostr/identity'
 
 interface GenerateRandomIdentityButtonProps {
   onIdentityCreated?: (identity: Identity) => void
-  buttonRef?: RefObject<HTMLElement>
-  className?: string
-  text?: string
+  buttonRef: RefObject<HTMLElement>
 }
 
 export function GenerateRandomIdentityButton({
   buttonRef,
-  className,
   onIdentityCreated,
-  text = 'New identity',
 }: GenerateRandomIdentityButtonProps) {
   const settingsDispatch = useSettingsDispatch()
 
@@ -36,24 +32,10 @@ export function GenerateRandomIdentityButton({
   const onClick = useCallback(() => newIdentityButtonClicked(), [newIdentityButtonClicked])
 
   useEffect(() => {
-    if (!buttonRef) return
     if (!buttonRef.current) return
 
     buttonRef.current.onclick = onClick
   }, [buttonRef, onClick])
 
-  if (buttonRef) {
-    return <></>
-  }
-
-  return (
-    <button
-      ref={buttonRef}
-      type="button"
-      className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1 mx-1 my-1'}`}
-      onClick={onClick}
-    >
-      {text}
-    </button>
-  )
+  return <></>
 }

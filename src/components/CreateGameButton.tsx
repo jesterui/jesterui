@@ -12,14 +12,12 @@ import { getSession } from '../util/session'
 // TODO: extract functionality in a "CreateGameButtonHook" or something..
 interface CreateGameButtonProps {
   onGameCreated: (jesterId: JesterUtils.JesterId) => void
-  buttonRef?: RefObject<HTMLElement>
-  className?: string
+  buttonRef: RefObject<HTMLElement>
   text?: string
 }
 
 export function CreateGameButton({
   buttonRef,
-  className,
   onGameCreated,
   text = 'Start new game',
 }: CreateGameButtonProps) {
@@ -57,7 +55,6 @@ export function CreateGameButton({
   const onClick = useCallback(() => onStartGameButtonClicked(), [onStartGameButtonClicked])
 
   useEffect(() => {
-    if (!buttonRef) return
     if (!buttonRef.current) return
 
     buttonRef.current.onclick = (e) => {
@@ -66,20 +63,8 @@ export function CreateGameButton({
     }
   }, [buttonRef, onClick])
 
-  if (buttonRef) {
+  
     return <></>
-  }
-
-  return (
-    <button
-      ref={buttonRef}
-      type="button"
-      className={`${className || 'bg-white bg-opacity-20 rounded px-2 py-1'}`}
-      onClick={onClick}
-    >
-      {text}
-    </button>
-  )
 }
 
 interface CreateGameAndRedirectButtonHookProps {

@@ -57,7 +57,7 @@ export function RoboHashImgWithLoader(props: RoboHashImgWithLoaderProps) {
           <Spinner />
         </div>
       )}
-      <div className={`${showLoader ? 'hidden opacity-10' : 'block transition-all duration-500'}`}>
+      <div className={`${showLoader ? 'hidden' : 'block transition-all duration-500'}`}>
         <RoboHashImg value={value} alt={alt} title={title} raw={raw} className={className} />
       </div>
     </>

@@ -190,7 +190,7 @@ export default function SearchPage() {
                           <H6>Damn... there must be a typo somewhere... : (</H6>
                           <p>
                             It kind of looks like a{' '}
-                            <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
+                            <code className="mx-1 p-1 text-xs font-semibold border rounded">
                               jesterId
                             </code>
                             , but it contains errors.

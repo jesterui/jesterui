@@ -17,8 +17,6 @@ import { Layout } from './Layout'
 
 import ROUTES from './routes'
 
-import './App.css'
-
 export default function App() {
   const settings = useSettings()
   const currentGameJesterId = useMemo(() => settings.currentGameJesterId, [settings])
@@ -33,7 +31,7 @@ export default function App() {
       <a href="https://github.com/jesterui/jesterui" rel="noopener noreferrer">
         <img alt="Fork me on GitHub" title="Fork me on GitHub" src="fork_me.png" id="forkme" />
       </a>
-      <div className="App min-w-xs">
+      <div className="min-w-xs">
         <Routes>
           <Route
             element={

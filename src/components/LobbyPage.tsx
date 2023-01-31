@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, PropsWithChildren, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Button } from 'react-daisyui'
+import { Alert, Button } from 'react-daisyui'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 import { useSettings } from '../context/SettingsContext'
@@ -218,12 +218,12 @@ export default function LobbyPage() {
                     <GameList games={listOfPrivateStartGamesLiveQuery} currentGameId={currentGameId}>
                       <>
                         {!currentGameId && botPublicKeyOrNull && (
-                          <button className="w-full max-w-sm cursor-pointer" ref={challengeBotButtonRef}>
+                          <button className="w-full max-w-sm" ref={challengeBotButtonRef}>
                             <CreateDirectChallengeAndRedirectButtonHook
                               buttonRef={challengeBotButtonRef}
                               opponentPubKey={botPublicKeyOrNull}
                             />
-                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
+                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border">
                               <div className="grid grid-cols-1 justify-items-center content-center items-center py-4 px-4 h-64">
                                 <RoboHashImg
                                   className="w-32 h-32 mb-4 rounded-full shadow-sm-gray bg-blue-gray-500"
@@ -280,10 +280,10 @@ export default function LobbyPage() {
 
               <div className="mt-4 mb-24">
                 {listOfStartGames !== null && listOfStartGames.length === 0 && (
-                  <div className="flex items-center gap-3 text-white p-4 pr-12 border-0 bg-gray-500 bg-opacity-20 rounded-lg relative mb-4 transition-all duration-300">
-                    <div className="text-gray-500">Currently, no games are being played.</div>
+                  <Alert status="info" className="mb-4">
+                    <div>Currently, no games are being played.</div>
                     {isLoading && <Spinner size={24} />}
-                  </div>
+                  </Alert>
                 )}
 
                 <GameList
@@ -298,9 +298,9 @@ export default function LobbyPage() {
                         return <Spinner />
                       } else if (game === null) {
                         return privateKeyOrNull !== null ? (
-                          <button className="w-full max-w-sm cursor-pointer" ref={createNewGameButtonRef}>
+                          <button className="w-full max-w-sm" ref={createNewGameButtonRef}>
                             <CreateGameAndRedirectButtonHook buttonRef={createNewGameButtonRef} />
-                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800">
+                            <div className="rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border">
                               <div className="grid grid-cols-1 items-center justify-items-center py-4 px-4 h-64">
                                 <span className="font-bold text-success uppercase">Start a new game</span>
                               </div>

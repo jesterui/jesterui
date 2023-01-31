@@ -51,7 +51,7 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
             <div
-              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-gray-800`}
+              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border`}
             >
               <div className="flex flex-col items-center py-4 px-4">
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
@@ -144,7 +144,7 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
-            <div className="rounded-lg border border-gray-800 shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
+            <div className="rounded-lg border shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
               <div className="flex flex-col items-center pb-4 pt-4">
                 <Button
                   className="absolute right-2 top-2"
@@ -179,13 +179,6 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
                   )}
                 </div>
 
-                {/*
-                <div className="mb-1">
-                  <code className="border border-solid border-blue-gray-500 text-xs font-semibold mx-1 px-2.5 py-1 rounded">
-                    {displayJesterId}
-                  </code>
-                </div>
-              */}
                 {moves && moveCount && moveCount > 0 ? (
                   <>
                     <span className="mb-1 text-sm text-gray-400">
