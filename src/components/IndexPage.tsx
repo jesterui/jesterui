@@ -74,7 +74,7 @@ function LoginIdentityStep({ identity }: { identity: Identity }) {
     <>
       <div className="flex justify-center">
         <RoboHashImgWithLoader
-          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-neutral-300"
+          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-base-300"
           value={identity.pubkey}
           alt={displayPubKey}
         />
@@ -138,7 +138,7 @@ function SetupCompleteStep({ identity }: { identity: Identity }) {
     <>
       <div className="grid grid-cols-1 justify-center justify-items-center content-center">
         <RoboHashImgWithLoader
-          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-neutral-300"
+          className="w-32 h-32 lg:w-48 lg:h-48 mb-2 rounded-full shadow-sm-gray bg-base-300"
           value={identity.pubkey}
           alt={displayPubKey}
         />

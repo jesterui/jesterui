@@ -36,7 +36,7 @@ export function Sidebar({ title, children }: PropsWithChildren<SidebarProps>) {
           <Menu.Item>
             <Link to={ROUTES.home}>
               <RoboHashImg
-                className="w-6 h-6 rounded-full shadow-sm-gray bg-neutral-300"
+                className="w-6 h-6 rounded-full shadow-sm-gray bg-base-300"
                 value={publicKeyOrNull}
                 alt={displayPubKey}
               />

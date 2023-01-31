@@ -45,7 +45,7 @@ export default function PgnTable({ game }: { game: ChessInstance }) {
   }
 
   return (
-    <div className="bg-neutral-300" style={{ width: '200px', borderRadius: '4px' }}>
+    <div className="bg-base-300" style={{ width: '200px', borderRadius: '4px' }}>
       <table className="w-full">
         <tbody>
           {lines.map((line) => {

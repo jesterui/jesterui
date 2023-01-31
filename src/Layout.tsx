@@ -21,7 +21,6 @@ export function Layout({ title, children, drawer }: PropsWithChildren<LayoutProp
         mobile={false}
         open={sidebarVisible}
         onClickOverlay={toggleSidebarVisible}
-        className="font-sans"
       >
         <div className="md:container mx-auto">
           <Navbar title={title} toggleSidebar={toggleSidebarVisible} />

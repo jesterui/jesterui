@@ -27,8 +27,8 @@ export function Navbar({ title, toggleSidebar }: NavbarProps) {
   const displayPubKey = useMemo(() => publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull), [publicKeyOrNull])
 
   return (
-    <DaisyNavbar className="w-auto shadow-xl gap-2 border rounded-box m-2 mb-6">
-      <DaisyNavbar.Start>
+    <DaisyNavbar className="w-auto gap-2  shadow-xl border border-current rounded-box m-2 mb-6">
+      <DaisyNavbar.Start className="ml-2">
         <div className="flex-none md:hidden">
           <Button shape="square" color="ghost" onClick={toggleSidebar}>
             <svg
@@ -42,9 +42,7 @@ export function Navbar({ title, toggleSidebar }: NavbarProps) {
           </Button>
         </div>
         <div className="flex-1 hidden md:block">
-          <span data-testid="sidebar-title-md">
-            <NavbarTitle title={title} />
-          </span>
+          <NavbarTitle title={title} />
         </div>
       </DaisyNavbar.Start>
       <DaisyNavbar.Center className="flex-none md:hidden">
@@ -103,7 +101,7 @@ export function Navbar({ title, toggleSidebar }: NavbarProps) {
               <Menu.Item>
                 <Link to={ROUTES.home} className="p-2 m-0 rounded-lg" title="Profile">
                   <RoboHashImg
-                    className="w-9 h-9 rounded-full shadow-sm-gray bg-neutral-300"
+                    className="w-9 h-9 rounded-full shadow-sm-gray bg-base-300"
                     value={publicKeyOrNull}
                     alt={displayPubKey}
                   />

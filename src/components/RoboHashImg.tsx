@@ -70,7 +70,7 @@ interface UnknownImgProps {
 
 export function UnknownImg({ size = 24 }: UnknownImgProps) {
   return (
-    <div className={`w-${size} h-${size} rounded-full shadow-lg-gray bg-neutral-300 flex justify-center items-center`}>
+    <div className={`w-${size} h-${size} rounded-full shadow-lg-gray bg-base-300 flex justify-center items-center`}>
       <QuestionMarkCircleIcon className={`w-${size} h-${size}`} />
     </div>
   )

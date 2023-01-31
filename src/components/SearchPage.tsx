@@ -190,8 +190,10 @@ export default function SearchPage() {
                           <H6>Damn... there must be a typo somewhere... : (</H6>
                           <p>
                             It kind of looks like a{' '}
-                            <code className="mx-1 p-1 text-xs font-semibold border rounded">jesterId</code>, but it
-                            contains errors.
+                            <code className="mx-1 p-1 text-xs font-semibold border border-current rounded">
+                              jesterId
+                            </code>
+                            , but it contains errors.
                           </p>
                           <p>If you got this ID from another player, please verify the value and try again.</p>
                         </>

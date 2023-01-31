@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef, ChangeEvent } from 'react'
+import { Input, Button, Checkbox, CheckboxProps, Form, Theme, useTheme } from 'react-daisyui'
+import { DataTheme } from 'react-daisyui/dist/types'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -9,6 +11,7 @@ import { useUpdateSubscription } from '../context/NostrSubscriptionsContext'
 import { WebsocketIndicator } from '../components/WebsocketIndicator'
 import { GenerateRandomIdentityButton } from '../components/IdentityButtons'
 import { BotSelector } from '../components/BotSelector'
+import { H1, H2, H3 } from '../components/Headings'
 
 import { useSetWindowTitle } from '../hooks/WindowTitle'
 
@@ -19,8 +22,81 @@ import * as Bot from '../util/bot'
 import { DEFAULT_RELAYS } from '../util/app_nostr'
 import { displayKey } from '../util/app'
 
-import { H1, H2, H3 } from './Headings'
-import { Input, Button, Checkbox, CheckboxProps, Form } from 'react-daisyui'
+const DEFAULT_THEMES = [
+  'light',
+  'dark',
+  'cupcake',
+  'bumblebee',
+  'emerald',
+  'corporate',
+  'synthwave',
+  'retro',
+  'cyberpunk',
+  'valentine',
+  'halloween',
+  'garden',
+  'forest',
+  'aqua',
+  'lofi',
+  'pastel',
+  'fantasy',
+  'wireframe',
+  'black',
+  'luxury',
+  'dracula',
+  'cmyk',
+  'autumn',
+  'business',
+  'acid',
+  'lemonade',
+  'night',
+  'coffee',
+  'winter',
+]
+
+type ThemeItemProps = {
+  dataTheme: DataTheme
+  selected: boolean
+  onClick: (dataTheme: DataTheme) => void
+}
+
+function ThemeItem({ dataTheme, selected, onClick }: ThemeItemProps) {
+  return (
+    <>
+      <Theme
+        dataTheme={dataTheme}
+        role="button"
+        aria-label="Theme select"
+        aria-pressed={selected}
+        tabIndex={0}
+        onClick={() => onClick(dataTheme)}
+        className="border-base-content/20 hover:border-base-content/40 outline-base-content rounded-lg overflow-hidden border outline-2 outline-offset-2"
+      >
+        <div className="grid grid-cols-5 grid-rows-3">
+          <div className="bg-base-200 col-start-1 row-span-2 row-start-1"></div>
+          <div className="bg-base-300 col-start-1 row-start-3"></div>
+          <div className="bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2">
+            <div className="font-bold">{dataTheme}</div>
+            <div className="flex flex-wrap gap-1">
+              <Button size="xs" color="primary">
+                A
+              </Button>
+              <Button size="xs" color="secondary">
+                A
+              </Button>
+              <Button size="xs" color="accent">
+                A
+              </Button>
+              <Button size="xs" color="ghost">
+                A
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Theme>
+    </>
+  )
+}
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
@@ -185,8 +261,9 @@ const KeyPairForm = () => {
 
   const updatePrivKey = (privKey: PrivKey) => setSessionAttribute({ privateKey: privKey })
 
-  const updatePubKey = useCallback((pubkey: PubKey) => {
-        settingsDispatch({ identity: pubkey !== null ? { pubkey } : undefined })
+  const updatePubKey = useCallback(
+    (pubkey: PubKey) => {
+      settingsDispatch({ identity: pubkey !== null ? { pubkey } : undefined })
     },
     [settingsDispatch]
   )
@@ -275,12 +352,20 @@ export default function SettingsPage() {
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
+  const { theme, setTheme } = useTheme()
 
   const relays = useMemo(() => settings.relays, [settings])
   const selectedBotName = useMemo(() => settings.botName, [settings])
 
   const updateSelectedBotName = (botName: string | null) => {
     settingsDispatch({ botName })
+  }
+
+  const updateTheme = (val: string) => {
+    document.getElementsByTagName('html')[0].setAttribute('data-theme', val)
+
+    settingsDispatch({ theme: val })
+    setTheme(val)
   }
 
   const onRelayClicked = useCallback(
@@ -412,6 +497,25 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pb-16">
+        <H2>Theme</H2>
+
+        <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-4 gap-4">
+            {DEFAULT_THEMES.map((t, i) => (
+              <ThemeItem
+                key={`theme_${t}_#${i}`}
+                dataTheme={t}
+                selected={t === theme}
+                onClick={() => {
+                  updateTheme(t)
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>

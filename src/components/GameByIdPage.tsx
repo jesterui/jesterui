@@ -666,7 +666,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="h-10 flex items-center">
                 {player1PubKey ? (
                   <RoboHashImg
-                    className="w-8 h-8 rounded-full shadow-lg-gray bg-neutral-300"
+                    className="w-8 h-8 rounded-full shadow-lg-gray bg-base-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
@@ -713,7 +713,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="h-10 flex items-center">
                 {player2PubKey ? (
                   <RoboHashImg
-                    className="w-8 h-8 rounded-full shadow-lg-gray bg-neutral-300"
+                    className="w-8 h-8 rounded-full shadow-lg-gray bg-base-300"
                     value={player2PubKey}
                     alt={displayPlayer2PubKey}
                   />
@@ -760,7 +760,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="flex justify-center">
                 {player1PubKey ? (
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-base-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
@@ -819,7 +819,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="flex justify-center">
                 {player2PubKey ? (
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-base-300"
                     value={player2PubKey}
                     alt={displayPlayer2PubKey}
                   />

@@ -51,19 +51,19 @@ export function GameCard({ game, isCurrentGame = false }: GameCardProps) {
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
             <div
-              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border`}
+              className={`rounded-lg shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103 border border-current`}
             >
               <div className="flex flex-col items-center py-4 px-4">
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-base-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
                   <div className="text-xl font-medium">vs.</div>
                   {player2PubKey && displayPlayer2PubKey ? (
                     <RoboHashImg
-                      className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-base-300"
                       value={player2PubKey}
                       alt={displayPlayer2PubKey}
                     />
@@ -140,7 +140,7 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
         return (
           <Link to={`/game/${jesterId}`} className="w-full max-w-sm">
-            <div className="rounded-lg border shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
+            <div className="rounded-lg border border-current shadow-sm hover:shadow-xl transform duration-300 hover:transform-scale-103">
               <div className="flex flex-col items-center pb-4 pt-4">
                 <Button
                   className="absolute right-2 top-2"
@@ -159,14 +159,14 @@ export function CurrentGameCard({ game, title = 'Active Game' }: CurrentGameCard
 
                 <div className="flex items-center sm:space-x-4 space-x-2 my-4">
                   <RoboHashImg
-                    className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
+                    className="w-24 h-24 rounded-full shadow-lg-gray bg-base-300"
                     value={player1PubKey}
                     alt={displayPlayer1PubKey}
                   />
                   <div className="text-xl font-medium">vs.</div>
                   {player2PubKey && displayPlayer2PubKey ? (
                     <RoboHashImg
-                      className="w-24 h-24 rounded-full shadow-lg-gray bg-neutral-300"
+                      className="w-24 h-24 rounded-full shadow-lg-gray bg-base-300"
                       value={player2PubKey}
                       alt={displayPlayer2PubKey}
                     />

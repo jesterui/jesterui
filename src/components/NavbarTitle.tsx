@@ -17,7 +17,7 @@ export default function NavbarTitle({ title }: NavbarProps) {
     <ReactNavLink to={ROUTES.home} className={({ isActive }) => (isActive ? '' : '')}>
       <div className="grid grid-cols-1 justify-items-center w-24">
         <div className="flex items-center">
-          {title}
+          <span data-testid="navbar-title">{title}</span>
           <span className="ml-1">
             <WebsocketIndicator />
           </span>
