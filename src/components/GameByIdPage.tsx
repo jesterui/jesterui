@@ -775,8 +775,8 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               )}
             </div>
           </div>
-          <div className="order-2 ml-2">
-            <div className="flex justify-start items-center gap-2">
+          <div className="order-2 ml-6">
+            <div className="flex justify-start items-center gap-4">
               {privateKeyOrNull &&
                 publicKeyOrNull &&
                 (publicKeyOrNull === player1PubKey || publicKeyOrNull === player2PubKey) &&
