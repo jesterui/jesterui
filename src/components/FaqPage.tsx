@@ -1,8 +1,8 @@
-import { H1, H6 } from './Headings'
+import { H1, H3 } from './Headings'
 import { useSetWindowTitle } from '../hooks/WindowTitle'
 
 const NostrQuote = () => (
-  <blockquote className="relative p-4 mb-4 border-l font-serif quote">
+  <blockquote className="relative p-4 mb-4 border-l font-serif">
     <span className="block absolute top-0 leading-none opacity-10 text-8xl" aria-hidden="true">
       &ldquo;
     </span>
@@ -24,10 +24,10 @@ export default function FaqPage() {
     <div className="screen-faq">
       <H1>FAQ</H1>
 
-      <H6>What is this?</H6>
+      <H3>What is this?</H3>
       <p className="mb-8 font-serif">A chess app on nostr.</p>
 
-      <H6>What is nostr?</H6>
+      <H3>What is nostr?</H3>
       <NostrQuote />
       <p className="mb-8 font-serif">
         <a className="underline" target="_blank" rel="noopener noreferrer" href="https://github.com/fiatjaf/nostr">
@@ -35,10 +35,10 @@ export default function FaqPage() {
         </a>
       </p>
 
-      <H6>How can I do X?</H6>
+      <H3>How can I do X?</H3>
       <p className="mb-8 font-serif">You probably can't. The current functionality is very limited.</p>
 
-      <H6>I found a bug. How can I report it?</H6>
+      <H3>I found a bug. How can I report it?</H3>
       <p className="mb-8 font-serif">
         Please open an issue{' '}
         <a
@@ -52,10 +52,10 @@ export default function FaqPage() {
         .
       </p>
 
-      <H6>This is in beta. Is this just a demo application?</H6>
+      <H3>This is in beta. Is this just a demo application?</H3>
       <p className="mb-8 font-serif">Yes.</p>
 
-      <H6>Where are the robots coming from?</H6>
+      <H3>Where are the robots coming from?</H3>
       <p className="mb-8 font-serif">
         Robots lovingly delivered by{' '}
         <a className="underline" target="_blank" rel="noopener noreferrer" href="https://robohash.org/">

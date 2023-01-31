@@ -63,25 +63,21 @@ function GameList({
   children,
 }: PropsWithChildren<GameListProps>) {
   return (
-    <>
-      <div className="grid justify-items-center items-center gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {childrenFirst && (children || <></>)}
-        <>
-          {games.map((game) => {
-            const isCurrentGame = game.id === currentGameId
-            if (isCurrentGame && filterCurrentGame) {
-              return <div key={game.id} className="hidden"></div>
-            }
-            return (
-              <div key={game.id} className="w-full max-w-sm">
-                <GameCard game={game} isCurrentGame={isCurrentGame} />
-              </div>
-            )
-          })}
-        </>
-        {!childrenFirst && (children || <></>)}
-      </div>
-    </>
+    <div className="grid justify-items-center items-center gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {childrenFirst && children}
+      {games.map((game) => {
+        const isCurrentGame = game.id === currentGameId
+        if (isCurrentGame && filterCurrentGame) {
+          return <div key={game.id} className="hidden"></div>
+        }
+        return (
+          <div key={game.id} className="w-full max-w-sm">
+            <GameCard game={game} isCurrentGame={isCurrentGame} />
+          </div>
+        )
+      })}
+      {!childrenFirst && children}
+    </div>
   )
 }
 
