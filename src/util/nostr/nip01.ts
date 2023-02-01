@@ -65,21 +65,16 @@ type Content = string // <arbitrary string>
   "sig": <64-bytes signature of the sha256 hash of the serialized event data, which is the same as the "id" field>,
 }
 */
-export interface EventInConstruction {
-  pubkey?: PubKey
-  created_at?: CreatedAtTimestamp
-  kind?: Kind
-  tags?: Tags
-  content?: Content
-}
 
-export interface EventParts {
+export type EventParts = {
   pubkey: PubKey
   created_at: CreatedAtTimestamp
   kind: Kind
   tags: Tags
   content: Content
 }
+
+export type EventInConstruction = Partial<EventParts>
 
 export type UnsignedEvent = EventParts & {
   id: EventId

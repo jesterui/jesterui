@@ -101,29 +101,27 @@ function ThemeItem({ dataTheme, selected, onClick }: ThemeItemProps) {
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
 export const TEST_MESSAGE_KIND: NIP01.Kind = 20_000 + 7357 // ephemeral start + "test"
 
-type PubKey = string | null
-type PrivKey = string | null
+type TestNostrConnectionButtonProps = {
+  pubKey: Nullable<NIP01.PubKey>
+  privKey: Nullable<NIP01.PrivKey>
+}
 
-function TestNostrConnectionButton() {
-  const settings = useSettings()
+function TestNostrConnectionButton({ pubKey, privKey }: TestNostrConnectionButtonProps) {
   const incomingNostrBuffer = useIncomingNostrEventsBuffer()
   const outgoingNostr = useOutgoingNostrEvents()
   const updateSubscription = useUpdateSubscription()
 
-  const [waitForEvent, setWaitForEvent] = useState<NIP01.Event | null>(null)
+  const [waitForEvent, setWaitForEvent] = useState<NIP01.Event>()
   const [statusText, setStatusText] = useState<string>('')
-
-  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
-  const privateKeyOrNull = getSession()?.privateKey || null
 
   useEffect(() => {
     const since = Math.round(Date.now() / 1_000)
 
     const filterForOwnTestEvents: NIP01.Filter[] =
-      publicKeyOrNull !== null
+      pubKey !== null
         ? [
             {
-              authors: [publicKeyOrNull],
+              authors: [pubKey],
               since: since,
               '#e': [TEST_MESSAGE_REF],
               kinds: [TEST_MESSAGE_KIND],
@@ -142,7 +140,7 @@ function TestNostrConnectionButton() {
         filters: [],
       })
     }
-  }, [publicKeyOrNull, updateSubscription])
+  }, [pubKey, updateSubscription])
 
   useEffect(() => {
     if (statusText === '') return
@@ -151,7 +149,7 @@ function TestNostrConnectionButton() {
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) return
 
-      setWaitForEvent(null)
+      setWaitForEvent(undefined)
       setStatusText('')
     }, 2_000)
 
@@ -170,7 +168,7 @@ function TestNostrConnectionButton() {
     setStatusText(eventFound ? '200 OK' : '404 NOT FOUND')
 
     if (eventFound) {
-      setWaitForEvent(null)
+      setWaitForEvent(undefined)
     }
   }, [waitForEvent, incomingNostrBuffer])
 
@@ -181,27 +179,24 @@ function TestNostrConnectionButton() {
       window.alert('Nostr EventBus not ready..')
       return
     }
-    if (!publicKeyOrNull) {
+    if (!pubKey) {
       window.alert('PubKey not available..')
       return
     }
-    if (!privateKeyOrNull) {
+    if (!privKey) {
       window.alert('PrivKey not available..')
       return
     }
 
     try {
-      const publicKey = publicKeyOrNull!
-      const privateKey = privateKeyOrNull!
-
       const eventParts = NostrEvents.blankEvent()
       eventParts.kind = TEST_MESSAGE_KIND
-      eventParts.pubkey = publicKey
+      eventParts.pubkey = pubKey
       eventParts.tags = [['e', TEST_MESSAGE_REF]]
       eventParts.created_at = Math.floor(Date.now() / 1000)
       eventParts.content = ''
       const event = NostrEvents.constructEvent(eventParts)
-      const signedEvent = NostrEvents.signEvent(event, privateKey)
+      const signedEvent = NostrEvents.signEvent(event, privKey)
 
       const isSignatureValid = NostrEvents.verifySignature(signedEvent)
       if (!isSignatureValid) {
@@ -220,7 +215,7 @@ function TestNostrConnectionButton() {
   return (
     <Button
       onClick={() => onButtonClicked()}
-      disabled={waitForEvent !== null}
+      disabled={!!waitForEvent}
       color={statusText === '200 OK' ? 'success' : undefined}
     >
       {waitForEvent ? 'Testing connection...' : statusText !== '' ? statusText : 'Test connection'}
@@ -228,7 +223,7 @@ function TestNostrConnectionButton() {
   )
 }
 
-const validateKeyPair = (pubKey: PubKey, privKey: PrivKey): boolean => {
+const validateKeyPair = (pubKey: Nullable<NIP01.PubKey>, privKey: Nullable<NIP01.PrivKey>): boolean => {
   if (pubKey === null || privKey === null) return false
 
   try {
@@ -247,34 +242,26 @@ const validateKeyPair = (pubKey: PubKey, privKey: PrivKey): boolean => {
   }
 }
 
-const KeyPairForm = () => {
-  const settings = useSettings()
-  const settingsDispatch = useSettingsDispatch()
+type KeyPairFormProps = {
+  pubKey: Nullable<NIP01.PubKey>
+  privKey: Nullable<NIP01.PrivKey>
+  setKeyPair: (pubKey: Nullable<NIP01.PrivKey>, privKey: Nullable<NIP01.PrivKey>) => void
+}
+
+const KeyPairForm = ({ pubKey, privKey, setKeyPair }: KeyPairFormProps) => {
   const generateRandomIdentityButtonRef = useRef<HTMLButtonElement>(null)
 
-  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
-  const privateKeyOrNull = getSession()?.privateKey || null
-
-  const [publicKeyInputValue, setPublicKeyInputValue] = useState<PubKey>(publicKeyOrNull || '')
-  const [privateKeyInputValue, setPrivateKeyInputValue] = useState<PrivKey>(privateKeyOrNull || '')
+  const [publicKeyInputValue, setPublicKeyInputValue] = useState<NIP01.PubKey | ''>(pubKey || '')
+  const [privateKeyInputValue, setPrivateKeyInputValue] = useState<NIP01.PrivKey | ''>(privKey || '')
   const [keyPairValid, setKeyPairValid] = useState<boolean | undefined>(undefined)
 
-  const updatePrivKey = (privKey: PrivKey) => setSessionAttribute({ privateKey: privKey })
-
-  const updatePubKey = useCallback(
-    (pubkey: PubKey) => {
-      settingsDispatch({ identity: pubkey !== null ? { pubkey } : undefined })
-    },
-    [settingsDispatch]
-  )
+  useEffect(() => {
+    setPublicKeyInputValue(pubKey || '')
+  }, [pubKey])
 
   useEffect(() => {
-    setPublicKeyInputValue(publicKeyOrNull || '')
-  }, [publicKeyOrNull])
-
-  useEffect(() => {
-    setPrivateKeyInputValue(privateKeyOrNull || '')
-  }, [privateKeyOrNull])
+    setPrivateKeyInputValue(privKey || '')
+  }, [privKey])
 
   useEffect(() => {
     setKeyPairValid(undefined)
@@ -286,15 +273,11 @@ const KeyPairForm = () => {
     const isValid = validateKeyPair(publicKeyInputValue, privateKeyInputValue)
     setKeyPairValid(isValid)
     if (isValid) {
-      updatePrivKey(privateKeyInputValue)
-      updatePubKey(publicKeyInputValue)
+      setKeyPair(publicKeyInputValue, privateKeyInputValue)
     }
-  }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, updatePubKey])
+  }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, setKeyPair])
 
-  const deleteIdentityButtonClicked = () => {
-    updatePrivKey(null)
-    updatePubKey(null)
-  }
+  const deleteIdentityButtonClicked = () => setKeyPair(null, null)
 
   return (
     <>
@@ -302,7 +285,7 @@ const KeyPairForm = () => {
         <div className="form-control">
           <label className="label">
             <span className="label-text">Public Key:</span>
-            <span className="label-text-alt font-mono">{publicKeyOrNull && displayKey(publicKeyOrNull)}</span>
+            <span className="label-text-alt font-mono">{pubKey && displayKey(pubKey)}</span>
           </label>
           <Input
             type="text"
@@ -314,7 +297,7 @@ const KeyPairForm = () => {
         <div className="form-control">
           <label className="label">
             <span className="label-text">Private Key:</span>
-            <span className="label-text-alt font-mono">{privateKeyOrNull && displayKey(privateKeyOrNull)}</span>
+            <span className="label-text-alt font-mono">{privKey && displayKey(privKey)}</span>
           </label>
           <Input
             type="text"
@@ -344,12 +327,23 @@ export default function SettingsPage() {
 
   const settings = useSettings()
   const settingsDispatch = useSettingsDispatch()
+
   const websocket = useWebsocket()
   const { theme, setTheme } = useTheme()
   const [currentTab, setCurrentTab] = useState(0)
-
   const relays = useMemo(() => settings.relays, [settings])
   const selectedBotName = useMemo(() => settings.botName, [settings])
+
+  const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
+  const privateKeyOrNull = getSession()?.privateKey || null
+
+  const updateKeyPair = useCallback(
+    (pubkey: Nullable<NIP01.PubKey>, privateKey: Nullable<NIP01.PrivKey>) => {
+      settingsDispatch({ identity: pubkey !== null ? { pubkey } : undefined })
+      setSessionAttribute({ privateKey })
+    },
+    [settingsDispatch]
+  )
 
   const updateSelectedBotName = (botName: string | null) => {
     settingsDispatch({ botName })
@@ -468,7 +462,7 @@ export default function SettingsPage() {
           <div className="flex-1">
             <H3>Identity</H3>
             <div>
-              <KeyPairForm />
+              <KeyPairForm pubKey={publicKeyOrNull} privKey={privateKeyOrNull} setKeyPair={updateKeyPair} />
             </div>
           </div>
           <div className="flex-1">
@@ -490,7 +484,7 @@ export default function SettingsPage() {
               {settings.dev && (
                 <>
                   <div className="py-1">
-                    <TestNostrConnectionButton />
+                    <TestNostrConnectionButton pubKey={publicKeyOrNull} privKey={privateKeyOrNull} />
                   </div>
                 </>
               )}
