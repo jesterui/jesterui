@@ -33,6 +33,12 @@ body {
   z-index: 99;
 }
 
+.tab {
+  --tab-padding: 2.25rem;
+  --tab-border: 3px;
+  --tab-border-color: hsla(var(--bc) / var(--tw-text-opacity, 1));
+}
+
 /* tailwind overrides - end */
 
 /* Chessground adaptions */

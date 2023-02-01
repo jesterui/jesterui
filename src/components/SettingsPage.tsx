@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef, ChangeEvent } from 'react'
-import { Input, Button, Checkbox, CheckboxProps, Form, Theme, useTheme } from 'react-daisyui'
+import { Input, Button, Checkbox, CheckboxProps, Form, Theme, useTheme, Tabs } from 'react-daisyui'
 import { DataTheme } from 'react-daisyui/dist/types'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
@@ -353,6 +353,7 @@ export default function SettingsPage() {
   const settingsDispatch = useSettingsDispatch()
   const websocket = useWebsocket()
   const { theme, setTheme } = useTheme()
+  const [currentTab, setCurrentTab] = useState(0)
 
   const relays = useMemo(() => settings.relays, [settings])
   const selectedBotName = useMemo(() => settings.botName, [settings])
@@ -406,7 +407,13 @@ export default function SettingsPage() {
     <div className="screen-settings pb-4">
       <H1>Settings</H1>
 
-      <div className="pb-16">
+      <Tabs className="mb-8 border-b border-current" size="lg" value={currentTab} onChange={setCurrentTab} variant="bordered">
+        <Tabs.Tab value={0}>nostr</Tabs.Tab>
+        <Tabs.Tab value={1}>Theme</Tabs.Tab>
+        <Tabs.Tab value={2}>Dev</Tabs.Tab>
+      </Tabs>
+
+      <div className={`pb-16 ${currentTab === 2 ? 'block' : 'hidden'}`}>
         <H2>
           <div className="flex items-center">
             <div>jester</div>
@@ -445,9 +452,18 @@ export default function SettingsPage() {
             </div>
           </>
         )}
+
+        {settings.dev && (
+          <>
+            <H2>Raw</H2>
+            <div>
+              <pre>{`${JSON.stringify(settings, null, 2)}`}</pre>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="pb-16">
+      <div className={`pb-16 ${currentTab === 0 ? 'block' : 'hidden'}`}>
         <H2>nostr</H2>
         <div className="grid gap-x-24 gap-y-4 grid-cols-1 lg:grid-cols-2">
           <div className="flex-1">
@@ -501,9 +517,12 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="pb-16">
+      <div className={`pb-16 ${currentTab === 1 ? 'block' : 'hidden'}`}>
         <H2>Theme</H2>
-
+        <div className="pb-8">
+          Selected theme:
+          <span className="mx-2 font-mono">{theme}</span>
+        </div>
         <div className="flex flex-wrap gap-4">
           <div className="grid grid-cols-4 gap-4">
             {DEFAULT_THEMES.map((t, i) => (
@@ -518,17 +537,6 @@ export default function SettingsPage() {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="pb-16">
-        {settings.dev && (
-          <>
-            <H2>Raw</H2>
-            <div>
-              <pre>{`${JSON.stringify(settings, null, 2)}`}</pre>
-            </div>
-          </>
-        )}
       </div>
     </div>
   )
