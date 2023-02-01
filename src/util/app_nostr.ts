@@ -2,14 +2,14 @@ const developmentRelays = ['ws://localhost:7000', 'wss://non-existing-nostr-rela
 
 const publicRelays = [
   'wss://nostr-pub.wellorder.net',
-  'wss://relay.damus.io',
   'wss://nostr.swiss-enigma.ch',
+  'wss://nostr.einundzwanzig.space',
   'wss://relay.nostr.info',
-  'wss://nostr.rocks',
-  'wss://nostr-relay.wlvs.space',
   'wss://nostr-relay.untethr.me',
-  'wss://nostr-verified.wellorder.net',
-  // inactive relays (last checked on 2022-12-20):
+  // inactive relays (last checked on 2023-02-01):
+  // 'wss://nostr.rocks',
+  // 'wss://relay.damus.io',
+  // 'wss://nostr-relay.wlvs.space',
   // 'wss://nostr.zebedee.cloud',
   // 'wss://relayer.fiatjaf.com',
   // 'wss://rsslay.fiatjaf.com',

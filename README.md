@@ -42,12 +42,10 @@ The page will reload if you make edits. You will also see any lint errors in the
 - chessbot-typescript (GitHub): https://github.com/eddmann/chessbot-typescript
 
 - Chessground (GitHub): https://github.com/lichess-org/chessground
-  - Examples (GitHub): https://github.com/lichess-org/chessground-examples
-  - Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
-  - react/chessground (GitHub): https://github.com/react-chess/chessground
+- Chessground Examples (GitHub): https://github.com/lichess-org/chessground-examples
+- Chessground Config (GitHub): https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7-L90
+- react/chessground (GitHub): https://github.com/react-chess/chessground
 
-- create-react-app: https://facebook.github.io/create-react-app/docs/getting-started
-- react-chessboard (GitHub): https://github.com/Clariity/react-chessboard
 - tailwind: https://tailwindcss.com/
 - daisyui: https://github.com/daisyui/react-daisyui
 
