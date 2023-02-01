@@ -17,7 +17,6 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "@alephium/noble-secp256k1": "^1.5.5",
     "@heroicons/react": "^2.0.14",
     "@noble/secp256k1": "^1.7.0",
     "@react-chess/chessground": "^1.3.4",
