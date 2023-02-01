@@ -174,7 +174,7 @@ function TestNostrConnectionButton() {
     }
   }, [waitForEvent, incomingNostrBuffer])
 
-  const onButtonClicked = async () => {
+  const onButtonClicked = () => {
     if (statusText !== '') return
 
     if (!outgoingNostr) {
@@ -201,9 +201,9 @@ function TestNostrConnectionButton() {
       eventParts.created_at = Math.floor(Date.now() / 1000)
       eventParts.content = ''
       const event = NostrEvents.constructEvent(eventParts)
-      const signedEvent = await NostrEvents.signEvent(event, privateKey)
+      const signedEvent = NostrEvents.signEvent(event, privateKey)
 
-      const isSignatureValid = await NostrEvents.verifySignature(signedEvent)
+      const isSignatureValid = NostrEvents.verifySignature(signedEvent)
       if (!isSignatureValid) {
         throw new Error('Cannot create valid signature for Nostr event..')
       }
@@ -228,7 +228,7 @@ function TestNostrConnectionButton() {
   )
 }
 
-const validateKeyPair = async (pubKey: PubKey, privKey: PrivKey): Promise<boolean> => {
+const validateKeyPair = (pubKey: PubKey, privKey: PrivKey): boolean => {
   if (pubKey === null || privKey === null) return false
 
   try {
@@ -238,9 +238,9 @@ const validateKeyPair = async (pubKey: PubKey, privKey: PrivKey): Promise<boolea
     eventParts.created_at = Math.floor(Date.now() / 1000)
     eventParts.content = 'Hello World'
     const event = NostrEvents.constructEvent(eventParts)
-    const signedEvent = await NostrEvents.signEvent(event, privKey)
+    const signedEvent = NostrEvents.signEvent(event, privKey)
 
-    const isSignatureValid = await NostrEvents.verifySignature(signedEvent)
+    const isSignatureValid = NostrEvents.verifySignature(signedEvent)
     return isSignatureValid
   } catch (e) {
     return false
@@ -283,19 +283,12 @@ const KeyPairForm = () => {
   useEffect(() => {
     if (keyPairValid) return
 
-    const abortCtrl = new AbortController()
-
-    validateKeyPair(publicKeyInputValue, privateKeyInputValue).then((success) => {
-      if (abortCtrl.signal.aborted) return
-
-      setKeyPairValid(success)
-      if (success) {
-        updatePrivKey(privateKeyInputValue)
-        updatePubKey(publicKeyInputValue)
-      }
-    })
-
-    return () => abortCtrl.abort()
+    const isValid = validateKeyPair(publicKeyInputValue, privateKeyInputValue)
+    setKeyPairValid(isValid)
+    if (isValid) {
+      updatePrivKey(privateKeyInputValue)
+      updatePubKey(publicKeyInputValue)
+    }
   }, [keyPairValid, publicKeyInputValue, privateKeyInputValue, updatePubKey])
 
   const deleteIdentityButtonClicked = () => {

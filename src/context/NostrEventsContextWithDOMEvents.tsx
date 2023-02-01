@@ -144,15 +144,14 @@ const NostrDOMEventsProvider = ({ children }: ProviderProps<NostrDOMEventsEntry 
       const newEventBus = createIncoming(current)
       websocket.addEventListener(
         'message',
-        async (event) => {
+        (event) => {
           const data = JSON.parse(event.data) as NIP01.RelayMessage
           if (!Array.isArray(data) || data.length !== 3) return
           if (data[0] !== NIP01.RelayEventType.EVENT) return
 
           const nostrEvent = data[2] as NIP01.Event
 
-          const isValidEvent =
-            NostrDOMEvents.validateEvent(nostrEvent) && (await NostrDOMEvents.verifySignature(nostrEvent))
+          const isValidEvent = NostrDOMEvents.validateEvent(nostrEvent) && NostrDOMEvents.verifySignature(nostrEvent)
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid incoming event from relay - wont emit on internal event bus')
             return
@@ -179,9 +178,7 @@ const NostrDOMEventsProvider = ({ children }: ProviderProps<NostrDOMEventsEntry 
       // Publish from internal event bus to relay via websocket
       newEventBus.on(
         NIP01.ClientEventType.EVENT,
-        async (event: CustomEvent<NIP01.ClientMessage>) => {
-          //event.stopPropagation()
-
+        (event: CustomEvent<NIP01.ClientMessage>) => {
           if (!websocket) {
             console.warn('Websocket not ready yet')
             return
@@ -190,8 +187,7 @@ const NostrDOMEventsProvider = ({ children }: ProviderProps<NostrDOMEventsEntry 
           const req = event.detail as NIP01.ClientEventMessage
 
           const signedEvent = req[1]
-          const isValidEvent =
-            NostrDOMEvents.validateEvent(signedEvent) && (await NostrDOMEvents.verifySignature(signedEvent))
+          const isValidEvent = NostrDOMEvents.validateEvent(signedEvent) && NostrDOMEvents.verifySignature(signedEvent)
           if (!isValidEvent) {
             console.warn('[Nostr] Invalid outgoing event from internal event bus - wont emit to relay')
             return

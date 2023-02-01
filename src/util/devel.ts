@@ -32,10 +32,7 @@ export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise
     throw new Error(`Could not load pgn`)
   }
 
-  const gameStart = await NostrEvents.signEvent(
-    JesterUtils.constructStartGameEvent(keyPair.publicKey),
-    keyPair.privateKey
-  )
+  const gameStart = NostrEvents.signEvent(JesterUtils.constructStartGameEvent(keyPair.publicKey), keyPair.privateKey)
   const events = [gameStart]
 
   const history = fullChessInstance.history({ verbose: true })
@@ -48,7 +45,7 @@ export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise
       throw new Error(`Could not make move on index ${i}`)
     }
 
-    const gameMove = await NostrEvents.signEvent(
+    const gameMove = NostrEvents.signEvent(
       JesterUtils.constructGameMoveEvent(keyPair.publicKey, gameStart.id, currentHead.id, stateChessInstance),
       keyPair.privateKey
     )

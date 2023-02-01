@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer'
+import * as secp256k1 from '@noble/secp256k1'
+import { bytesToHex } from '@noble/hashes/utils'
 import { sha256 } from '@noble/hashes/sha256'
-import { schnorr } from '@alephium/noble-secp256k1'
 
 import * as NIP01 from '../../util/nostr/nip01'
 
@@ -62,18 +63,18 @@ export const validateEventOrThrow = (event: NIP01.UnsignedEvent): NIP01.Unsigned
   return event
 }
 
-export const signEvent = async (unsignedEvent: NIP01.UnsignedEvent, privKey: PrivKey): Promise<NIP01.Event> => {
-  const sig = await createSignature(unsignedEvent, privKey)
+export const signEvent = (unsignedEvent: NIP01.UnsignedEvent, privKey: PrivKey): NIP01.Event => {
+  const sig = createSignature(unsignedEvent, privKey)
   return {
     ...unsignedEvent,
     sig,
   }
 }
 
-export const createSignature = async (event: NIP01.UnsignedEvent, privKey: PrivKey): Promise<NIP01.Sig> => {
-  return Buffer.from(await schnorr.sign(createEventHash(event), privKey)).toString('hex')
+export const createSignature = (event: NIP01.UnsignedEvent, privKey: PrivKey): NIP01.Sig => {
+  return bytesToHex(secp256k1.schnorr.signSync(createEventHash(event), privKey))
 }
 
-export const verifySignature = async (event: NIP01.Event) => {
-  return schnorr.verify(event.sig, event.id, event.pubkey)
+export const verifySignature = (event: NIP01.Event) => {
+  return secp256k1.schnorr.verifySync(event.sig, event.id, event.pubkey)
 }

@@ -182,43 +182,20 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     if (allGamesCreatedByBot === null) return
     if (allGamesCreatedByBot.length !== 0) return
 
-    const abortCtrl = new AbortController()
     botConsole.debug(`[Bot TODO] '${selectedBot?.name}': I have not created any games..`)
 
-    NostrEvents.signEvent(
+    try {
+    const signedEvent = NostrEvents.signEvent(
       JesterUtils.constructPrivateStartGameEvent(botKeyPair.publicKey, userPublicKeyOrNull),
       botKeyPair.privateKey
     )
-      .then((signedEvent) => {
-        if (abortCtrl.signal.aborted) return
+    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+    botConsole.info('[Bot] Sent event via nostr..', signedEvent.id)
 
-        return new Promise<NIP01.Event>(function (resolve, reject) {
-          setTimeout(() => {
-            if (abortCtrl.signal.aborted) {
-              reject(new Error('State has been aborted'))
-            } else {
-              try {
-                outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-                resolve(signedEvent)
-              } catch (e) {
-                reject(e)
-              }
-            }
-          }, 1)
-        })
-      })
-      .then((event) => {
-        botConsole.info('[Bot] Sent event via nostr..', event?.id)
-        if (!abortCtrl.signal.aborted) {
-          setWatchGameId(event?.id || null)
-        }
-      })
-      .catch((e) => {
-        botConsole.error('[Bot] Error while sending start event..', e)
-      })
-
-    return () => {
-      abortCtrl.abort()
+      setWatchGameId(signedEvent.id)
+      
+    } catch(e)  {
+      botConsole.error('[Bot] Error while sending start event..', e)
     }
   }, [selectedBot, allGamesCreatedByBot, userPublicKeyOrNull, botKeyPair, outgoingNostr])
 
@@ -332,11 +309,9 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
       chessboardWithNewMove
     )
 
-    NostrEvents.signEvent(moveEvent, botKeyPair.privateKey)
-      .then((signedEvent) => {
-        if (abortCtrl.signal.aborted) return
+    const signedEvent = NostrEvents.signEvent(moveEvent, botKeyPair.privateKey)
 
-        return new Promise<NIP01.Event>(function (resolve, reject) {
+    new Promise<NIP01.Event>(function (resolve, reject) {
           setTimeout(() => {
             if (abortCtrl.signal.aborted) {
               reject(new Error('State has been aborted'))
@@ -350,7 +325,6 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
             }
           }, botWaitTimeInMillis)
         })
-      })
       .then((e) => {
         botConsole.info('[Bot] Sent event', e)
       })

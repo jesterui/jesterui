@@ -42,22 +42,20 @@ export function CreateGameButton({ buttonRef, onGameCreated, text = 'Start new g
     const privateKey = privateKeyOrNull!
 
     const event = JesterUtils.constructStartGameEvent(publicKey)
-    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+    const signedEvent = NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
     onGameCreated(JesterUtils.gameIdToJesterId(signedEvent.id))
   }, [outgoingNostr, publicKeyOrNull, privateKeyOrNull, onGameCreated])
-
-  const onClick = useCallback(() => onStartGameButtonClicked(), [onStartGameButtonClicked])
 
   useEffect(() => {
     if (!buttonRef.current) return
 
     buttonRef.current.onclick = (e) => {
       e.preventDefault()
-      onClick()
+      onStartGameButtonClicked()
     }
-  }, [buttonRef, onClick])
+  }, [buttonRef, onStartGameButtonClicked])
 
   return <></>
 }
@@ -119,7 +117,7 @@ export function CreateDirectChallengeButtonHook({
   const publicKeyOrNull = useMemo(() => settings.identity?.pubkey || null, [settings])
   const privateKeyOrNull = getSession()?.privateKey || null
 
-  const onStartGameButtonClicked = useCallback(async () => {
+  const onStartGameButtonClicked = useCallback(() => {
     // TODO: do not use window.alert..
     if (!outgoingNostr) {
       window.alert('Nostr EventBus not ready..')
@@ -138,7 +136,7 @@ export function CreateDirectChallengeButtonHook({
     const privateKey = privateKeyOrNull!
 
     const event = JesterUtils.constructPrivateStartGameEvent(publicKey, opponentPubKey)
-    const signedEvent = await NostrEvents.signEvent(event, privateKey)
+    const signedEvent = NostrEvents.signEvent(event, privateKey)
     outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
 
     onGameCreated && onGameCreated(JesterUtils.gameIdToJesterId(signedEvent.id))

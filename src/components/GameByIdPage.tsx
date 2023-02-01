@@ -481,10 +481,10 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     const headId = currentGameHead.event().id
 
     return await new Promise<NIP01.Event>(function (resolve, reject) {
-      setTimeout(async () => {
+      setTimeout(() => {
         try {
           const event = constructGameMoveEvent(publicKey, startId, headId, chessboard)
-          const signedEvent = await NostrEvents.signEvent(event, privateKey)
+          const signedEvent = NostrEvents.signEvent(event, privateKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
         } catch (e) {
