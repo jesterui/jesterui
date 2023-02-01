@@ -1,19 +1,13 @@
 import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex, randomBytes } from '@noble/hashes/utils'
-import { Buffer } from 'buffer'
+import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
 import { bech32m } from 'bech32'
 
 import { ChessInstance } from '../components/ChessJsTypes'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { arrayEquals } from '../util/utils'
+import { arrayEquals, hashWithSha256 } from '../util/utils'
 import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
-
-export const hashWithSha256 = (val: string): NIP01.Sha256 => {
-  let eventHash = sha256.init().update(Buffer.from(val)).digest()
-  return Buffer.from(eventHash).toString('hex')
-}
 
 export const VALID_JESTER_ID_EXAMPLE: JesterId = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
 
@@ -296,7 +290,7 @@ export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
 }
 
 export const gameIdToJesterId = (gameId: NIP01.EventId): JesterId => {
-  const words = bech32m.toWords(Buffer.from(gameId, 'hex'))
+  const words = bech32m.toWords(hexToBytes(gameId))
   const encoded = bech32m.encode(JESTER_ID_PREFIX, words) as JesterId
   return encoded
 }
@@ -306,8 +300,8 @@ export const jesterIdToGameId = (jesterId: JesterId): NIP01.EventId => {
     throw new Error('Cannot decode jesterId: invalid prefix')
   }
 
-  const bytes = Buffer.from(bech32m.fromWords(decoded.words))
-  return bytes.toString('hex')
+  const numbers = bech32m.fromWords(decoded.words)
+  return bytesToHex(Uint8Array.of(...numbers))
 }
 
 export const tryParseJesterId = (possibleJesterId?: unknown): JesterId | null => {

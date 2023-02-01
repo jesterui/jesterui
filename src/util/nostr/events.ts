@@ -1,11 +1,10 @@
-import { Buffer } from 'buffer'
 import * as secp256k1 from '@noble/secp256k1'
 import { bytesToHex } from '@noble/hashes/utils'
-import { sha256 } from '@noble/hashes/sha256'
 
+import { hashWithSha256 } from '../../util/utils'
 import * as NIP01 from '../../util/nostr/nip01'
 
-export type PrivKey = NIP01.Hex // | bigint | number
+export type PrivKey = Hex // | bigint | number
 
 export const blankEvent = (): NIP01.EventInConstruction => {
   return {
@@ -30,12 +29,8 @@ const signableEventData = (evt: NIP01.EventParts): NIP01.SignableEventData => {
   return [0, evt.pubkey, evt.created_at, evt.kind, evt.tags, evt.content]
 }
 
-export const createEventHash = (event: NIP01.EventParts): NIP01.Sha256 => {
-  let eventHash = sha256
-    .init()
-    .update(Buffer.from(JSON.stringify(signableEventData(event))))
-    .digest()
-  return Buffer.from(eventHash).toString('hex')
+export const createEventHash = (event: NIP01.EventParts): Sha256 => {
+  return hashWithSha256(JSON.stringify(signableEventData(event)))
 }
 
 export const validateEvent = (event: NIP01.UnsignedEvent): boolean => {

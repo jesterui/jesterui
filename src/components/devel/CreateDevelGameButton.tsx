@@ -8,7 +8,7 @@ import { getSession } from '../../util/session'
 import { createDevelGameEvents } from '../../util/devel'
 
 interface CreateDevelGameButtonProps {
-  onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.Sha256) => void
+  onGameCreated: (e: MouseEvent<HTMLButtonElement>, gameId: NIP01.EventId) => void
 }
 
 export default function CreateDevelGameButton({ onGameCreated }: CreateDevelGameButtonProps) {

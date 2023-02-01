@@ -1,4 +1,3 @@
-
 import { prepareSecp256k1 } from './util'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'

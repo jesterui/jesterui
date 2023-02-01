@@ -1,3 +1,12 @@
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils'
+import { sha256 } from '@noble/hashes/sha256'
+
+export const hashWithSha256 = (val: string): Hex => {
+  /*let eventHash = sha256.init().update(Buffer.from(val)).digest()
+  return Buffer.from(eventHash).toString('hex')*/
+  return bytesToHex(sha256(utf8ToBytes(val)))
+}
+
 export const isFunction = (obj: any): obj is Function => typeof obj === 'function'
 
 const NOOP = () => {}

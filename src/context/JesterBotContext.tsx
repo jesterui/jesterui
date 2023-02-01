@@ -185,16 +185,15 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     botConsole.debug(`[Bot TODO] '${selectedBot?.name}': I have not created any games..`)
 
     try {
-    const signedEvent = NostrEvents.signEvent(
-      JesterUtils.constructPrivateStartGameEvent(botKeyPair.publicKey, userPublicKeyOrNull),
-      botKeyPair.privateKey
-    )
-    outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-    botConsole.info('[Bot] Sent event via nostr..', signedEvent.id)
+      const signedEvent = NostrEvents.signEvent(
+        JesterUtils.constructPrivateStartGameEvent(botKeyPair.publicKey, userPublicKeyOrNull),
+        botKeyPair.privateKey
+      )
+      outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+      botConsole.info('[Bot] Sent event via nostr..', signedEvent.id)
 
       setWatchGameId(signedEvent.id)
-      
-    } catch(e)  {
+    } catch (e) {
       botConsole.error('[Bot] Error while sending start event..', e)
     }
   }, [selectedBot, allGamesCreatedByBot, userPublicKeyOrNull, botKeyPair, outgoingNostr])
@@ -312,19 +311,19 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     const signedEvent = NostrEvents.signEvent(moveEvent, botKeyPair.privateKey)
 
     new Promise<NIP01.Event>(function (resolve, reject) {
-          setTimeout(() => {
-            if (abortCtrl.signal.aborted) {
-              reject(new Error('State has been aborted'))
-            } else {
-              try {
-                outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
-                resolve(signedEvent)
-              } catch (e) {
-                reject(e)
-              }
-            }
-          }, botWaitTimeInMillis)
-        })
+      setTimeout(() => {
+        if (abortCtrl.signal.aborted) {
+          reject(new Error('State has been aborted'))
+        } else {
+          try {
+            outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
+            resolve(signedEvent)
+          } catch (e) {
+            reject(e)
+          }
+        }
+      }, botWaitTimeInMillis)
+    })
       .then((e) => {
         botConsole.info('[Bot] Sent event', e)
       })

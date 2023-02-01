@@ -1,11 +1,9 @@
-import * as NIP01 from '../util/nostr/nip01'
-
 const SESSION_KEY = 'jester-ui'
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
 export type SessionItem = {
-  privateKey: NIP01.Hex | null
+  privateKey: Hex | null
   [key: string]: Json
 }
 

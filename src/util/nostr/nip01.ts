@@ -1,8 +1,6 @@
-export type Hex = string
 export type PubKey = Hex
+export type PrivKey = Hex
 export type Sig = Hex //  <64-bytes signature of the sha256 hash of the serialized event data, which is the same as the "id" field>
-
-export type Sha256 = Hex
 
 export type EventId = Sha256 // 32-bytes sha256
 

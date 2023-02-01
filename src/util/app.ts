@@ -1,6 +1,7 @@
 import * as NIP01 from '../util/nostr/nip01'
 import { GameStartEvent } from '../util/app_db'
-import { JesterId, JESTER_ID_PREFIX, hashWithSha256 } from '../util/jester'
+import { hashWithSha256 } from '../util/utils'
+import { JesterId, JESTER_ID_PREFIX } from '../util/jester'
 import { PrivKey } from '../util/nostr/events'
 import { hashToPrivateKey, publicKey } from '../util/nostr/identity'
 

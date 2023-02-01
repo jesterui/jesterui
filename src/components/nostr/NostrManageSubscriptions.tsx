@@ -3,6 +3,7 @@ import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { useSettings } from '../../context/SettingsContext'
 import { useUpdateSubscription } from '../../context/NostrSubscriptionsContext'
+import { hashWithSha256 } from '../../util/utils'
 import * as NIP01 from '../../util/nostr/nip01'
 import * as JesterUtils from '../../util/jester'
 import { randomNumberBetween } from '../../util/app'
@@ -15,13 +16,13 @@ const uniqueRandomStrings = (amount: number, maxStringLength: number) => {
   if (amount < 0) throw new Error('`amount` must not be negative')
   if (amount === 0) return []
 
-  let seed = JesterUtils.hashWithSha256(bytesToHex(randomBytes(4)))
+  let seed = hashWithSha256(bytesToHex(randomBytes(4)))
   while (arr.length < amount) {
     const test = seed.substring(0, randomNumberBetween(1, maxStringLength))
     if (!arr.includes(test)) {
       arr.push(test)
     }
-    seed = JesterUtils.hashWithSha256(seed)
+    seed = hashWithSha256(seed)
   }
 
   return arr

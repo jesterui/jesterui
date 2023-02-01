@@ -3,7 +3,7 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 
 import { Spinner } from './Spinner'
 
-import { hashWithSha256 } from '../util/jester'
+import { hashWithSha256 } from '../util/utils'
 
 interface RoboHashImgProps {
   value: string
