@@ -48,7 +48,8 @@ The page will reload if you make edits. You will also see any lint errors in the
 
 - create-react-app: https://facebook.github.io/create-react-app/docs/getting-started
 - react-chessboard (GitHub): https://github.com/Clariity/react-chessboard
-- material-tailwind (GitHub): https://github.com/creativetimofficial/material-tailwind
+- tailwind: https://tailwindcss.com/
+- daisyui: https://github.com/daisyui/react-daisyui
 
 - mermaid: https://mermaid-js.github.io/mermaid/#/sequenceDiagram
 
