@@ -407,7 +407,13 @@ export default function SettingsPage() {
     <div className="screen-settings pb-4">
       <H1>Settings</H1>
 
-      <Tabs className="mb-8 border-b border-current" size="lg" value={currentTab} onChange={setCurrentTab} variant="bordered">
+      <Tabs
+        className="mb-8 border-b border-current"
+        size="lg"
+        value={currentTab}
+        onChange={setCurrentTab}
+        variant="bordered"
+      >
         <Tabs.Tab value={0}>nostr</Tabs.Tab>
         <Tabs.Tab value={1}>Theme</Tabs.Tab>
         <Tabs.Tab value={2}>Dev</Tabs.Tab>
