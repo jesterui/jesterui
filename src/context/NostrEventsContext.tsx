@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect, useState } from 'react'
+import { createContext, useContext, ProviderProps, useEffect, useState } from 'react'
 import { Dexie, DexieEvent } from 'dexie'
 
 import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'

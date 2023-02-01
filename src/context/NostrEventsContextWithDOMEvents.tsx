@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
+import { createContext, useContext, ProviderProps, useEffect, useState, useRef } from 'react'
 
 import { useWebsocket, send as websocketSend } from '../context/WebsocketContext'
 

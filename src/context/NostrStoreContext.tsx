@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
+import { createContext, useContext, ProviderProps, useEffect } from 'react'
 
 import { useIncomingNostrEvents } from '../context/NostrEventsContext'
 

@@ -1,4 +1,4 @@
-import React, { ProviderProps, createContext, useEffect, useMemo, useState, useContext } from 'react'
+import { ProviderProps, createContext, useEffect, useMemo, useState, useContext } from 'react'
 
 import { useSettings } from '../context/SettingsContext'
 

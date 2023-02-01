@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { ReactNode, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useGameStore } from '../../context/GameEventStoreContext'
@@ -12,7 +12,7 @@ type GameByIdResult = Loading | GameNotFound | GameStartEvent
 
 interface GameByIdProps {
   jesterId: JesterUtils.JesterId | null
-  children: (props: GameByIdResult) => React.ReactNode
+  children: (props: GameByIdResult) => ReactNode
 }
 
 export function GameById({ jesterId, children }: GameByIdProps) {
@@ -29,5 +29,5 @@ export function GameById({ jesterId, children }: GameByIdProps) {
     undefined
   )
 
-  return <>{(children as (game: GameByIdResult) => React.ReactNode)(game as GameByIdResult)}</>
+  return <>{(children as (game: GameByIdResult) => ReactNode)(game as GameByIdResult)}</>
 }

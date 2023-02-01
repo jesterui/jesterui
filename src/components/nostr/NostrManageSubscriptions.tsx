@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 import { useSettings } from '../../context/SettingsContext'

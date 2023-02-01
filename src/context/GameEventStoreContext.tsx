@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ProviderProps, useEffect } from 'react'
+import { createContext, useContext, ProviderProps, useEffect } from 'react'
 import { IndexableType, Transaction } from 'dexie'
 
 import { useNostrStore } from '../context/NostrStoreContext'

@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useMemo, ProviderProps, useEffect } from 'react'
+import { useState, createContext, useContext, useMemo, ProviderProps, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useSettings } from '../context/SettingsContext'
