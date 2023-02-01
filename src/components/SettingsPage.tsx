@@ -99,7 +99,7 @@ function ThemeItem({ dataTheme, selected, onClick }: ThemeItemProps) {
 }
 
 export const TEST_MESSAGE_REF = bytesToHex(randomBytes(32))
-export const TEST_MESSAGE_KIND: NIP01.Kind = 7357 // "test"
+export const TEST_MESSAGE_KIND: NIP01.Kind = 20_000 + 7357 // ephemeral start + "test"
 
 type PubKey = string | null
 type PrivKey = string | null
