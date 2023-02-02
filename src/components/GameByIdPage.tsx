@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Button, Input, Tooltip, Modal } from 'react-daisyui'
+import { Button, Input, Tooltip, Modal, Divider } from 'react-daisyui'
 import { ArrowUturnLeftIcon, ScaleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -881,6 +881,9 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
               <div>{`isLoading: ${isLoading}`}</div>
               <div>{`isSearchingHead: ${isSearchingHead}`}</div>
               <div>{`Moves: ${currentGameMoves.length}`}</div>
+              <Divider />
+              <div>{`currentHead.event: ${JSON.stringify(currentGameHead?.event(), null, 2)}`}</div>
+              <div>{`PGN: ${currentChessInstance?.pgn()}`}</div>
             </pre>
           </div>
         </div>
