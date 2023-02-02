@@ -756,7 +756,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
                   privKey={privateKeyOrNull}
                   ourPubKey={publicKeyOrNull}
                   theirPubKey={publicKeyOrNull === player1PubKey ? player2PubKey : player1PubKey}
-                  startId={currentGameStart?.event().id} />
+                  gameId={currentGameStart?.event().id} />
               </div>
             </>
           )}

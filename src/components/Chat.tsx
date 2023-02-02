@@ -31,24 +31,24 @@ export const constructChatMessage = (
   return NostrEvents.constructEvent(eventParts)
 }
 
-export default function Chat({ privKey, ourPubKey, theirPubKey, startId }: { privKey: NIP01.PrivKey | null, ourPubKey: NIP01.PubKey | null, theirPubKey?: NIP01.PubKey, startId?: NIP01.EventId }) {
+export default function Chat({ privKey, ourPubKey, theirPubKey, gameId }: { privKey: NIP01.PrivKey | null, ourPubKey: NIP01.PubKey | null, theirPubKey?: NIP01.PubKey, gameId?: NIP01.EventId }) {
   const outgoingNostr = useOutgoingNostrEvents()
   const gameStore = useGameStore()
 
   const existingMessages = useLiveQuery(
     async () => {
-      if (!startId) return []
+      if (!gameId) return []
 
-      const events = await gameStore.game_chat.where('gameId').equals(startId).sortBy('created_at')
+      const events = await gameStore.game_chat.where('gameId').equals(gameId).sortBy('created_at')
       return events
     },
-    [startId],
+    [gameId],
     [] as GameChatEvent[]
   )
 
   const [message, setMessage] = useState<string>("");
 
-  if (!(privKey && ourPubKey && theirPubKey && startId)) return null;
+  if (!(privKey && ourPubKey && theirPubKey && gameId)) return null;
 
   const sendChatMessage = async (message: string) => {
     if (!outgoingNostr) {
@@ -57,7 +57,7 @@ export default function Chat({ privKey, ourPubKey, theirPubKey, startId }: { pri
     return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(() => {
         try {
-          const event = constructChatMessage(ourPubKey, message, startId)
+          const event = constructChatMessage(ourPubKey, message, gameId)
           const signedEvent = NostrEvents.signEvent(event, privKey)
           outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
           resolve(signedEvent)
