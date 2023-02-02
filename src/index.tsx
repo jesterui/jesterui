@@ -31,6 +31,10 @@ declare global {
   }
 }
 
+
+
+const DEFAULT_BOT_NAME = 'Risky Alice'
+
 const defaultAppSettings: AppSettings = {
   dev: process.env.NODE_ENV === 'development',
   theme: 'dark',
@@ -38,7 +42,7 @@ const defaultAppSettings: AppSettings = {
     // 'wss://relayer.fiatjaf.com', // good uptime
     // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
   ],
-  botName: null,
+  botName: DEFAULT_BOT_NAME,
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
@@ -54,7 +58,7 @@ root.render(
               <NostrStoreProvider value={undefined}>
                 <GameEventStoreProvider value={undefined}>
                   <NostrSubscriptionsProvider value={undefined}>
-                    <JesterBotProvider value={undefined}></JesterBotProvider>
+                    <JesterBotProvider value={{ defaultBotName: DEFAULT_BOT_NAME }}></JesterBotProvider>
                     <App />
                   </NostrSubscriptionsProvider>
                 </GameEventStoreProvider>

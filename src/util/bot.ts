@@ -30,7 +30,7 @@ export const AnalyticsEngine = prepareEngine('/bots/stockfish.js-10.0.2/stockfis
 
 // https://ucichessengine.wordpress.com/2011/03/16/description-of-uci-protocol/
 // https://github.com/official-stockfish/Stockfish#the-uci-protocol-and-available-options
-export const Bots: AvailableBots = {
+export const Bots: AvailableBots = Object.freeze({
   Alice: prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1', // 0 - 20
     'setoption name Contempt value 0', // -100 - 100
@@ -69,4 +69,4 @@ export const Bots: AvailableBots = {
     'go depth 10',
   ]),
   Chaos: randomMover,
-}
+})

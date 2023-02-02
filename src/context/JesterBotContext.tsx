@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, useMemo, ProviderProps, useEffect, useRef } from 'react'
+import { useState, createContext, useMemo, ProviderProps, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useSettings } from '../context/SettingsContext'
@@ -30,29 +30,20 @@ const botConsole =
         warn: () => {},
         error: () => {},
       }
-
-const DEFAULT_BOT_NAME = 'Risky Alice'
-const createDefaultBot: () => SelectedBot | null = () =>
-  ((name) => {
+  
+const instantiateBotByName = (botName: string | null): Nullable<SelectedBot> => {
+  if (botName && Bot.Bots[botName]) {
     try {
       return {
-        name: name,
-        bot: Bot.Bots[name](),
+        name: botName,
+        bot: Bot.Bots[botName](),
       }
     } catch (e) {
-      botConsole.error(`Could not instantiate bot '${name}'`)
+      botConsole.error(`Could not instantiate bot '${botName}'`)
       return null
     }
-  })(DEFAULT_BOT_NAME)
-
-const instantiateBotByName = (botName: string | null): SelectedBot | null => {
-  if (botName && Bot.Bots[botName]) {
-    return {
-      name: botName,
-      bot: Bot.Bots[botName](),
-    }
   }
-  return createDefaultBot()
+  return null
 }
 
 const randomBotWaitTime = (moveCount: number) => {
@@ -72,7 +63,12 @@ interface JesterBotContextEntry {
 
 const JesterBotContext = createContext<JesterBotContextEntry | undefined>(undefined)
 
-const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | undefined>) => {
+
+type JesterBotProviderProps = {
+  defaultBotName: keyof typeof Bot.Bots
+}
+
+const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProps<JesterBotProviderProps>) => {
   const settings = useSettings()
   const gameStore = useGameStore()
   const outgoingNostr = useOutgoingNostrEvents()
@@ -165,9 +161,10 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
           current.bot.terminate()
         }
       }
-      return instantiateBotByName(selectedBotName)
+      const newBot = instantiateBotByName(selectedBotName)
+      return newBot ?? instantiateBotByName(defaultBotName)
     })
-  }, [selectedBotName])
+  }, [selectedBotName, defaultBotName])
 
   useEffect(() => {
     botConsole.debug(`[Bot] Bot changed to ${selectedBot?.name}`)
@@ -354,13 +351,4 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
   )
 }
 
-const useJesterBot = () => {
-  const context = useContext(JesterBotContext)
-  if (context === undefined) {
-    throw new Error('useJesterBot must be used within a JesterBotProvider')
-  }
-
-  return context.bot
-}
-
-export { JesterBotContext, JesterBotProvider, useJesterBot }
+export { JesterBotContext, JesterBotProvider }
