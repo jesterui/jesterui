@@ -73,7 +73,7 @@ const _withFen = (fen: ValidFen): Chess.Chess => {
   try {
     _chessInstance.load(fen.value())
     return _chessInstance
-  } catch(e) {
+  } catch (e) {
     throw new Error('Could not load fen', { cause: e })
   }
 }

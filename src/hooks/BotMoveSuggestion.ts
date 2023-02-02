@@ -5,7 +5,7 @@ import * as Chess from 'chess.js'
 
 import * as UCI from '../util/uci'
 import { AnalyticsEngine } from '../util/bot'
-import { GameMoveEvent } from '../util/app_db'
+import { GameStartEvent, GameMoveEvent } from '../util/app_db'
 import * as JesterUtils from '../util/jester'
 
 interface MoveAndFen {
@@ -33,14 +33,14 @@ const isValidPgn = (pgn: string) => {
   try {
     VALIDATION_INSTANCE.loadPgn(pgn)
     return true
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
 
 export default function useBotSuggestion(
   selectedBot: SelectedBot,
-  gameEvent: GameMoveEvent | undefined
+  gameEvent: GameStartEvent | GameMoveEvent | undefined
 ): BotMoveSuggestion {
   const isThinking = useRef(false)
   const [thinkingFens, setThinkingFens] = useState<UCI.Fen[]>([])

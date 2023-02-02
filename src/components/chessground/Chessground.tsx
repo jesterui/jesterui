@@ -98,11 +98,7 @@ type CessboardProps = {
   onAfterMoveFinished: (fn: (g: ChessInstance) => void) => void
 }
 
-export default function Chessboard({
-  game,
-  userColor,
-  onAfterMoveFinished,
-}: CessboardProps) {
+export default function Chessboard({ game, userColor, onAfterMoveFinished }: CessboardProps) {
   const [chessgroundConfig, setChessgroundConfig] = useState<Partial<CgConfig>>({} as Partial<CgConfig>)
 
   const onAfter = useCallback(

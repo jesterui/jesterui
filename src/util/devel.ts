@@ -25,11 +25,10 @@ export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise
   const fullChessInstance: Chess.Chess = new Chess.Chess()
   const stateChessInstance: Chess.Chess = new Chess.Chess()
 
-
   try {
     fullChessInstance.loadPgn(pgn)
-  } catch(e) {
-    throw new Error(`Could not load pgn`, { cause: e})
+  } catch (e) {
+    throw new Error(`Could not load pgn`, { cause: e })
   }
 
   const gameStart = NostrEvents.signEvent(JesterUtils.constructStartGameEvent(keyPair.publicKey), keyPair.privateKey)

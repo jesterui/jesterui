@@ -162,7 +162,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
         const content = JSON.parse(entry.content) as JesterUtils.JesterProtoContent
         try {
           _chessInstance.loadPgn(content.pgn)
-        } catch(e) {
+        } catch (e) {
           console.warn(`[EventStore] Decline storage of game_move entry ${entry.id}: illegal pgn`)
           return
         }

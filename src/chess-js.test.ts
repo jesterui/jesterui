@@ -44,7 +44,6 @@ it('should load empty pgn with headers', () => {
   console.log(game.pgn())
 })
 
-
 it('should load minimal pgn with headers', () => {
   const nowIsoString = new Date().toISOString()
   const pgn = [
@@ -65,10 +64,7 @@ it('should load minimal pgn with headers', () => {
   expect(game.fen()).toBe(FEN_START_POSITION)
 
   console.log(game.pgn())
-
 })
-
-
 
 it('should load pgn from Portable_Game_Notation wikipedia acticle', () => {
   const pgn = [
@@ -96,10 +92,7 @@ it('should load pgn from Portable_Game_Notation wikipedia acticle', () => {
   expect(game.fen()).toBe('8/8/4R1p1/2k3p1/1p4P1/1P1b1P2/3K1n2/8 b - - 2 43')
 
   console.log(game.pgn())
-
 })
-
-
 
 it('should load pgn from runnig game', () => {
   const pgn = [
@@ -127,6 +120,4 @@ it('should load pgn from runnig game', () => {
   expect(game.fen()).toBe('8/8/R5p1/2k2bp1/1p4P1/1P3P2/3K1n2/8 b - - 0 42')
 
   console.log(game.pgn())
-
 })
-

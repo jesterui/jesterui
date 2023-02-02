@@ -12,7 +12,7 @@ import { SelectedBot } from '../components/BotSelector'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
-import { GameMoveEvent } from '../util/app_db'
+import { GameStartEvent, GameMoveEvent } from '../util/app_db'
 import { KeyPair, createPersonalBotKeyPair, randomNumberBetween } from '../util/app'
 import { getSession } from '../util/session'
 import * as Bot from '../util/bot'
@@ -24,7 +24,7 @@ const isValidPgn = (pgn: string) => {
   try {
     VALIDATION_INSTANCE.loadPgn(pgn)
     return true
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -97,8 +97,8 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
   const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(null)
   const [watchGameId, setWatchGameId] = useState<NIP01.EventId>()
-  const chessInstance = useRef<Chess.Chess>()
-  const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent>()
+  const chessInstance = useRef<Chess.Chess>(new Chess.Chess())
+  const [currentGameHead, setCurrentGameHead] = useState<GameStartEvent | GameMoveEvent>()
 
   const botMoveSuggestion = useBotSuggestion(selectedBot, currentGameHead)
   const [currentBotMoveSuggestion, setCurrentBotMoveSuggestion] = useState(botMoveSuggestion)
@@ -183,19 +183,18 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
     if (!outgoingNostr) return
     if (!userPublicKeyOrNull) return
     if (allGamesCreatedByBot === null) return
-    if (allGamesCreatedByBot.length !== 0) return
+    if (allGamesCreatedByBot.length > 0) return
 
-    botConsole.debug(`[Bot TODO] '${selectedBot.name}': I have not created any games..`)
+    botConsole.debug(`[Bot] '${selectedBot.name}': I will create a new game.`)
 
     try {
       const signedEvent = NostrEvents.signEvent(
         JesterUtils.constructPrivateStartGameEvent(botKeyPair.publicKey, userPublicKeyOrNull),
         botKeyPair.privateKey
       )
+      setWatchGameId(signedEvent.id)
       outgoingNostr.emit(NIP01.ClientEventType.EVENT, NIP01.createClientEventMessage(signedEvent))
       botConsole.info('[Bot] Sent event via nostr..', signedEvent.id)
-
-      setWatchGameId(signedEvent.id)
     } catch (e) {
       botConsole.error('[Bot] Error while sending start event..', e)
     }
@@ -237,8 +236,8 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
   useEffect(() => {
     setCurrentGameHead((_) => {
-      if (!currentWatchGameStartEvent || currentWatchGameMoves.length === 0) {
-        return undefined
+      if (currentWatchGameMoves.length === 0) {
+        return currentWatchGameStartEvent
       }
       return currentWatchGameMoves[currentWatchGameMoves.length - 1]
     })
@@ -246,21 +245,16 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
   useEffect(() => {
     if (!currentGameHead) {
-      chessInstance.current = new Chess.Chess()
+      chessInstance.current.reset()
       return
     }
-
     const content: JesterUtils.JesterProtoContent = JSON.parse(currentGameHead.content)
 
     if (!isValidPgn(content.pgn)) {
       botConsole.error('[Bot] Current game head has no valid pgn')
       return
     }
-    if (chessInstance.current === undefined) {
-      botConsole.error('[Bot] Cannot load pgn - current instance not available. wtf?')
-    } else {
-      chessInstance.current!.loadPgn(content.pgn)
-    }
+    chessInstance.current.loadPgn(content.pgn)
   }, [currentGameHead])
 
   useEffect(() => {
@@ -274,7 +268,6 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
   useEffect(() => {
     if (!outgoingNostr) return
-    if (!chessInstance.current) return
     if (!botKeyPair) return
     if (!currentWatchGameStartEvent) return
     if (!currentBotMoveSuggestion || !currentBotMoveSuggestion.move) return
@@ -291,20 +284,14 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
       return
     }
 
-    const abortCtrl = new AbortController()
-    const parentMoveId = currentGameHead?.id || currentWatchGameStartEvent.id
-    const isGameStart = parentMoveId === currentWatchGameStartEvent.id
-
     const chessboardWithNewMove = new Chess.Chess()
-    if (!isGameStart) {
+    try {
       chessboardWithNewMove.loadPgn(chessInstance.current.pgn())
-      // load pgn does not work when the game has no moves - only load pgn if it is not game start!
-      // TODO: but even then the second move will have the pgn empty.. so the error message is still logged
-      /*if (!chessboardWithNewMove.loadPgn(chessInstance.current.pgn())) {
-        botConsole.error('[Bot] The current chessboard is not valid.. wtf?')
-        return
-      }*/
+    } catch (e) {
+      botConsole.error('[Bot] The current chessboard is not valid.. wtf?', { cause: e })
+      return
     }
+
     const successfulMove = chessboardWithNewMove.move(currentBotMoveSuggestion.move.move)
     if (!successfulMove) {
       botConsole.error('[Bot] The move the bot suggested is somehow invalid?!')
@@ -316,6 +303,7 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
     // no matter which bot is selected, add a random wait time to every move
     const botWaitTimeInMillis = randomBotWaitTime(moveCount)
 
+    const parentMoveId = currentGameHead?.id || currentWatchGameStartEvent.id
     const moveEvent = JesterUtils.constructGameMoveEvent(
       botKeyPair.publicKey,
       currentWatchGameStartEvent.id,
@@ -325,6 +313,7 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
     const signedEvent = NostrEvents.signEvent(moveEvent, botKeyPair.privateKey)
 
+    const abortCtrl = new AbortController()
     new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(() => {
         if (abortCtrl.signal.aborted) {

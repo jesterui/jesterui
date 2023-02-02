@@ -37,6 +37,7 @@ import { getSession } from '../util/session'
 
 import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
+import { Pgn } from '../util/chess'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -100,19 +101,18 @@ interface BoardContainerProps {
   game: ChessInstance
   color: MovableColor
   size: number
-  onGameChanged: (game: ChessInstance) => void
+  onGameChanged: (pgn: Pgn) => void
 }
 
 function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProps) {
+  const copyOfGame = useMemo(() => new ChessInstance(), [])
+
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
-      const copyOfGame = new ChessInstance()
-
       copyOfGame.loadPgn(game.pgn())
-      
       modify(copyOfGame)
-      onGameChanged(copyOfGame)
+      onGameChanged(copyOfGame.pgn() as Pgn)
     },
     [game, onGameChanged]
   )
@@ -291,7 +291,7 @@ interface GameboardWithLoaderProps {
   color: MovableColor
   isLoading: boolean
   isSearchingHead: boolean
-  onChessboardChanged: (chessboard: ChessInstance) => Promise<void>
+  onChessboardChanged: (pgn: Pgn) => Promise<void>
 }
 
 function GameboardWithLoader({
@@ -460,11 +460,12 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
     [player2PubKey]
   )
 
-  const onChessboardChanged = async (chessboard: ChessInstance) => {
+  const onChessboardChanged = async (pgn: Pgn) => {
     if (!currentChessInstance) return
 
     try {
-      await sendGameStateViaNostr(chessboard)
+      currentChessInstance.loadPgn(pgn)
+      await sendGameStateViaNostr(currentChessInstance)
     } catch (e) {
       console.error(e)
     }
@@ -544,7 +545,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
         const pgn = currentGameHead.content().pgn
         try {
           newGame.loadPgn(pgn)
-        } catch(e) {
+        } catch (e) {
           // should not happen as currentGameHead contains a valid pgn
           throw new Error(`Cannot load new game state from pgn: ${pgn}`, { cause: e })
         }
