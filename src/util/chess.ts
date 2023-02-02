@@ -67,18 +67,19 @@ class ValidFenImpl implements ValidFen {
   }
 }
 
-const _chessInstance: Chess.ChessInstance = new Chess.Chess()
+const _chessInstance: Chess.Chess = new Chess.Chess()
 
-const _withFen = (fen: ValidFen): Chess.ChessInstance => {
-  const fenLoaded = _chessInstance.load(fen.value())
-  if (!fenLoaded) {
-    throw new Error('Could not load fen')
+const _withFen = (fen: ValidFen): Chess.Chess => {
+  try {
+    _chessInstance.load(fen.value())
+    return _chessInstance
+  } catch(e) {
+    throw new Error('Could not load fen', { cause: e })
   }
-  return _chessInstance
 }
 
 const isValidFen = (fen: Fen): boolean => {
-  return _chessInstance.validate_fen(fen).valid
+  return Chess.validateFen(fen).ok
 }
 
 const findValidMoves = (fen: ValidFen): Chess.Move[] => {

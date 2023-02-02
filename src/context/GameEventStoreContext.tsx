@@ -11,7 +11,7 @@ import { arrayEquals } from '../util/utils'
 
 import * as Chess from 'chess.js'
 
-const _chessInstance: Chess.ChessInstance = new Chess.Chess()
+const _chessInstance: Chess.Chess = new Chess.Chess()
 
 const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.Event) => {
   const content = JSON.parse(event.content) as JesterUtils.JesterProtoContent
@@ -19,16 +19,18 @@ const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.E
     return false
   }
 
-  const validPgn = _chessInstance.load_pgn(content.pgn)
-  if (!validPgn) {
+  try {
+    _chessInstance.loadPgn(content.pgn)
+  } catch (e) {
     return false
   }
 
   const childHistory = _chessInstance.history()
 
   const parentContent = JSON.parse(parent.content) as JesterUtils.JesterProtoContent
-  const parentValidPgn = _chessInstance.load_pgn(parentContent.pgn)
-  if (!parentValidPgn) {
+  try {
+    _chessInstance.loadPgn(parentContent.pgn)
+  } catch (e) {
     return false
   }
   const parentHistory = _chessInstance.history()
@@ -158,8 +160,9 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
 
       trans.on('complete', async () => {
         const content = JSON.parse(entry.content) as JesterUtils.JesterProtoContent
-        const validPgn = _chessInstance.load_pgn(content.pgn)
-        if (!validPgn) {
+        try {
+          _chessInstance.loadPgn(content.pgn)
+        } catch(e) {
           console.warn(`[EventStore] Decline storage of game_move entry ${entry.id}: illegal pgn`)
           return
         }

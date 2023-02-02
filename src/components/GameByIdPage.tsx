@@ -12,7 +12,7 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { CopyButtonWithConfirmation } from '../components/CopyButton'
 import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
-import { ChessInstance } from 'chess.js'
+import { Chess as ChessInstance } from 'chess.js'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 import Chat from '../components/Chat'
 
@@ -48,14 +48,14 @@ const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
 const titleMessage = (game: ChessInstance, color: MovableColor) => {
-  if (game.game_over()) {
+  if (game.isGameOver()) {
     if (color.length !== 1) {
-      if (game.in_draw()) {
+      if (game.isDraw()) {
         return 'Draw'
       }
       return 'Game Over'
     } else {
-      if (game.in_draw()) {
+      if (game.isDraw()) {
         return '💪 Draw'
       }
 
@@ -79,8 +79,8 @@ const titleMessage = (game: ChessInstance, color: MovableColor) => {
 }
 
 const gameStateMessage = (game: ChessInstance, color: MovableColor) => {
-  if (game.game_over()) {
-    if (game.in_draw()) {
+  if (game.isGameOver()) {
+    if (game.isDraw()) {
       return 'Draw'
     }
     return 'Game Over'
@@ -107,7 +107,10 @@ function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProp
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
-      const copyOfGame = { ...game }
+      const copyOfGame = new ChessInstance()
+
+      copyOfGame.loadPgn(game.pgn())
+      
       modify(copyOfGame)
       onGameChanged(copyOfGame)
     },
@@ -150,21 +153,21 @@ const CopyGameUrlInput = ({ value }: { value: string }) => {
 }
 
 const GameOverMessage = ({ game }: { game: ChessInstance }) => {
-  if (!game.game_over()) {
+  if (!game.isGameOver()) {
     return <></>
   }
 
-  if (game.in_stalemate()) {
+  if (game.isStalemate()) {
     return <>Stalemate</>
   }
-  if (game.in_threefold_repetition()) {
+  if (game.isThreefoldRepetition()) {
     return <>Threefold repetition</>
   }
-  if (game.insufficient_material()) {
+  if (game.isInsufficientMaterial()) {
     return <>Insufficient material</>
   }
 
-  if (game.in_draw()) {
+  if (game.isDraw()) {
     return <>Draw</>
   }
 
@@ -381,7 +384,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
   const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
   const [color, setColor] = useState<MovableColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
-  const isGameOver = useMemo(() => currentChessInstance && currentChessInstance.game_over(), [currentChessInstance])
+  const isGameOver = useMemo(() => currentChessInstance && currentChessInstance.isGameOver(), [currentChessInstance])
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
@@ -533,16 +536,17 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
       }
 
       // TODO: does the "game" really need to change, or can you just do:
-      // current.game.load_pgn(history.join('\n'))
+      // current.game.loadPgn(history.join('\n'))
       // without returning a copy?
       if (currentGameHead.isStart()) {
         return newGame
       } else {
         const pgn = currentGameHead.content().pgn
-        const loaded = newGame.load_pgn(pgn)
-        if (!loaded) {
+        try {
+          newGame.loadPgn(pgn)
+        } catch(e) {
           // should not happen as currentGameHead contains a valid pgn
-          throw new Error(`Cannot load new game state from pgn: ${pgn}`)
+          throw new Error(`Cannot load new game state from pgn: ${pgn}`, { cause: e })
         }
 
         console.info('loaded new game state from pgn', newGame.pgn())

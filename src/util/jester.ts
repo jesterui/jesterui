@@ -2,7 +2,7 @@ import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { bech32m } from 'bech32'
 
-import { ChessInstance } from 'chess.js'
+import { Chess as ChessInstance } from 'chess.js'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'

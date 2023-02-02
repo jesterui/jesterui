@@ -29,6 +29,14 @@ const engineConsole =
       }
 
 const VALIDATION_INSTANCE = new Chess.Chess()
+const isValidPgn = (pgn: string) => {
+  try {
+    VALIDATION_INSTANCE.loadPgn(pgn)
+    return true
+  } catch(e) {
+    return false
+  }
+}
 
 export default function useBotSuggestion(
   selectedBot: SelectedBot,
@@ -42,7 +50,7 @@ export default function useBotSuggestion(
     move: null,
   })
 
-  const game = useRef<Chess.ChessInstance>(new Chess.Chess())
+  const game = useRef<Chess.Chess>(new Chess.Chess())
 
   useEffect(() => {
     if (!gameEvent) {
@@ -52,16 +60,15 @@ export default function useBotSuggestion(
 
     const content: JesterUtils.JesterProtoContent = JSON.parse(gameEvent.content)
 
-    const validPgn = VALIDATION_INSTANCE.load_pgn(content.pgn)
-    if (!validPgn) {
+    if (!isValidPgn(content.pgn)) {
       engineConsole.error('[Engine] Current gameEvent has no valid pgn')
       return
     }
 
-    game.current.load_pgn(content.pgn)
+    game.current.loadPgn(content.pgn)
 
     setThinkingFens((currentFens) => {
-      if (game.current.game_over()) {
+      if (game.current.isGameOver()) {
         return []
       }
 
@@ -73,7 +80,7 @@ export default function useBotSuggestion(
       return [...currentFens, newFen]
     })
 
-    if (game.current !== undefined && !game.current.game_over()) {
+    if (game.current !== undefined && !game.current.isGameOver()) {
       AnalyticsEngine.eval(game.current)
         .then((result) => {
           engineConsole.info(`[Engine] Evaluation of ${game.current?.fen()}: `, result)

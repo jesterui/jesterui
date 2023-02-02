@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as cg from 'chessground/types'
-import { ChessInstance } from 'chess.js'
+import { Chess as ChessInstance } from 'chess.js'
 
 type PgnLine = { no: number; white: cg.Key; black?: cg.Key }
 
@@ -11,8 +11,8 @@ export default function PgnTable({ game }: { game: ChessInstance }) {
   useEffect(() => {
     setPgn(
       game.pgn({
-        max_width: 2,
-        newline_char: '|',
+        maxWidth: 2,
+        newline: '|',
       })
     )
   }, [game])

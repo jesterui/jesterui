@@ -22,12 +22,14 @@ export const createDevelGameEvents = async (keyPair: KeyPair) => {
 }
 
 export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise<DevelGame> => {
-  const fullChessInstance: Chess.ChessInstance = new Chess.Chess()
-  const stateChessInstance: Chess.ChessInstance = new Chess.Chess()
+  const fullChessInstance: Chess.Chess = new Chess.Chess()
+  const stateChessInstance: Chess.Chess = new Chess.Chess()
 
-  const loaded = fullChessInstance.load_pgn(pgn)
-  if (!loaded) {
-    throw new Error(`Could not load pgn`)
+
+  try {
+    fullChessInstance.loadPgn(pgn)
+  } catch(e) {
+    throw new Error(`Could not load pgn`, { cause: e})
   }
 
   const gameStart = NostrEvents.signEvent(JesterUtils.constructStartGameEvent(keyPair.publicKey), keyPair.privateKey)

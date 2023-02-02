@@ -20,6 +20,14 @@ import * as Bot from '../util/bot'
 import * as Chess from 'chess.js'
 
 const VALIDATION_INSTANCE = new Chess.Chess()
+const isValidPgn = (pgn: string) => {
+  try {
+    VALIDATION_INSTANCE.loadPgn(pgn)
+    return true
+  } catch(e) {
+    return false
+  }
+}
 
 const botConsole =
   process.env.NODE_ENV === 'development'
@@ -89,7 +97,7 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
   const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(null)
   const [watchGameId, setWatchGameId] = useState<NIP01.EventId>()
-  const chessInstance = useRef<Chess.ChessInstance>()
+  const chessInstance = useRef<Chess.Chess>()
   const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent>()
 
   const botMoveSuggestion = useBotSuggestion(selectedBot, currentGameHead)
@@ -244,15 +252,14 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
     const content: JesterUtils.JesterProtoContent = JSON.parse(currentGameHead.content)
 
-    const validPgn = VALIDATION_INSTANCE.load_pgn(content.pgn)
-    if (!validPgn) {
+    if (!isValidPgn(content.pgn)) {
       botConsole.error('[Bot] Current game head has no valid pgn')
       return
     }
     if (chessInstance.current === undefined) {
       botConsole.error('[Bot] Cannot load pgn - current instance not available. wtf?')
     } else {
-      chessInstance.current!.load_pgn(content.pgn)
+      chessInstance.current!.loadPgn(content.pgn)
     }
   }, [currentGameHead])
 
@@ -290,12 +297,13 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
 
     const chessboardWithNewMove = new Chess.Chess()
     if (!isGameStart) {
+      chessboardWithNewMove.loadPgn(chessInstance.current.pgn())
       // load pgn does not work when the game has no moves - only load pgn if it is not game start!
       // TODO: but even then the second move will have the pgn empty.. so the error message is still logged
-      if (!chessboardWithNewMove.load_pgn(chessInstance.current.pgn())) {
+      /*if (!chessboardWithNewMove.loadPgn(chessInstance.current.pgn())) {
         botConsole.error('[Bot] The current chessboard is not valid.. wtf?')
         return
-      }
+      }*/
     }
     const successfulMove = chessboardWithNewMove.move(currentBotMoveSuggestion.move.move)
     if (!successfulMove) {
