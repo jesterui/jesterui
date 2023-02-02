@@ -46,7 +46,7 @@ export const prepareEngine =
     worker.addEventListener('message', (uciMessage) => {
       if (uciMessage.data === '') return
 
-      DEV && console.debug(`[Engine]`, uciMessage)
+      DEV && console.debug(`[UCI]`, uciMessage)
 
       const move = uciMessage.data.match(BESTMOVE_REGEX)
       if (move && bestmoveResolver) {
@@ -119,6 +119,7 @@ export const prepareEngine =
 
         terminated = true
         worker.terminate()
+        console.info(`[UCI] Terminate worker.`)
       },
       isTerminated: () => terminated,
     }

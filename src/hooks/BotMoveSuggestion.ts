@@ -34,11 +34,11 @@ export default function useBotSuggestion(
   selectedBot: SelectedBot,
   gameEvent: GameMoveEvent | undefined
 ): BotMoveSuggestion {
-  const [isThinking, setIsThinking] = useState(false)
+  const isThinking = useRef(false)
   const [thinkingFens, setThinkingFens] = useState<UCI.Fen[]>([])
 
   const [suggestion, setSuggestion] = useState<BotMoveSuggestion>({
-    isThinking: false,
+    isThinking: isThinking.current,
     move: null,
   })
 
@@ -84,7 +84,7 @@ export default function useBotSuggestion(
 
   useEffect(() => {
     if (!selectedBot) return
-    if (isThinking) return
+    if (isThinking.current === true) return
     if (thinkingFens.length === 0) return
 
     const thinkingFen = thinkingFens[thinkingFens.length - 1]
@@ -100,19 +100,21 @@ export default function useBotSuggestion(
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
-      setIsThinking(true)
+      isThinking.current = true
       engineConsole.info(`[Engine] Asking '${selectedBot.name}' for move suggestion to ${thinkingFen}...`)
 
       selectedBot.bot
         .move(thinkingFen)
         .then(({ from, to }: UCI.ShortMove) => {
-          /*if (abortCtrl.signal.aborted) {
-            console.warn(`Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`)
+          if (abortCtrl.signal.aborted) {
+            console.warn(
+              `[Engine] Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`
+            )
             return
-          }*/
+          }
           engineConsole.info(`[Engine] '${selectedBot.name}' found move from ${from} to ${to}.`)
 
-          setIsThinking(false)
+          isThinking.current = false
           setSuggestion({
             isThinking: false,
             move: {
@@ -134,7 +136,7 @@ export default function useBotSuggestion(
           })
         })
         .catch((e: Error) => engineConsole.warn('[Engine] Error during move suggestion', e))
-    }, 100)
+    }, 1)
 
     return () => {
       abortCtrl.abort()
