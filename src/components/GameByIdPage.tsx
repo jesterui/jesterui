@@ -14,6 +14,7 @@ import { CopyButtonWithConfirmation } from '../components/CopyButton'
 import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
 import { ChessInstance } from '../components/ChessJsTypes'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
+import Chat from '../components/Chat'
 
 import { useSetWindowTitle } from '../hooks/WindowTitle'
 import { useResize } from '../hooks/ElementDimensions'
@@ -746,9 +747,18 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
         </div>
         <div className="order-4 lg:order-5">
           {currentChessInstance !== null && (
-            <div className="mt-4 my-2">
-              <CopyGameUrlInput value={window.location.href} />
-            </div>
+            <>
+              <div className="mt-4 my-2">
+                <CopyGameUrlInput value={window.location.href} />
+              </div>
+              <div className="mt-4 my-2">
+                <Chat
+                  privKey={privateKeyOrNull}
+                  ourPubKey={publicKeyOrNull}
+                  theirPubKey={publicKeyOrNull === player1PubKey ? player2PubKey : player1PubKey}
+                  startId={currentGameStart?.event().id} />
+              </div>
+            </>
           )}
         </div>
         <div className="ml-4 hidden order-5 lg:grid lg:order-4 grid-cols-1 h-full content-between">

@@ -136,6 +136,36 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
     }
   }, [NostrDb])
 
+  useEffect(() => {
+    const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
+      if (!JesterUtils.isChatEvent(entry)) return
+
+      const eventRefs = entry.tags.filter((t) => t[0] === NIP01.TagEnum.e).map((t) => t[1] as NIP01.EventId)
+      if (eventRefs.length < 1) return
+
+      const startEventId = eventRefs[0]
+      const possiblePreviousChatEventId = eventRefs[1]
+      const isInitialMove = startEventId === possiblePreviousChatEventId
+
+      trans.on('complete', async () => {
+        await db.game_chat
+          .add({
+            ...entry,
+            gameId: startEventId,
+            previousChatId: isInitialMove ? null : possiblePreviousChatEventId,
+          })
+          .then((val) => val !== undefined)
+          .catch(() => false)
+      })
+    }
+
+    NostrDb.nostr_events.hook('creating', hook)
+
+    return () => {
+      NostrDb.nostr_events.hook('creating').unsubscribe(hook)
+    }
+  }, [NostrDb])
+
   return (
     <>
       <GameEventStoreContext.Provider value={{ db }}>{children}</GameEventStoreContext.Provider>
