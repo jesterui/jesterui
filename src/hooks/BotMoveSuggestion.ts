@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { SelectedBot } from '../components/BotSelector'
-import { ChessInstance } from '../components/ChessJsTypes'
+import { ChessInstance } from 'chess.js'
 
 import * as UCI from '../util/uci'
 import { AnalyticsEngine } from '../util/bot'

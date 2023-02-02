@@ -15,12 +15,9 @@ import * as JesterUtils from '../util/jester'
 import { GameMoveEvent } from '../util/app_db'
 import { KeyPair, createPersonalBotKeyPair, randomNumberBetween } from '../util/app'
 import { getSession } from '../util/session'
-import { historyToMinimalPgn } from '../util/chess'
 import * as Bot from '../util/bot'
 
-// @ts-ignore
 import * as Chess from 'chess.js'
-import { ChessInstance } from '../components/ChessJsTypes'
 
 const botConsole =
   process.env.NODE_ENV === 'development'
@@ -95,7 +92,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
 
   const [selectedBot, setSelectedBot] = useState<SelectedBot | null>(null)
   const [watchGameId, setWatchGameId] = useState<NIP01.EventId | null>(null)
-  const [currentChessInstance, setCurrentChessInstance] = useState<ChessInstance | null>(null)
+  const [currentChessInstance, setCurrentChessInstance] = useState<Chess.ChessInstance | null>(null)
   const [currentGameHead, setCurrentGameHead] = useState<GameMoveEvent | null>(null)
 
   const botMoveSuggestion = useBotSuggestion(selectedBot, currentChessInstance)
@@ -247,8 +244,7 @@ const JesterBotProvider = ({ children }: ProviderProps<JesterBotContextEntry | u
     const chessInstance = new Chess.Chess()
     const content: JesterUtils.JesterProtoContent = JSON.parse(currentGameHead.content)
 
-    const pgn = historyToMinimalPgn(content.history)
-    const validPgn = chessInstance.load_pgn(pgn)
+    const validPgn = chessInstance.load_pgn(content.pgn)
     if (!validPgn) {
       return
     }

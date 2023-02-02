@@ -1,13 +1,13 @@
 import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { bech32m } from 'bech32'
 
-import { ChessInstance } from '../components/ChessJsTypes'
+import { ChessInstance } from 'chess.js'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { arrayEquals, hashWithSha256 } from '../util/utils'
-import { Pgn, ValidFen, toValidFen, historyToMinimalPgn } from '../util/chess'
+import {  hashWithSha256 } from '../util/utils'
+import { Pgn, ValidFen, toValidFen } from '../util/chess'
 
 export const VALID_JESTER_ID_EXAMPLE: JesterId = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
 
@@ -62,10 +62,11 @@ export enum KindEnum {
 }
 
 export interface JesterProtoContent {
-  version: '0'
-  fen: string
-  move: string
-  history: string[]
+  //version: '0' // todo: remove
+  fen: string // todo: remove
+  //move: string // todo: remove
+  //history: string[] // todo: remove
+  pgn: Pgn
 }
 
 export const JESTER_ID_PREFIX = 'jester'
@@ -81,8 +82,7 @@ export interface JesterMove {
   children(): JesterMove[]
   addChild(child: JesterMove): boolean
   content(): JesterProtoContent
-  fen(): ValidFen
-  pgn(): Pgn
+  fen(): ValidFen // TODO: remove
   isValidSuccessor(move: JesterMove): boolean
   isStart(): boolean
 }
@@ -113,10 +113,7 @@ abstract class AbstractGameMove implements JesterMove {
     return fenIsValid
   }
   isStart(): boolean {
-    return this.parent() === null && this.fen() === _validStartFen && this.pgn() === ''
-  }
-  pgn(): Pgn {
-    return historyToMinimalPgn(this.content().history || [])
+    return this.parent() === null && this.fen() === _validStartFen
   }
 }
 
@@ -161,12 +158,12 @@ export class GameMove extends AbstractGameMove {
     const content = JSON.parse(event.content) as JesterProtoContent
 
     // TODO: verify that 'move' is really valid (can be different to given fen!)
-    if (content.history[content.history.length - 1] !== content.move) {
+    /*if (content.history[content.history.length - 1] !== content.move) {
       throw new Error(`Invalid content: 'move' is not last entry of 'history'`)
     }
     if (!arrayEquals(parent.content().history, content.history.slice(0, content.history.length - 1))) {
       throw new Error('History does not match that of parent')
-    }
+    }*/
 
     this._content = content
 
@@ -198,30 +195,55 @@ export class GameMove extends AbstractGameMove {
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = JESTER_MESSAGE_KIND
-  eventParts.tags = [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]
+  eventParts.tags = [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF, "", "root"]]
   return eventParts
 })()
 
 const jesterPrivateGameEventParts = (opponentPubKey: NIP01.PubKey): NIP01.EventInConstruction => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = JESTER_MESSAGE_KIND
-  eventParts.tags = [[NIP01.TagEnum.e, jesterPrivateStartGameRef(opponentPubKey)]]
+  eventParts.tags = [[NIP01.TagEnum.e, jesterPrivateStartGameRef(opponentPubKey), "", "root"]]
   return eventParts
 }
 
 const _constructStartGameEventWithParts = (
   pubkey: NIP01.PubKey,
-  parts: NIP01.EventInConstruction
+  parts: NIP01.EventInConstruction,
+  opponentPubKey: NIP01.PubKey | '?' = '?'
 ): NIP01.UnsignedEvent => {
+
+  const nowIsoString = new Date().toISOString()
+
+  const proto: JesterProtoContent = {
+    //nonce: bytesToHex(randomBytes(4)),
+    fen: _validStartFen.value(),
+    pgn: [
+      // Seven Tag Roster:
+      '[Event "Casual Game"]',
+      '[Site "Jester"]',
+      `[Date "${nowIsoString.substring(0, 10).replaceAll('-', '.')}"]`,
+      '[Round "-"]',
+      `[White "${pubkey}"]`,
+      `[Black "${opponentPubKey}"]`,
+      '[Result "*"]',
+      // others:
+      `[UTCTime "${nowIsoString.substring(11, 19)}"]`,
+      `[TimeControl "-"]`,
+      `[SetUp "0"]`,
+      `[FEN "${_validStartFen.value()}"]`,
+      '[PlyCount "0"]',
+      '[Mode "nostr"]',
+      '',
+      '*',
+    ].join('\n')
+  }
+  
+
+
   const eventParts = {
     ...parts,
     created_at: Math.floor(Date.now() / 1000),
-    content: JSON.stringify({
-      version: '0',
-      kind: KindEnum.Start,
-      history: [],
-      nonce: bytesToHex(randomBytes(4)),
-    }),
+    content: JSON.stringify(proto),
     pubkey,
   } as NIP01.EventParts
   return NostrEvents.constructEvent(eventParts)
@@ -231,11 +253,11 @@ export const constructPrivateStartGameEvent = (
   pubkey: NIP01.PubKey,
   opponentPubKey: NIP01.PubKey
 ): NIP01.UnsignedEvent => {
-  return _constructStartGameEventWithParts(pubkey, jesterPrivateGameEventParts(opponentPubKey))
+  return _constructStartGameEventWithParts(pubkey, jesterPrivateGameEventParts(opponentPubKey), opponentPubKey)
 }
 
 export const constructStartGameEvent = (pubkey: NIP01.PubKey): NIP01.UnsignedEvent => {
-  return _constructStartGameEventWithParts(pubkey, START_GAME_EVENT_PARTS)
+  return _constructStartGameEventWithParts(pubkey, START_GAME_EVENT_PARTS, '?')
 }
 
 export const constructGameMoveEvent = (
@@ -244,23 +266,23 @@ export const constructGameMoveEvent = (
   headId: NIP01.EventId,
   game: ChessInstance
 ): NIP01.UnsignedEvent => {
-  const history = game.history()
-  const latestMove = (history && history[history.length - 1]) || null
+  const proto: JesterProtoContent = {
+    //version: '0', // TODO: remove
+    //kind: KindEnum.Move, // TODO: remove
+    fen: game.fen(), // TODO: remove
+    //move: latestMove, // TODO: remove
+    //history: history, // TODO: remove
+    pgn: game.pgn()
+  }
 
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = JESTER_MESSAGE_KIND
   eventParts.pubkey = pubkey
   eventParts.created_at = Math.floor(Date.now() / 1000)
-  eventParts.content = JSON.stringify({
-    version: '0',
-    kind: KindEnum.Move,
-    fen: game.fen(),
-    move: latestMove,
-    history: history,
-  })
+  eventParts.content = JSON.stringify(proto)
   eventParts.tags = [
-    [NIP01.TagEnum.e, startId],
-    [NIP01.TagEnum.e, headId],
+    [NIP01.TagEnum.e, startId, "", "root"],
+    [NIP01.TagEnum.e, headId, "", "reply"],
   ]
   return NostrEvents.constructEvent(eventParts)
 }
@@ -273,30 +295,45 @@ const tryParseJsonObject = (val: string) => {
   }
 }
 
-export const isStartGameEvent = (event?: NIP01.Event): boolean => {
-  const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
-  return (
-    !!event &&
+export const isStartGameEvent = (event: NIP01.Event): boolean => {
+  const json = (event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
+  const proto = json as Partial<JesterProtoContent>
+
+  const isChessEvent = 
     event.kind === JESTER_MESSAGE_KIND &&
-    //arrayEquals(event.tags, [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF]]) &&
-    json &&
-    json.kind === KindEnum.Start &&
-    arrayEquals(json.history, [])
-  )
+    !!proto.pgn
+
+  const isChessStartEvent = isChessEvent && 
+    proto.pgn!.includes('[PlyCount "0"]') &&
+    // must not be made as "reply" to other events
+    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === "reply").length === 0
+
+
+  console.debug(`Is event '${event.id}' a Chess Start Event: ${isChessStartEvent}`)
+
+  return isChessStartEvent
 }
 
-export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
+export const mightBeMoveGameEvent = (event: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
-  return (
-    !!event &&
+  const proto = json as Partial<JesterProtoContent>
+
+  const isChessEvent = 
     event.kind === JESTER_MESSAGE_KIND &&
-    json &&
-    json.kind === KindEnum.Move &&
-    Array.isArray(json.history) &&
-    json.history.length > 0 &&
+    !!proto.pgn
+
+  if (!isChessEvent) {
+    return false
+  }
+
+  const isMoveEvent = (
+    isChessEvent &&
     // it must refer to at least two other events (start_event, previous_move)
-    event.tags.filter((t) => t[0] === NIP01.TagEnum.e).length === 2
-  )
+    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === "root").length === 1 &&
+    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === "reply").length === 1
+  ) || false
+
+  return isMoveEvent
 }
 
 export const isGameChatEvent = (gameId: NIP01.EventId, event?: NIP01.Event): boolean => {

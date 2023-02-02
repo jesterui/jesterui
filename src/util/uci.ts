@@ -1,7 +1,7 @@
-// @ts-ignore
+
 import * as Chess from 'chess.js'
 
-export type ShortMove = { from: string; to: string }
+export type ShortMove = Pick<Chess.ShortMove, 'from' | 'to'>
 export type EvalResult = {
   totalEvaluation: number
 }

@@ -1,7 +1,5 @@
-// @ts-ignore
-import * as Chess from 'chess.js'
 
-import { ChessInstance, Move } from '../components/ChessJsTypes'
+import * as Chess from 'chess.js'
 
 // e.g. 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 export type Fen = string
@@ -24,7 +22,7 @@ export interface ValidMoves {
 }
 
 export interface ValidMove {
-  value(): Move
+  value(): Chess.Move
   source(): ValidFen
   target(): ValidFen
 }
@@ -35,7 +33,7 @@ class ValidMovesImpl implements ValidMoves {
   constructor(source: ValidFen) {
     this._source = source
 
-    const validSuccessors: [Move, ValidFen][] = findValidSuccesors(this._source)
+    const validSuccessors: [Chess.Move, ValidFen][] = findValidSuccesors(this._source)
     this._validMoves = validSuccessors.map((moveAndFen) => ({
       value: () => moveAndFen[0],
       source: () => this._source,
@@ -70,9 +68,9 @@ class ValidFenImpl implements ValidFen {
   }
 }
 
-const _chessInstance: ChessInstance = new Chess.Chess()
+const _chessInstance: Chess.ChessInstance = new Chess.Chess()
 
-const _withFen = (fen: ValidFen): ChessInstance => {
+const _withFen = (fen: ValidFen): Chess.ChessInstance => {
   const fenLoaded = _chessInstance.load(fen.value())
   if (!fenLoaded) {
     throw new Error('Could not load fen')
@@ -84,11 +82,11 @@ const isValidFen = (fen: Fen): boolean => {
   return _chessInstance.validate_fen(fen).valid
 }
 
-const findValidMoves = (fen: ValidFen): Move[] => {
+const findValidMoves = (fen: ValidFen): Chess.Move[] => {
   return _withFen(fen).moves({ verbose: true })
 }
 
-const asValidFenSuccessor = (fen: ValidFen, move: Move): ValidFen | null => {
+const asValidFenSuccessor = (fen: ValidFen, move: Chess.Move): ValidFen | null => {
   const chess = _withFen(fen)
   const isOkOrNull = chess.move(move)
   if (isOkOrNull === null) {
@@ -97,13 +95,13 @@ const asValidFenSuccessor = (fen: ValidFen, move: Move): ValidFen | null => {
   return toValidFen(chess.fen())
 }
 
-const findValidSuccesors = (fen: ValidFen): [Move, ValidFen][] => {
+const findValidSuccesors = (fen: ValidFen): [Chess.Move, ValidFen][] => {
   return findValidMoves(fen)
     .map((move) => {
       const successorOrNull = asValidFenSuccessor(fen, move)
       return successorOrNull ? [move, successorOrNull] : []
     })
-    .filter((it) => it.length === 2) as [Move, ValidFen][]
+    .filter((it) => it.length === 2) as [Chess.Move, ValidFen][]
 }
 
 export const toValidFen = (fen: Fen): ValidFen => {

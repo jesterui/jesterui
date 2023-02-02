@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as cg from 'chessground/types'
-
-import { ChessInstance } from '../ChessJsTypes'
+import { ChessInstance } from 'chess.js'
 
 type PgnLine = { no: number; white: cg.Key; black?: cg.Key }
 

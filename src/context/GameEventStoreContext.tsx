@@ -8,31 +8,32 @@ import * as NIP01 from '../util/nostr/nip01'
 import { NostrEvent } from '../util/nostr_db'
 import { AppDexie, db, GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { arrayEquals } from '../util/utils'
-import { historyToMinimalPgn } from '../util/chess'
 
-// @ts-ignore
 import * as Chess from 'chess.js'
-import { ChessInstance } from '../components/ChessJsTypes'
 
-const _chessInstance: ChessInstance = new Chess.Chess()
+const _chessInstance: Chess.ChessInstance = new Chess.Chess()
 
 const isValidSuccessor = (parent: GameStartEvent | GameMoveEvent, event: NIP01.Event) => {
   const content = JSON.parse(event.content) as JesterUtils.JesterProtoContent
-  if (!Array.isArray(content.history) || content.history.length === 0) {
-    return false
-  }
-  // TODO: verify that 'move' is really valid (can be different to given fen!)
-  if (content.history[content.history.length - 1] !== content.move) {
-    return false
-  }
-  const parentContent = JSON.parse(parent.content) as JesterUtils.JesterProtoContent
-  if (!arrayEquals(parentContent.history, content.history.slice(0, content.history.length - 1))) {
+  if (!content.pgn) {
     return false
   }
 
-  const pgn = historyToMinimalPgn(content.history)
-  const validPgn = _chessInstance.load_pgn(pgn)
+  const validPgn = _chessInstance.load_pgn(content.pgn)
   if (!validPgn) {
+    return false
+  }
+
+  const childHistory = _chessInstance.history()
+
+  const parentContent = JSON.parse(parent.content) as JesterUtils.JesterProtoContent
+  const parentValidPgn = _chessInstance.load_pgn(parentContent.pgn)
+  if (!parentValidPgn) {
+    return false
+  }
+  const parentHistory = _chessInstance.history()
+
+  if (!arrayEquals(parentHistory, childHistory.slice(0, childHistory.length - 1))) {
     return false
   }
 
@@ -113,19 +114,26 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
   useEffect(() => {
     const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
       const looksLikeMoveEvent = JesterUtils.mightBeMoveGameEvent(entry)
-      if (!looksLikeMoveEvent) return
+      if (!looksLikeMoveEvent) {
+        console.debug(`[EventStore] Decline storage of game_move entry ${entry.id}: not a move event`)
+        return
+      }
 
-      const eventRefs: NIP01.EventId[] = (entry.tags || [])
+      const eventRootTags = entry.tags
         .filter((t) => t[0] === NIP01.TagEnum.e)
+        .filter((t) => t[3] === 'root')
         .map((t) => t[1] as NIP01.EventId)
 
-      if (eventRefs.length !== 2) return
+      const eventReplyTags = entry.tags
+        .filter((t) => t[0] === NIP01.TagEnum.e)
+        .filter((t) => t[3] === 'reply')
+        .map((t) => t[1] as NIP01.EventId)
 
-      const possibleStartEventId = eventRefs[0]
-      const possiblePreviousMoveEventId = eventRefs[1]
+      const possibleStartEventId = eventRootTags[0]
+      const possiblePreviousMoveEventId = eventReplyTags[0]
       const isInitialMove = possiblePreviousMoveEventId === possibleStartEventId
 
-      // TODO: currently the events arrive out of order.. so there might not be something to valid..
+      // TODO: currently the events arrive out of order.. so there might not be something to validate..
       // even the start game, as well as a possible "parent move", may not be present..
       // e.g. when an old game is loaded
       /*const gameStartEventOrNull = await db.game_start.get(possibleStartEventId)
@@ -150,12 +158,19 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
 
       trans.on('complete', async () => {
         const content = JSON.parse(entry.content) as JesterUtils.JesterProtoContent
+        const validPgn = _chessInstance.load_pgn(content.pgn)
+        if (!validPgn) {
+          console.warn(`[EventStore] Decline storage of game_move entry ${entry.id}: illegal pgn`)
+          return 
+        }
 
+        const moveCounter = _chessInstance.history().length
+        
         await db.game_move
           .add({
             ...entry,
             gameId: possibleStartEventId,
-            moveCounter: content.history.length,
+            moveCounter,
             parentMoveId: isInitialMove ? null : possiblePreviousMoveEventId,
           })
           .then((val) => val !== undefined)

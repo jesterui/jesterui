@@ -40,12 +40,13 @@ export type Kind = EventSetMetadata | EventTextNote | EventRecommendServer | Oth
 // clients.
 type RelayUrl = `wss://${string}` | `ws://${string}.onion`
 type RecommendedRelayUrl = RelayUrl | ''
+type Marker = 'root' | 'reply' | 'mention'
 // type error: const __example_RecommendedRelayUrl4: RecommendedRelayUrl = `ws://example.com`
 
 type Other = any
 
 type TagRef = EventId | PubKey | Other
-type Tag = [TagType, TagRef, RecommendedRelayUrl?]
+type Tag = [TagType, TagRef, RecommendedRelayUrl?] | [TagType, TagRef, RecommendedRelayUrl, Marker]
 type Tags = ReadonlyArray<Tag>
 
 type Content = string // <arbitrary string>

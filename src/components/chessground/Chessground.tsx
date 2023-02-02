@@ -3,10 +3,7 @@ import Chessground from '@react-chess/chessground'
 import * as cg from 'chessground/types'
 import { Config as CgConfig } from 'chessground/config'
 
-// @ts-ignore
-import { ChessInstance, Square } from '../ChessJsTypes'
-// @ts-ignore
-import { SQUARES } from 'chess.js'
+import { ChessInstance, Square, SQUARES } from 'chess.js'
 
 type MoveableColor = cg.Color[]
 const moveableColorProp = (c: MoveableColor) => {

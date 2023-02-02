@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-
-import { ChessInstance } from '../ChessJsTypes'
+import { ChessInstance } from 'chess.js'
 
 export default function PgnAscii({ game }: { game: ChessInstance }) {
   const [ascii, setAscii] = useState<string>(game.ascii())

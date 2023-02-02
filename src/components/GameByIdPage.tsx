@@ -12,7 +12,7 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { CopyButtonWithConfirmation } from '../components/CopyButton'
 import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
-import { ChessInstance } from '../components/ChessJsTypes'
+import { ChessInstance } from 'chess.js'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 import Chat from '../components/Chat'
 
@@ -34,7 +34,7 @@ import * as AppUtils from '../util/app'
 import * as Utils from '../util/utils'
 import { GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { getSession } from '../util/session'
-// @ts-ignore
+
 import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
 
@@ -335,7 +335,7 @@ function GameboardWithLoader({
   )
 }
 
-interface ActionButtonsProps {
+type ActionButtonsProps = {
   isLoading: boolean
   isSearchingHead: boolean
   vertical?: boolean
@@ -357,7 +357,11 @@ function ActionButtons({ isLoading, isSearchingHead, vertical = false }: ActionB
   )
 }
 
-export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: JesterId }) {
+type GameByIdProps = {
+  jesterId?: JesterId
+}
+
+export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
   const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterId }>()
 
   const [jesterId] = useState<JesterId | undefined>(
@@ -534,14 +538,14 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
       if (currentGameHead.isStart()) {
         return newGame
       } else {
-        const pgn = currentGameHead.pgn()
+        const pgn = currentGameHead.content().pgn
         const loaded = newGame.load_pgn(pgn)
         if (!loaded) {
           // should not happen as currentGameHead contains a valid pgn
           throw new Error(`Cannot load new game state from pgn: ${pgn}`)
         }
 
-        console.info('loaded new game state from pgn', pgn)
+        console.info('loaded new game state from pgn', newGame.pgn())
         return newGame
       }
     })
