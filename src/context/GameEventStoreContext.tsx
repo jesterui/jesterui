@@ -161,11 +161,11 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
         const validPgn = _chessInstance.load_pgn(content.pgn)
         if (!validPgn) {
           console.warn(`[EventStore] Decline storage of game_move entry ${entry.id}: illegal pgn`)
-          return 
+          return
         }
 
         const moveCounter = _chessInstance.history().length
-        
+
         await db.game_move
           .add({
             ...entry,

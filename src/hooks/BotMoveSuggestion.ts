@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import { SelectedBot } from '../components/BotSelector'
-import { ChessInstance } from 'chess.js'
+import * as Chess from 'chess.js'
 
 import * as UCI from '../util/uci'
 import { AnalyticsEngine } from '../util/bot'
+import { GameMoveEvent } from '../util/app_db'
+import * as JesterUtils from '../util/jester'
 
 interface MoveAndFen {
   move: UCI.ShortMove
@@ -16,7 +18,7 @@ interface BotMoveSuggestion {
   move: MoveAndFen | null
 }
 
-const botConsole =
+const engineConsole =
   process.env.NODE_ENV === 'development'
     ? console
     : {
@@ -26,7 +28,12 @@ const botConsole =
         error: () => {},
       }
 
-export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion {
+const VALIDATION_INSTANCE = new Chess.Chess()
+
+export default function useBotSuggestion(
+  selectedBot: SelectedBot,
+  gameEvent: GameMoveEvent | undefined
+): BotMoveSuggestion {
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingFens, setThinkingFens] = useState<UCI.Fen[]>([])
 
@@ -35,12 +42,30 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
     move: null,
   })
 
+  const game = useRef<Chess.ChessInstance>(new Chess.Chess())
+
   useEffect(() => {
+    if (!gameEvent) {
+      game.current.reset()
+      return
+    }
+
+    const content: JesterUtils.JesterProtoContent = JSON.parse(gameEvent.content)
+
+    const validPgn = VALIDATION_INSTANCE.load_pgn(content.pgn)
+    if (!validPgn) {
+      engineConsole.error('[Engine] Current gameEvent has no valid pgn')
+      return
+    }
+
+    game.current.load_pgn(content.pgn)
+
     setThinkingFens((currentFens) => {
-      if (game === null || game.game_over()) {
+      if (game.current.game_over()) {
         return []
       }
-      const newFen = game.fen()
+
+      const newFen = game.current.fen()
 
       if (currentFens[currentFens.length - 1] === newFen) {
         return currentFens
@@ -48,14 +73,14 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
       return [...currentFens, newFen]
     })
 
-    if (game !== null && !game.game_over()) {
-      AnalyticsEngine.eval(game)
+    if (game.current !== undefined && !game.current.game_over()) {
+      AnalyticsEngine.eval(game.current)
         .then((result) => {
-          botConsole.info(`[Engine] Evaluation of ${game.fen()}: `, result)
+          engineConsole.info(`[Engine] Evaluation of ${game.current?.fen()}: `, result)
         })
-        .catch((e: Error) => botConsole.warn('[Engine] Error during eval', e))
+        .catch((e: Error) => engineConsole.warn('[Engine] Error during eval', e))
     }
-  }, [game])
+  }, [game, gameEvent])
 
   useEffect(() => {
     if (!selectedBot) return
@@ -67,14 +92,16 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) {
-        botConsole.warn(`[Bot] '${selectedBot.name}' wanted to search for ${thinkingFen} - but operation was aborted.`)
+        engineConsole.warn(
+          `[Engine] '${selectedBot.name}' wanted to search for ${thinkingFen} - but operation was aborted.`
+        )
         return
       }
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
       setIsThinking(true)
-      botConsole.info(`[Bot] Asking '${selectedBot.name}' for move suggestion to ${thinkingFen}...`)
+      engineConsole.info(`[Engine] Asking '${selectedBot.name}' for move suggestion to ${thinkingFen}...`)
 
       selectedBot.bot
         .move(thinkingFen)
@@ -82,8 +109,8 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
           /*if (abortCtrl.signal.aborted) {
             console.warn(`Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`)
             return
-        }*/
-          botConsole.info(`[Bot] '${selectedBot.name}' found move from ${from} to ${to}.`)
+          }*/
+          engineConsole.info(`[Engine] '${selectedBot.name}' found move from ${from} to ${to}.`)
 
           setIsThinking(false)
           setSuggestion({
@@ -106,7 +133,7 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
             return copy
           })
         })
-        .catch((e: Error) => botConsole.warn('[Bot] Error during move suggestion', e))
+        .catch((e: Error) => engineConsole.warn('[Engine] Error during move suggestion', e))
     }, 100)
 
     return () => {

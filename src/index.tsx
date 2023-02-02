@@ -44,23 +44,25 @@ const defaultAppSettings: AppSettings = {
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
-  <StrictMode>
-    {/*Using HashRouter for GitHub Pages compatibility */}
-    <HashRouter>
-      <SettingsProvider value={{ defaultValues: defaultAppSettings }}>
-        <WebsocketProvider value={undefined}>
-          <NostrEventsProvider value={undefined}>
-            <NostrStoreProvider value={undefined}>
-              <GameEventStoreProvider value={undefined}>
-                <NostrSubscriptionsProvider value={undefined}>
-                  <JesterBotProvider value={undefined}></JesterBotProvider>
-                  <App />
-                </NostrSubscriptionsProvider>
-              </GameEventStoreProvider>
-            </NostrStoreProvider>
-          </NostrEventsProvider>
-        </WebsocketProvider>
-      </SettingsProvider>
-    </HashRouter>
-  </StrictMode>
+  <>
+    <StrictMode>
+      {/*Using HashRouter for GitHub Pages compatibility */}
+      <HashRouter>
+        <SettingsProvider value={{ defaultValues: defaultAppSettings }}>
+          <WebsocketProvider value={undefined}>
+            <NostrEventsProvider value={undefined}>
+              <NostrStoreProvider value={undefined}>
+                <GameEventStoreProvider value={undefined}>
+                  <NostrSubscriptionsProvider value={undefined}>
+                    <JesterBotProvider value={undefined}></JesterBotProvider>
+                    <App />
+                  </NostrSubscriptionsProvider>
+                </GameEventStoreProvider>
+              </NostrStoreProvider>
+            </NostrEventsProvider>
+          </WebsocketProvider>
+        </SettingsProvider>
+      </HashRouter>
+    </StrictMode>
+  </>
 )

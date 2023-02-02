@@ -1,4 +1,3 @@
-
 import * as Chess from 'chess.js'
 
 export type ShortMove = Pick<Chess.ShortMove, 'from' | 'to'>

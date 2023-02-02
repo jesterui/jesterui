@@ -6,7 +6,7 @@ import { ChessInstance } from 'chess.js'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import {  hashWithSha256 } from '../util/utils'
+import { hashWithSha256 } from '../util/utils'
 import { Pgn, ValidFen, toValidFen } from '../util/chess'
 
 export const VALID_JESTER_ID_EXAMPLE: JesterId = 'jester1ncmkasntavrcj8ujv32a98236kgnx5a3cm9cl9kmqpjh0tgyg46qqsfhdp'
@@ -195,14 +195,14 @@ export class GameMove extends AbstractGameMove {
 const START_GAME_EVENT_PARTS: NIP01.EventInConstruction = (() => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = JESTER_MESSAGE_KIND
-  eventParts.tags = [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF, "", "root"]]
+  eventParts.tags = [[NIP01.TagEnum.e, JESTER_START_GAME_E_REF, '', 'root']]
   return eventParts
 })()
 
 const jesterPrivateGameEventParts = (opponentPubKey: NIP01.PubKey): NIP01.EventInConstruction => {
   const eventParts = NostrEvents.blankEvent()
   eventParts.kind = JESTER_MESSAGE_KIND
-  eventParts.tags = [[NIP01.TagEnum.e, jesterPrivateStartGameRef(opponentPubKey), "", "root"]]
+  eventParts.tags = [[NIP01.TagEnum.e, jesterPrivateStartGameRef(opponentPubKey), '', 'root']]
   return eventParts
 }
 
@@ -211,7 +211,6 @@ const _constructStartGameEventWithParts = (
   parts: NIP01.EventInConstruction,
   opponentPubKey: NIP01.PubKey | '?' = '?'
 ): NIP01.UnsignedEvent => {
-
   const nowIsoString = new Date().toISOString()
 
   const proto: JesterProtoContent = {
@@ -235,10 +234,8 @@ const _constructStartGameEventWithParts = (
       '[Mode "nostr"]',
       '',
       '*',
-    ].join('\n')
+    ].join('\n'),
   }
-  
-
 
   const eventParts = {
     ...parts,
@@ -272,7 +269,7 @@ export const constructGameMoveEvent = (
     fen: game.fen(), // TODO: remove
     //move: latestMove, // TODO: remove
     //history: history, // TODO: remove
-    pgn: game.pgn()
+    pgn: game.pgn(),
   }
 
   const eventParts = NostrEvents.blankEvent()
@@ -281,8 +278,8 @@ export const constructGameMoveEvent = (
   eventParts.created_at = Math.floor(Date.now() / 1000)
   eventParts.content = JSON.stringify(proto)
   eventParts.tags = [
-    [NIP01.TagEnum.e, startId, "", "root"],
-    [NIP01.TagEnum.e, headId, "", "reply"],
+    [NIP01.TagEnum.e, startId, '', 'root'],
+    [NIP01.TagEnum.e, headId, '', 'reply'],
   ]
   return NostrEvents.constructEvent(eventParts)
 }
@@ -299,15 +296,13 @@ export const isStartGameEvent = (event: NIP01.Event): boolean => {
   const json = (event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   const proto = json as Partial<JesterProtoContent>
 
-  const isChessEvent = 
-    event.kind === JESTER_MESSAGE_KIND &&
-    !!proto.pgn
+  const isChessEvent = event.kind === JESTER_MESSAGE_KIND && !!proto.pgn
 
-  const isChessStartEvent = isChessEvent && 
+  const isChessStartEvent =
+    isChessEvent &&
     proto.pgn!.includes('[PlyCount "0"]') &&
     // must not be made as "reply" to other events
-    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === "reply").length === 0
-
+    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === 'reply').length === 0
 
   console.debug(`Is event '${event.id}' a Chess Start Event: ${isChessStartEvent}`)
 
@@ -318,20 +313,18 @@ export const mightBeMoveGameEvent = (event: NIP01.Event): boolean => {
   const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
   const proto = json as Partial<JesterProtoContent>
 
-  const isChessEvent = 
-    event.kind === JESTER_MESSAGE_KIND &&
-    !!proto.pgn
+  const isChessEvent = event.kind === JESTER_MESSAGE_KIND && !!proto.pgn
 
   if (!isChessEvent) {
     return false
   }
 
-  const isMoveEvent = (
-    isChessEvent &&
-    // it must refer to at least two other events (start_event, previous_move)
-    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === "root").length === 1 &&
-    event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === "reply").length === 1
-  ) || false
+  const isMoveEvent =
+    (isChessEvent &&
+      // it must refer to at least two other events (start_event, previous_move)
+      event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === 'root').length === 1 &&
+      event.tags.filter((t) => t[0] === NIP01.TagEnum.e && t[3] === 'reply').length === 1) ||
+    false
 
   return isMoveEvent
 }
