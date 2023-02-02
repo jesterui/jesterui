@@ -35,10 +35,11 @@ const getMovesForStockfish = (game: Chess.ChessInstance) => {
 }
 
 export const prepareEngine =
-  (file: string, actions: Array<string>): UninitialisedEngine =>
+  (name: string, file: string, actions: Array<string>): UninitialisedEngine =>
   () => {
     let terminated = false
-    const worker = new Worker(file)
+    DEV && console.debug(`[UCI]`, `Creating new worker for ${name} from ${file}`)
+    const worker = new Worker(file, { name })
 
     let bestmoveResolver: ((move: ShortMove) => void) | null = null
     let evalResolver: ((result: EvalResult) => void) | null = null
@@ -109,6 +110,7 @@ export const prepareEngine =
           evalResolver = resolve
 
           const moves = getMovesForStockfish(game)
+          DEV && console.debug(`[UCI] POST 2 messages ${name}.`)
           worker.postMessage(`position startpos moves ${moves}`)
           worker.postMessage(`eval`)
         })
@@ -119,7 +121,7 @@ export const prepareEngine =
 
         terminated = true
         worker.terminate()
-        console.info(`[UCI] Terminate worker.`)
+        DEV && console.debug(`[UCI] Terminate worker ${name}.`)
       },
       isTerminated: () => terminated,
     }

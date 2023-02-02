@@ -30,7 +30,7 @@ const botConsole =
         warn: () => {},
         error: () => {},
       }
-  
+
 const instantiateBotByName = (botName: string | null): Nullable<SelectedBot> => {
   if (botName && Bot.Bots[botName]) {
     try {
@@ -62,7 +62,6 @@ interface JesterBotContextEntry {
 }
 
 const JesterBotContext = createContext<JesterBotContextEntry | undefined>(undefined)
-
 
 type JesterBotProviderProps = {
   defaultBotName: keyof typeof Bot.Bots

@@ -31,8 +31,6 @@ declare global {
   }
 }
 
-
-
 const DEFAULT_BOT_NAME = 'Risky Alice'
 
 const defaultAppSettings: AppSettings = {

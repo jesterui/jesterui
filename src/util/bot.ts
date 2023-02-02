@@ -26,22 +26,22 @@ const randomMover: UninitialisedEngine = () => {
   }
 }
 
-export const AnalyticsEngine = prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [])()
+export const AnalyticsEngine = prepareEngine('Analytics Engine', '/bots/stockfish.js-10.0.2/stockfish.js', [])()
 
 // https://ucichessengine.wordpress.com/2011/03/16/description-of-uci-protocol/
 // https://github.com/official-stockfish/Stockfish#the-uci-protocol-and-available-options
 export const Bots: AvailableBots = Object.freeze({
-  Alice: prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
+  Alice: prepareEngine('Alice', '/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1', // 0 - 20
     'setoption name Contempt value 0', // -100 - 100
     'go depth 1',
   ]),
-  'Risky Alice': prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
+  'Risky Alice': prepareEngine('Risky Alice', '/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1', // 0 - 20
     'setoption name Contempt value 21', // -100 - 100
     'go depth 1',
   ]),
-  Bob: prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
+  Bob: prepareEngine('Bob', '/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 1',
     'go movetime 1000',
   ]),
@@ -61,7 +61,7 @@ export const Bots: AvailableBots = Object.freeze({
     'setoption name Skill Level value 20',
     'go movetime 1000',
   ]),*/
-  Jester: prepareEngine('/bots/stockfish.js-10.0.2/stockfish.js', [
+  Jester: prepareEngine('Jester', '/bots/stockfish.js-10.0.2/stockfish.js', [
     'setoption name Skill Level value 20', // 0 - 20
     'setoption name Contempt value 42', // -100 - 100
     //'setoption name Style value Risky',
