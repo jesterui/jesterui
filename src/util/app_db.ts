@@ -12,15 +12,22 @@ export interface GameMoveEvent extends NIP01.Event {
   parentMoveId: NIP01.EventId | null
 }
 
+export interface GameChatEvent extends NIP01.Event {
+  gameId: NIP01.EventId
+  previousChatId: NIP01.EventId | null
+}
+
 export class AppDexie extends Dexie {
   game_start!: Table<GameStartEvent>
   game_move!: Table<GameMoveEvent>
+  game_chat!: Table<GameChatEvent>
 
   constructor() {
     super('app_game_events')
-    this.version(1).stores({
+    this.version(2).stores({
       game_start: '&id, pubkey, created_at, *event_tags',
       game_move: '&id, gameId, parentMoveId, [gameId+moveCounter]',
+      game_chat: '&id, gameId, previousChatId',
     })
   }
 }

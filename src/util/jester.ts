@@ -49,6 +49,7 @@ export const createGameFilterByGameId = (gameId: NIP01.EventId): NIP01.Filter[] 
 export enum KindEnum {
   Start = 0,
   Move = 1,
+  Chat = 2,
 }
 
 export interface JesterProtoContent {
@@ -287,6 +288,11 @@ export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
     // it must refer to at least two other events (start_event, previous_move)
     event.tags.filter((t) => t[0] === NIP01.TagEnum.e).length === 2
   )
+}
+
+export const isChatEvent = (event?: NIP01.Event): boolean => {
+  const json = (event && event.content && event.content.startsWith('{') && tryParseJsonObject(event.content)) || {}
+  return !!event && event.kind === JESTER_MESSAGE_KIND && json && json.kind === KindEnum.Chat
 }
 
 export const gameIdToJesterId = (gameId: NIP01.EventId): JesterId => {
