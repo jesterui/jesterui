@@ -1,4 +1,8 @@
+/**
+ * @jest-environment node
+ */
 import * as Chess from 'chess.js'
+import { FEN_START_POSITION } from './util/jester'
 
 it('should load minimal pgn', () => {
   const pgn = ['*'].join('\n')
@@ -7,7 +11,7 @@ it('should load minimal pgn', () => {
   const isValid = game.load_pgn(pgn)
 
   expect(isValid).toBe(true)
-  expect(game.fen()).not.toBe(true)
+  expect(game.fen()).toBe(FEN_START_POSITION)
 })
 
 it('should load pgn with headers', () => {
@@ -28,6 +32,5 @@ it('should load pgn with headers', () => {
   const isValid = game.load_pgn(pgn)
 
   expect(isValid).toBe
-
-  console.log(game.pgn())
+  expect(game.fen()).toBe(FEN_START_POSITION)
 })
