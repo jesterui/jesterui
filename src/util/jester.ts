@@ -233,7 +233,7 @@ const _constructStartGameEventWithParts = (
       '[PlyCount "0"]',
       '[Mode "nostr"]',
       '',
-      ' *', // TODO: chess.js does not parse the pgn correctly -> add fix as PR to the repo!
+      '', // TODO: chess.js does not parse the pgn correctly -> add fix as PR to the repo!
     ].join('\n'),
   }
 
