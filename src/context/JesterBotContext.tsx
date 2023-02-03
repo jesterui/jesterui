@@ -16,18 +16,9 @@ import { GameStartEvent, GameMoveEvent } from '../util/app_db'
 import { KeyPair, createPersonalBotKeyPair, randomNumberBetween } from '../util/app'
 import { getSession } from '../util/session'
 import * as Bot from '../util/bot'
+import { normalizePgn } from '../util/chess'
 
 import * as Chess from 'chess.js'
-
-const VALIDATION_INSTANCE = new Chess.Chess()
-const isValidPgn = (pgn: string) => {
-  try {
-    VALIDATION_INSTANCE.loadPgn(pgn)
-    return true
-  } catch (e) {
-    return false
-  }
-}
 
 const botConsole =
   process.env.NODE_ENV === 'development'
@@ -250,11 +241,11 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
     }
     const content: JesterUtils.JesterProtoContent = JSON.parse(currentGameHead.content)
 
-    if (!isValidPgn(content.pgn)) {
-      botConsole.error('[Bot] Current game head has no valid pgn')
-      return
+    try {
+      chessInstance.current.loadPgn(normalizePgn(content.pgn))
+    } catch (e) {
+      botConsole.error('[Bot] Current game head has no valid pgn', { cause: e })
     }
-    chessInstance.current.loadPgn(content.pgn)
   }, [currentGameHead])
 
   useEffect(() => {
@@ -285,10 +276,13 @@ const JesterBotProvider = ({ value: { defaultBotName }, children }: ProviderProp
     }
 
     const chessboardWithNewMove = new Chess.Chess()
+    const currenPgn = chessInstance.current.pgn()
     try {
-      chessboardWithNewMove.loadPgn(chessInstance.current.pgn())
+      chessboardWithNewMove.loadPgn(normalizePgn(currenPgn))
     } catch (e) {
-      botConsole.error('[Bot] The current chessboard is not valid.. wtf?', { cause: e })
+      botConsole.error(`[Bot] The current chessboard is not valid.. wtf? (tweaked) PGN: ${currenPgn}`, {
+        cause: e,
+      })
       return
     }
 

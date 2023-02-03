@@ -10,6 +10,7 @@ import { AppDexie, db, GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { arrayEquals } from '../util/utils'
 
 import * as Chess from 'chess.js'
+import { normalizePgn } from '../util/chess'
 
 const _chessInstance: Chess.Chess = new Chess.Chess()
 
@@ -161,7 +162,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
       trans.on('complete', async () => {
         const content = JSON.parse(entry.content) as JesterUtils.JesterProtoContent
         try {
-          _chessInstance.loadPgn(content.pgn)
+          _chessInstance.loadPgn(normalizePgn(content.pgn))
         } catch (e) {
           console.warn(`[EventStore] Decline storage of game_move entry ${entry.id}: illegal pgn`)
           return

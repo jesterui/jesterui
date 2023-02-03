@@ -127,3 +127,18 @@ export const historyToMinimalPgn = (history: San[]): Pgn => {
 
   return lines.join(' ')
 }
+
+// TODO: use a library to normalize the pgn
+// Currently, this is only to mitigate some strange behaviour
+// by the chess.js parser. See: https://github.com/jhlywa/chess.js/pull/376
+export const normalizePgn = (pgn: Pgn): Pgn => {
+  let tweakedPgn = pgn
+  if (tweakedPgn.includes(']\n *')) {
+    tweakedPgn = tweakedPgn.replace(']\n *', ']\n\n*')
+  }
+
+  if (pgn !== tweakedPgn) {
+    console.warn(`[DEV] Normalized PGN..\nIN: ${pgn}\nOUT: ${tweakedPgn}`)
+  }
+  return tweakedPgn
+}

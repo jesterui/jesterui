@@ -7,6 +7,7 @@ import * as UCI from '../util/uci'
 import { AnalyticsEngine } from '../util/bot'
 import { GameStartEvent, GameMoveEvent } from '../util/app_db'
 import * as JesterUtils from '../util/jester'
+import { normalizePgn } from '../util/chess'
 
 interface MoveAndFen {
   move: UCI.ShortMove
@@ -27,16 +28,6 @@ const engineConsole =
         warn: () => {},
         error: () => {},
       }
-
-const VALIDATION_INSTANCE = new Chess.Chess()
-const isValidPgn = (pgn: string) => {
-  try {
-    VALIDATION_INSTANCE.loadPgn(pgn)
-    return true
-  } catch (e) {
-    return false
-  }
-}
 
 export default function useBotSuggestion(
   selectedBot: SelectedBot,
@@ -60,12 +51,12 @@ export default function useBotSuggestion(
 
     const content: JesterUtils.JesterProtoContent = JSON.parse(gameEvent.content)
 
-    if (!isValidPgn(content.pgn)) {
-      engineConsole.error('[Engine] Current gameEvent has no valid pgn')
+    try {
+      game.current.loadPgn(normalizePgn(content.pgn))
+    } catch (e) {
+      engineConsole.error('[Engine] Current gameEvent has no valid pgn', { cause: e })
       return
     }
-
-    game.current.loadPgn(content.pgn)
 
     setThinkingFens((currentFens) => {
       if (game.current.isGameOver()) {

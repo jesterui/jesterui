@@ -218,9 +218,9 @@ const _constructStartGameEventWithParts = (
     fen: _validStartFen.value(),
     pgn: [
       // Seven Tag Roster:
+      `[Date "${nowIsoString.substring(0, 10).replaceAll('-', '.')}"]`,
       '[Event "Casual Game"]',
       '[Site "Jester"]',
-      `[Date "${nowIsoString.substring(0, 10).replaceAll('-', '.')}"]`,
       '[Round "-"]',
       `[White "${pubkey}"]`,
       `[Black "${opponentPubKey}"]`,
@@ -233,7 +233,8 @@ const _constructStartGameEventWithParts = (
       '[PlyCount "0"]',
       '[Mode "nostr"]',
       '',
-      '', // TODO: chess.js does not parse the pgn correctly -> add fix as PR to the repo!
+      '*', // TODO: chess.js does not parse the pgn correctly -> add fix as PR to the repo!
+      '',
     ].join('\n'),
   }
 

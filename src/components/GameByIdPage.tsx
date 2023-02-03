@@ -37,7 +37,7 @@ import { getSession } from '../util/session'
 
 import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
-import { Pgn } from '../util/chess'
+import { normalizePgn, Pgn } from '../util/chess'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -110,9 +110,9 @@ function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProp
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
-      copyOfGame.current.loadPgn(game.pgn())
+      copyOfGame.current.loadPgn(normalizePgn(game.pgn()))
       modify(copyOfGame.current)
-      onGameChanged(copyOfGame.current.pgn() as Pgn)
+      onGameChanged(normalizePgn(copyOfGame.current.pgn()))
     },
     [game, onGameChanged]
   )
@@ -464,7 +464,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
     if (!currentChessInstance) return
 
     try {
-      currentChessInstance.loadPgn(pgn)
+      currentChessInstance.loadPgn(normalizePgn(pgn))
       await sendGameStateViaNostr(currentChessInstance)
     } catch (e) {
       console.error(e)
@@ -536,23 +536,17 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
         return newGame
       }
 
-      // TODO: does the "game" really need to change, or can you just do:
-      // current.game.loadPgn(history.join('\n'))
-      // without returning a copy?
-      if (currentGameHead.isStart()) {
-        return newGame
-      } else {
-        const pgn = currentGameHead.content().pgn
-        try {
-          newGame.loadPgn(pgn)
-        } catch (e) {
-          // should not happen as currentGameHead contains a valid pgn
-          throw new Error(`Cannot load new game state from pgn: ${pgn}`, { cause: e })
-        }
-
-        console.info('loaded new game state from pgn', newGame.pgn())
-        return newGame
+      // TODO: does the "game" really need to be a new instance?
+      const pgn = currentGameHead.content().pgn
+      try {
+        newGame.loadPgn(normalizePgn(pgn))
+      } catch (e) {
+        // should not happen as currentGameHead contains a valid pgn
+        throw new Error(`Cannot load new game state from pgn: ${pgn}`, { cause: e })
       }
+
+      console.info('loaded new game state from pgn', newGame.pgn())
+      return newGame
     })
   }, [isSearchingHead, currentGameHead])
 
@@ -889,12 +883,15 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
             </pre>
             <Divider />
             <pre className="py-4" style={{ overflowX: 'scroll' }}>
-              <div>{`currentHead.event: ${JSON.stringify(currentGameHead?.event(), null, 2)}`}</div>
-              <div>{`currentHead.event.pgn: ${JSON.parse(currentGameHead?.event().content || '{}').pgn}`}</div>
+              {`currentHead.event: ${JSON.stringify(currentGameHead?.event(), null, 2)}`}
             </pre>
             <Divider />
             <pre className="py-4" style={{ overflowX: 'scroll' }}>
-              <div>{`Chessboard PGN: ${currentChessInstance?.pgn({ newline: `<br />` })}`}</div>
+              {`currentHead.event.pgn: ${JSON.parse(currentGameHead?.event().content || '{}').pgn}`}
+            </pre>
+            <Divider />
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
+              {`Chessboard PGN: ${currentChessInstance?.pgn()}`}
             </pre>
           </div>
         </div>

@@ -18,10 +18,10 @@ type DevelGame = {
 }
 
 export const createDevelGameEvents = async (keyPair: KeyPair) => {
-  return createGameEventsOfPgn(keyPair, DEFAULT_EXAMPLE_DEVEL_GAME_PGN)
+  return __createGameEventsOfPgn(keyPair, DEFAULT_EXAMPLE_DEVEL_GAME_PGN)
 }
 
-export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise<DevelGame> => {
+const __createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise<DevelGame> => {
   const fullChessInstance: Chess.Chess = new Chess.Chess()
   const stateChessInstance: Chess.Chess = new Chess.Chess()
 
