@@ -105,14 +105,14 @@ interface BoardContainerProps {
 }
 
 function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProps) {
-  const copyOfGame = useMemo(() => new ChessInstance(), [])
+  const copyOfGame = useRef(new ChessInstance())
 
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
-      copyOfGame.loadPgn(game.pgn())
-      modify(copyOfGame)
-      onGameChanged(copyOfGame.pgn() as Pgn)
+      copyOfGame.current.loadPgn(game.pgn())
+      modify(copyOfGame.current)
+      onGameChanged(copyOfGame.current.pgn() as Pgn)
     },
     [game, onGameChanged]
   )
@@ -886,9 +886,15 @@ export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
               <div>{`isLoading: ${isLoading}`}</div>
               <div>{`isSearchingHead: ${isSearchingHead}`}</div>
               <div>{`Moves: ${currentGameMoves.length}`}</div>
-              <Divider />
+            </pre>
+            <Divider />
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
               <div>{`currentHead.event: ${JSON.stringify(currentGameHead?.event(), null, 2)}`}</div>
-              <div>{`PGN: ${currentChessInstance?.pgn()}`}</div>
+              <div>{`currentHead.event.pgn: ${JSON.parse(currentGameHead?.event().content || '{}').pgn}`}</div>
+            </pre>
+            <Divider />
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
+              <div>{`Chessboard PGN: ${currentChessInstance?.pgn({ newline: `<br />` })}`}</div>
             </pre>
           </div>
         </div>
