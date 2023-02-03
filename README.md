@@ -34,10 +34,12 @@ Runs the app in the development mode. Open [http://localhost:3000](http://localh
 The page will reload if you make edits. You will also see any lint errors in the console.
 
 ## Resources
+- [PGN Specification](https://github.com/mliebelt/pgn-spec-commented/blob/main/pgn-specification.md) PGN (Portable Game Notation) specification
+- [PGN Specification Supplement](https://github.com/mliebelt/pgn-spec-commented/blob/main/pgn-spec-supplement.md) Addition for adding graphical elements, clock values, eval, ...
+
 - nostr (GitHub): https://github.com/fiatjaf/nostr
   - nostr-rs-relay (GitHub): https://github.com/scsibug/nostr-rs-relay
 
-- PGN Spec: https://www.chessclub.com/help/PGN-spec
 - chess.js (GitHub): https://github.com/jhlywa/chess.js/
 - Stockfish (GitHub): https://github.com/nmrugg/stockfish.js
 - chessbot-typescript (GitHub): https://github.com/eddmann/chessbot-typescript
