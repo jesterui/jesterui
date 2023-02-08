@@ -6,6 +6,7 @@ const publicRelays = [
   'wss://nostr.einundzwanzig.space',
   'wss://relay.nostr.info',
   'wss://nostr-relay.untethr.me',
+  'wss://offchain.pub',
   // inactive relays (last checked on 2023-02-01):
   // 'wss://nostr.rocks',
   // 'wss://relay.damus.io',
@@ -15,7 +16,6 @@ const publicRelays = [
   // 'wss://rsslay.fiatjaf.com',
   // 'wss://freedom-relay.herokuapp.com/ws',
   // 'wss://nostr-relay.freeberty.net',
-  // 'wss://nostr.bitcoiner.social',
   // 'wss://nostr.onsats.org',
   // 'wss://nostr.drss.io',
   // 'wss://nostr.unknown.place',
