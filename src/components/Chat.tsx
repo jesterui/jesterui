@@ -1,14 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from 'react-daisyui'
 
-import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
+import { useIncomingNostrEvents, useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
-import { JESTER_MESSAGE_KIND, KindEnum } from '../util/jester'
-import { useGameStore } from '../context/GameEventStoreContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { GameChatEvent } from '../util/app_db';
 
 export const constructChatMessage = (
   pubkey: NIP01.PubKey,
@@ -17,34 +13,47 @@ export const constructChatMessage = (
 ): NIP01.UnsignedEvent => {
 
   const eventParts = NostrEvents.blankEvent()
-  eventParts.kind = JESTER_MESSAGE_KIND
+  eventParts.kind = 1
   eventParts.pubkey = pubkey
   eventParts.created_at = Math.floor(Date.now() / 1000)
-  eventParts.content = JSON.stringify({
-    version: '0',
-    kind: KindEnum.Chat,
-    message
-  })
+  eventParts.content = message
   eventParts.tags = [
     [NIP01.TagEnum.e, startId],
   ]
   return NostrEvents.constructEvent(eventParts)
 }
 
+type ChatMessage = Pick<NIP01.Event, "content" | "pubkey" | "created_at">
+
 export default function Chat({ privKey, ourPubKey, theirPubKey, gameId }: { privKey: NIP01.PrivKey | null, ourPubKey: NIP01.PubKey | null, theirPubKey?: NIP01.PubKey, gameId?: NIP01.EventId }) {
   const outgoingNostr = useOutgoingNostrEvents()
-  const gameStore = useGameStore()
+  const incomingNostr = useIncomingNostrEvents()
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
 
-  const existingMessages = useLiveQuery(
-    async () => {
-      if (!gameId) return []
+  const isGameChatEvent = (event: NIP01.Event): boolean => {
+    return event.kind === 1 && event.tags.filter((t) => t[0] === NIP01.TagEnum.e).filter((t) => t[1] === gameId).length > 0
+  }
 
-      const events = await gameStore.game_chat.where('gameId').equals(gameId).sortBy('created_at')
-      return events
-    },
-    [gameId],
-    [] as GameChatEvent[]
-  )
+  useEffect(() => {
+    if (!incomingNostr) return
+    const abortCtrl = new AbortController()
+    incomingNostr.on(
+      NIP01.RelayEventType.EVENT,
+      (event: CustomEvent<NIP01.RelayMessage>) => {
+        if (event.type !== NIP01.RelayEventType.EVENT) return
+        const req = event.detail as NIP01.RelayEventMessage
+        const nostrEvent = req[2];
+        if (!isGameChatEvent(nostrEvent)) return
+        const { content, pubkey, created_at } = nostrEvent;
+        const newChatMessages = [...chatMessages, { content, pubkey, created_at }]
+        // sort comments by created_at in ascending order
+        newChatMessages.sort(({ created_at: a_created_at }, { created_at: b_created_at }) => a_created_at - b_created_at)
+        setChatMessages(newChatMessages)
+      },
+      { signal: abortCtrl.signal }
+    )
+    return () => abortCtrl.abort()
+  }, [incomingNostr, chatMessages])
 
   const [message, setMessage] = useState<string>("");
 
@@ -78,14 +87,13 @@ export default function Chat({ privKey, ourPubKey, theirPubKey, gameId }: { priv
   return (
     <div>
       {
-        existingMessages
-          .map(({ pubkey, content }) => ({ pubkey, message: JSON.parse(content).message }))
-          .map(({ pubkey, message }, i) => {
+        chatMessages
+          .map(({ pubkey, content }, i) => {
             const textAlign = pubkey === ourPubKey ? "text-right" : "text-left";
             return (
               <div key={i} className="flex items-center gap-1">
                 <div className="grow form-control">
-                  <Input className={textAlign} type="text" onKeyDown={handleOnKeyDown} value={message} readOnly={true} />
+                  <Input className={textAlign} type="text" onKeyDown={handleOnKeyDown} value={content} readOnly={true} />
                 </div>
               </div>
             )
