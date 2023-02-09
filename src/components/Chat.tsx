@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Input } from 'react-daisyui'
+import { ChatBubble, Input } from 'react-daisyui'
 
 import { useIncomingNostrEvents, useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
@@ -88,12 +88,14 @@ export default function Chat({ privKey, ourPubKey, theirPubKey, gameId }: { priv
     <div>
       {
         chatMessages
-          .map(({ pubkey, content }, i) => {
-            const textAlign = pubkey === ourPubKey ? "text-right" : "text-left";
+          .map(({ pubkey, content, created_at }, i) => {
+            const isMyMessage = pubkey === ourPubKey;
             return (
               <div key={i} className="flex items-center gap-1">
                 <div className="grow form-control">
-                  <Input className={textAlign} type="text" onKeyDown={handleOnKeyDown} value={content} readOnly={true} />
+                  <ChatBubble end={isMyMessage}>
+                    <ChatBubble.Message>{content}</ChatBubble.Message>
+                  </ChatBubble>
                 </div>
               </div>
             )
