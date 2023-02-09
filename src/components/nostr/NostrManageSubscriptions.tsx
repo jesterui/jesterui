@@ -33,6 +33,7 @@ const RANDOMIZE_SUB_IDS = process.env.NODE_ENV !== 'development'
 const GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[0] : 'game_start'
 const PRIVATE_GAME_START_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[1] : 'private_game_start'
 const CURRENT_GAME_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[2] : 'current_game'
+const CURRENT_GAME_CHAT_SUB_ID = RANDOMIZE_SUB_IDS ? UNIQUE_RANDOM_STRINGS[3] : 'current_chat'
 
 const createPrivateGameStartFilterOrEmpty = (
   publicKey: NIP01.PubKey | null,
@@ -91,6 +92,7 @@ export default function NostrManageSubscriptions() {
   }, [publicKeyOrNull])
 
   const [currentGameFilters, setCurrentGameFilters] = useState<NIP01.Filter[]>([])
+  const [currentGameChatFilters, setCurrentGameChatFilters] = useState<NIP01.Filter[]>([])
 
   useEffect(() => {
     updateSubscription({
@@ -115,11 +117,20 @@ export default function NostrManageSubscriptions() {
   }, [currentGameFilters, updateSubscription])
 
   useEffect(() => {
+    updateSubscription({
+      id: CURRENT_GAME_CHAT_SUB_ID,
+      filters: currentGameChatFilters,
+    })
+  }, [currentGameChatFilters, updateSubscription])
+
+  useEffect(() => {
     if (currentGameJesterId) {
       const currentGameId = JesterUtils.jesterIdToGameId(currentGameJesterId)
       setCurrentGameFilters(JesterUtils.createGameFilterByGameId(currentGameId))
+      setCurrentGameChatFilters(JesterUtils.createGameChatFilterByGameId(currentGameId))
     } else {
       setCurrentGameFilters([])
+      setCurrentGameChatFilters([])
     }
   }, [currentGameJesterId])
 
