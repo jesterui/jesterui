@@ -45,15 +45,17 @@ export default function Chat({ privKey, ourPubKey, theirPubKey, gameId }: { priv
         const nostrEvent = req[2];
         if (!isGameChatEvent(nostrEvent)) return
         const { content, pubkey, created_at } = nostrEvent;
-        const newChatMessages = [...chatMessages, { content, pubkey, created_at }]
-        // sort comments by created_at in ascending order
-        newChatMessages.sort(({ created_at: a_created_at }, { created_at: b_created_at }) => a_created_at - b_created_at)
-        setChatMessages(newChatMessages)
+        setChatMessages(chatMessages => {
+          const newChatMessages = [...chatMessages, { content, pubkey, created_at }]
+          // sort comments by created_at in ascending order
+          newChatMessages.sort(({ created_at: a_created_at }, { created_at: b_created_at }) => a_created_at - b_created_at)
+          return newChatMessages;
+        })
       },
       { signal: abortCtrl.signal }
     )
     return () => abortCtrl.abort()
-  }, [incomingNostr, chatMessages])
+  }, [incomingNostr])
 
   const [message, setMessage] = useState<string>("");
 
