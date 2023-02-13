@@ -29,9 +29,6 @@ export default function App() {
         <NostrManageRelays />
         {settings.dev && <NostrLogIncomingRelayEvents />}
       </>
-      <a href="https://github.com/jesterui/jesterui" rel="noopener noreferrer">
-        <img alt="Fork me on GitHub" title="Fork me on GitHub" src="fork_me.png" id="forkme" />
-      </a>
       <div className="min-w-xs">
         <Routes>
           <Route
