@@ -8,20 +8,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#forkme {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  z-index: 20;
-}
-
-@media only screen and (min-width: 1500px) {
-  #forkme {
-    display: block;
-  }
-}
-
 .hover\:transform-scale-103:hover {
   --tw-scale-x: 1.03;
   --tw-scale-y: 1.03;
