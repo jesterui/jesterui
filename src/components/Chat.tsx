@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChatBubble, Input } from 'react-daisyui'
 
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -22,6 +22,45 @@ export const constructChatMessage = (
   eventParts.content = message
   eventParts.tags = [[NIP01.TagEnum.e, startId]]
   return NostrEvents.constructEvent(eventParts)
+}
+
+type ChatBubbles = {
+  ourPubKey: NIP01.PubKey
+  messages: GameChatEvent[]
+  rerenderInterval?: MilliSeconds
+}
+
+function ChatBubbles({ ourPubKey, messages, rerenderInterval = 5 * 1_000 }: ChatBubbles) {
+  const setRerenderTriggerValue = useState(() => Date.now())[1]
+
+  useEffect(() => {
+    const abortCtrl = new AbortController()
+
+    const timer = setInterval(() => !abortCtrl.signal.aborted && setRerenderTriggerValue(Date.now()), rerenderInterval)
+
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [rerenderInterval])
+
+  return (
+    <>
+      {messages.map(({ pubkey, content, created_at }, i) => {
+        const isMyMessage = pubkey === ourPubKey
+        return (
+          <div key={i} className="flex flex-col gap-1">
+            <ChatBubble end={isMyMessage}>
+              <ChatBubble.Message>{content}</ChatBubble.Message>
+              <ChatBubble.Footer>
+                <ChatBubble.Time>{timeElapsed(created_at * 1_000)}</ChatBubble.Time>
+              </ChatBubble.Footer>
+            </ChatBubble>
+          </div>
+        )
+      })}
+    </>
+  )
 }
 
 type ChatProps = {
@@ -81,19 +120,7 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
 
   return (
     <div>
-      {chatMessages.map(({ pubkey, content, created_at }, i) => {
-        const isMyMessage = pubkey === ourPubKey
-        return (
-          <div key={i} className="flex flex-col gap-1">
-            <ChatBubble end={isMyMessage}>
-              <ChatBubble.Message>{content}</ChatBubble.Message>
-              <ChatBubble.Footer>
-                <ChatBubble.Time>{timeElapsed(created_at * 1_000)}</ChatBubble.Time>
-              </ChatBubble.Footer>
-            </ChatBubble>
-          </div>
-        )
-      })}
+      <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} />
       {isPlayer && (
         <>
           <div className="flex items-center gap-1">

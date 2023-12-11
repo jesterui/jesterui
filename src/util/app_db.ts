@@ -26,7 +26,7 @@ export class AppDexie extends Dexie {
     this.version(2).stores({
       game_start: '&id, pubkey, created_at, *event_tags',
       game_move: '&id, gameId, parentMoveId, [gameId+moveCounter]',
-      game_chat: '&id, gameId',
+      game_chat: '&id, gameId, created_at',
     })
   }
 }
