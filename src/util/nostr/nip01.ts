@@ -46,7 +46,7 @@ type Other = any
 
 type TagRef = EventId | PubKey | Other
 type Tag = [TagType, TagRef, RecommendedRelayUrl?]
-type Tags = Tag[]
+type Tags = ReadonlyArray<Tag>
 
 type Content = string // <arbitrary string>
 
@@ -96,7 +96,7 @@ export type Event = UnsignedEvent & {
 */
 export type SignableEventData = [0, PubKey, CreatedAtTimestamp, Kind, Tags, Content]
 
-type ListOfPubKeys = PubKey[]
+type ListOfPubKeys = ReadonlyArray<PubKey>
 
 /*
 {
@@ -110,9 +110,9 @@ type ListOfPubKeys = PubKey[]
 }
 */
 type EventIdOrPrefix = EventId | string
-type ListOfEventIdsOrPrefixes = EventIdOrPrefix[] // <a list of event ids or prefixes>
+type ListOfEventIdsOrPrefixes = ReadonlyArray<EventIdOrPrefix> // <a list of event ids or prefixes>
 
-type Kinds = Kind[] // <a list of a kind numbers>
+type Kinds = ReadonlyArray<Kind> // <a list of a kind numbers>
 
 type KindAsTag<T extends Kind> = `#${T}`
 type KindId = `#${TagType}`
@@ -123,7 +123,7 @@ type PId = `#p`
 type PIdValues = ListOfPubKeys
 
 type PubKeyOrPrefix = PubKey | string
-type ListOfPublicKeysOrPrefix = PubKeyOrPrefix[]
+type ListOfPublicKeysOrPrefix = ReadonlyArray<PubKeyOrPrefix>
 
 type KindIdValue = EIdValues | PIdValues | Other
 
