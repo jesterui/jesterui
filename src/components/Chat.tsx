@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChatBubble, Input } from 'react-daisyui'
 
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -8,7 +8,7 @@ import * as NostrEvents from '../util/nostr/events'
 import { GameChatEvent } from '../util/app_db'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useGameStore } from '../context/GameEventStoreContext'
-import { timeElapsed } from '../util/utils'
+import { timeElapsed, scrollToBottom } from '../util/utils'
 
 export const constructChatMessage = (
   pubkey: NIP01.PubKey,
@@ -27,7 +27,7 @@ export const constructChatMessage = (
 type ChatBubbles = {
   ourPubKey: NIP01.PubKey
   messages: GameChatEvent[]
-  rerenderInterval?: MilliSeconds
+  rerenderInterval?: Milliseconds
 }
 
 function ChatBubbles({ ourPubKey, messages, rerenderInterval = 5 * 1_000 }: ChatBubbles) {
@@ -72,6 +72,7 @@ type ChatProps = {
 }
 
 export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey, gameId }: ChatProps) {
+  const chatContainerRef = useRef<HTMLDivElement>(null)
   const outgoingNostr = useOutgoingNostrEvents()
   const gameStore = useGameStore()
 
@@ -86,12 +87,23 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
     [] as GameChatEvent[]
   )
 
+  useEffect(() => {
+    const abortCtrl = new AbortController()
+    const timer = setTimeout(() => {
+      !abortCtrl.signal.aborted && chatContainerRef.current && scrollToBottom(chatContainerRef.current)
+    }, 21)
+    return () => {
+      abortCtrl.abort()
+      clearTimeout(timer)
+    }
+  }, [chatMessages.length])
+
   const isPlayer = useMemo(
     () => [player1PubKey, player2PubKey].includes(ourPubKey),
     [ourPubKey, player1PubKey, player2PubKey]
   )
 
-  const [message, setMessage] = useState<string>('')
+  const [message, setMessage] = useState<string>()
 
   const sendChatMessage = async (message: string) => {
     if (!outgoingNostr) {
@@ -112,22 +124,25 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
   }
 
   const handleOnKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      sendChatMessage(message)
-      setMessage('')
+    if (message && event.key === 'Enter') {
+      sendChatMessage(message).then(() => {
+        setMessage(undefined)
+      })
     }
   }
 
   return (
-    <div>
-      <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} />
+    <div className="flex flex-col gap-2">
+      <div className="h-64 overflow-y-auto pr-4" ref={chatContainerRef}>
+        <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} />
+      </div>
       {isPlayer && (
         <>
           <div className="flex items-center gap-1">
             <div className="grow form-control">
               <Input
                 type="text"
-                value={message}
+                value={message || ''}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleOnKeyDown}
               />

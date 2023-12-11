@@ -4,4 +4,4 @@ declare type Hex = string
 
 declare type Sha256 = Hex
 
-declare type MilliSeconds = number
+declare type Milliseconds = number
