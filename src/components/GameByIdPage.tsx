@@ -751,13 +751,16 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="mt-4 my-2">
                 <CopyGameUrlInput value={window.location.href} />
               </div>
-              <div className="mt-4 my-2">
-                <Chat
-                  privKey={privateKeyOrNull}
-                  ourPubKey={publicKeyOrNull}
-                  theirPubKey={publicKeyOrNull === player1PubKey ? player2PubKey : player1PubKey}
-                  gameId={currentGameStart?.event().id} />
-              </div>
+              {currentGameStart && (
+                <div className="mt-4 my-2">
+                  <Chat
+                    privKey={privateKeyOrNull}
+                    ourPubKey={publicKeyOrNull}
+                    theirPubKey={publicKeyOrNull === player1PubKey ? player2PubKey : player1PubKey}
+                    gameId={currentGameStart.event().id}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
