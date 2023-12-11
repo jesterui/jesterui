@@ -299,6 +299,14 @@ export const mightBeMoveGameEvent = (event?: NIP01.Event): boolean => {
   )
 }
 
+export const isGameChatEvent = (gameId: NIP01.EventId, event?: NIP01.Event): boolean => {
+  return (
+    !!event &&
+    event.kind === 1 &&
+    event.tags.filter((t) => t[0] === NIP01.TagEnum.e).filter((t) => t[1] === gameId).length > 0
+  )
+}
+
 export const gameIdToJesterId = (gameId: NIP01.EventId): JesterId => {
   const words = bech32m.toWords(hexToBytes(gameId))
   const encoded = bech32m.encode(JESTER_ID_PREFIX, words) as JesterId

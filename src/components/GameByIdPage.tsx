@@ -32,7 +32,7 @@ import {
 } from '../util/jester'
 import * as AppUtils from '../util/app'
 import * as Utils from '../util/utils'
-import { GameMoveEvent } from '../util/app_db'
+import { GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { getSession } from '../util/session'
 // @ts-ignore
 import * as Chess from 'chess.js'
@@ -414,7 +414,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
 
   /********************** SUBSCRIBE TO GAME - end */
 
-  const currentGameStartEvent = useLiveQuery(async () => {
+  const currentGameStartEvent: GameStartEvent | undefined = useLiveQuery(async () => {
     if (!gameId) return
     return await gameStore.game_start.get(gameId)
   }, [gameId])

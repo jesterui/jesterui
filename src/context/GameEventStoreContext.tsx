@@ -52,7 +52,7 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
     const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
       if (JesterUtils.isStartGameEvent(entry)) {
         trans.on('complete', async () => {
-          const additionalEventTags = entry.tags
+          const additionalEventTags = (entry.tags || [])
             .filter((t) => t[0] === NIP01.TagEnum.e)
             .map((t) => t[1] as NIP01.EventId)
             .filter((t) => t !== JesterUtils.JESTER_START_GAME_E_REF)
@@ -81,10 +81,44 @@ const GameEventStoreProvider = ({ children }: ProviderProps<GameEventStoreEntry 
 
   useEffect(() => {
     const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
+      const eventRefs: NIP01.EventId[] = (entry.tags || [])
+        .filter((t) => t[0] === NIP01.TagEnum.e)
+        .map((t) => t[1] as NIP01.EventId)
+
+      const possibleGameId = eventRefs[0]
+      if (JesterUtils.isGameChatEvent(possibleGameId, entry)) {
+        trans.on('complete', async () => {
+          const entity = {
+            ...entry,
+            gameId: possibleGameId,
+          }
+
+          try {
+            const id = await db.game_chat.put(entity)
+            console.debug(`insert new game_chat entry ${id}`)
+          } catch (e) {
+            console.debug('error while adding game_chat - might already exist')
+          }
+        })
+      }
+    }
+
+    NostrDb.nostr_events.hook('creating', hook)
+
+    return () => {
+      NostrDb.nostr_events.hook('creating').unsubscribe(hook)
+    }
+  }, [NostrDb])
+
+  useEffect(() => {
+    const hook = async (primKey: IndexableType, entry: NostrEvent, trans: Transaction) => {
       const looksLikeMoveEvent = JesterUtils.mightBeMoveGameEvent(entry)
       if (!looksLikeMoveEvent) return
 
-      const eventRefs = entry.tags.filter((t) => t[0] === NIP01.TagEnum.e).map((t) => t[1] as NIP01.EventId)
+      const eventRefs: NIP01.EventId[] = (entry.tags || [])
+        .filter((t) => t[0] === NIP01.TagEnum.e)
+        .map((t) => t[1] as NIP01.EventId)
+
       if (eventRefs.length !== 2) return
 
       const possibleStartEventId = eventRefs[0]

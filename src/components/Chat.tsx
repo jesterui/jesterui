@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChatBubble, Input } from 'react-daisyui'
 
-import { useIncomingNostrEvents, useOutgoingNostrEvents } from '../context/NostrEventsContext'
+import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
+import { GameChatEvent } from '../util/app_db'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useGameStore } from '../context/GameEventStoreContext'
+import { timeElapsed } from '../util/utils'
 
 export const constructChatMessage = (
   pubkey: NIP01.PubKey,
@@ -20,14 +24,6 @@ export const constructChatMessage = (
   return NostrEvents.constructEvent(eventParts)
 }
 
-type ChatMessage = Pick<NIP01.Event, 'content' | 'pubkey' | 'created_at'>
-
-const isGameChatEvent = (gameId: NIP01.EventId, event: NIP01.Event): boolean => {
-  return (
-    event.kind === 1 && event.tags.filter((t) => t[0] === NIP01.TagEnum.e).filter((t) => t[1] === gameId).length > 0
-  )
-}
-
 type ChatProps = {
   privKey: NIP01.PrivKey
   ourPubKey: NIP01.PubKey
@@ -38,36 +34,23 @@ type ChatProps = {
 
 export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey, gameId }: ChatProps) {
   const outgoingNostr = useOutgoingNostrEvents()
-  const incomingNostr = useIncomingNostrEvents()
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const gameStore = useGameStore()
+
+  const chatMessages = useLiveQuery(
+    async () => {
+      if (!gameId) return []
+
+      const events = await gameStore.game_chat.where('gameId').equals(gameId).sortBy('created_at')
+      return events.filter((event) => [player1PubKey, player2PubKey].includes(event.pubkey))
+    },
+    [gameId, player1PubKey, player2PubKey],
+    [] as GameChatEvent[]
+  )
 
   const isPlayer = useMemo(
     () => [player1PubKey, player2PubKey].includes(ourPubKey),
     [ourPubKey, player1PubKey, player2PubKey]
   )
-
-  useEffect(() => {
-    if (!incomingNostr) return
-    const abortCtrl = new AbortController()
-    incomingNostr.on(
-      NIP01.RelayEventType.EVENT,
-      (event: CustomEvent<NIP01.RelayMessage>) => {
-        if (event.type !== NIP01.RelayEventType.EVENT) return
-        const nostrEvent = (event.detail as NIP01.RelayEventMessage)[2]
-        if (!isGameChatEvent(gameId, nostrEvent)) return
-        if (![player1PubKey, player2PubKey].includes(nostrEvent.pubkey)) return
-
-        setChatMessages((chatMessages) => {
-          const newChatMessages = [...chatMessages, nostrEvent]
-            // sort comments by created_at in ascending order
-            .sort((a, b) => a.created_at - b.created_at)
-          return newChatMessages
-        })
-      },
-      { signal: abortCtrl.signal }
-    )
-    return () => abortCtrl.abort()
-  }, [incomingNostr, gameId, player1PubKey, player2PubKey])
 
   const [message, setMessage] = useState<string>('')
 
@@ -101,12 +84,13 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
       {chatMessages.map(({ pubkey, content, created_at }, i) => {
         const isMyMessage = pubkey === ourPubKey
         return (
-          <div key={i} className="flex items-center gap-1">
-            <div className="grow form-control">
-              <ChatBubble end={isMyMessage}>
-                <ChatBubble.Message>{content}</ChatBubble.Message>
-              </ChatBubble>
-            </div>
+          <div key={i} className="flex flex-col gap-1">
+            <ChatBubble end={isMyMessage}>
+              <ChatBubble.Message>{content}</ChatBubble.Message>
+              <ChatBubble.Footer>
+                <ChatBubble.Time>{timeElapsed(created_at * 1_000)}</ChatBubble.Time>
+              </ChatBubble.Footer>
+            </ChatBubble>
           </div>
         )
       })}
