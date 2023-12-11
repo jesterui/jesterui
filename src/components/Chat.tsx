@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChatBubble, Input } from 'react-daisyui'
 
 import { useIncomingNostrEvents, useOutgoingNostrEvents } from '../context/NostrEventsContext'
@@ -28,20 +28,23 @@ const isGameChatEvent = (gameId: NIP01.EventId, event: NIP01.Event): boolean => 
   )
 }
 
-export default function Chat({
-  privKey,
-  ourPubKey,
-  theirPubKey,
-  gameId,
-}: {
-  privKey: NIP01.PrivKey | null
-  ourPubKey: NIP01.PubKey | null
-  theirPubKey?: NIP01.PubKey
+type ChatProps = {
+  privKey: NIP01.PrivKey
+  ourPubKey: NIP01.PubKey
+  player1PubKey: NIP01.PubKey
+  player2PubKey: NIP01.PubKey
   gameId: NIP01.EventId
-}) {
+}
+
+export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey, gameId }: ChatProps) {
   const outgoingNostr = useOutgoingNostrEvents()
   const incomingNostr = useIncomingNostrEvents()
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+
+  const isPlayer = useMemo(
+    () => [player1PubKey, player2PubKey].includes(ourPubKey),
+    [ourPubKey, player1PubKey, player2PubKey]
+  )
 
   useEffect(() => {
     if (!incomingNostr) return
@@ -50,27 +53,23 @@ export default function Chat({
       NIP01.RelayEventType.EVENT,
       (event: CustomEvent<NIP01.RelayMessage>) => {
         if (event.type !== NIP01.RelayEventType.EVENT) return
-        const req = event.detail as NIP01.RelayEventMessage
-        const nostrEvent = req[2]
+        const nostrEvent = (event.detail as NIP01.RelayEventMessage)[2]
         if (!isGameChatEvent(gameId, nostrEvent)) return
-        const { content, pubkey, created_at } = nostrEvent
+        if (![player1PubKey, player2PubKey].includes(nostrEvent.pubkey)) return
+
         setChatMessages((chatMessages) => {
-          const newChatMessages = [...chatMessages, { content, pubkey, created_at }]
-          // sort comments by created_at in ascending order
-          newChatMessages.sort(
-            ({ created_at: a_created_at }, { created_at: b_created_at }) => a_created_at - b_created_at
-          )
+          const newChatMessages = [...chatMessages, nostrEvent]
+            // sort comments by created_at in ascending order
+            .sort((a, b) => a.created_at - b.created_at)
           return newChatMessages
         })
       },
       { signal: abortCtrl.signal }
     )
     return () => abortCtrl.abort()
-  }, [incomingNostr, gameId])
+  }, [incomingNostr, gameId, player1PubKey, player2PubKey])
 
   const [message, setMessage] = useState<string>('')
-
-  if (!(privKey && ourPubKey && theirPubKey && gameId)) return null
 
   const sendChatMessage = async (message: string) => {
     if (!outgoingNostr) {
@@ -111,14 +110,23 @@ export default function Chat({
           </div>
         )
       })}
-      <div className="flex items-center gap-1">
-        <div className="grow form-control">
-          <Input type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleOnKeyDown} />
-        </div>
-      </div>
-      <div className="flex justify-center my-1">
-        <small className="text-secondary">Chat with your opponent!</small>
-      </div>
+      {isPlayer && (
+        <>
+          <div className="flex items-center gap-1">
+            <div className="grow form-control">
+              <Input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleOnKeyDown}
+              />
+            </div>
+          </div>
+          <div className="flex justify-center my-1">
+            <small className="text-secondary">Chat with your opponent!</small>
+          </div>
+        </>
+      )}
     </div>
   )
 }
