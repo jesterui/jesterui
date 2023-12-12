@@ -16,11 +16,12 @@ export function Layout({ title, children, drawer }: PropsWithChildren<LayoutProp
     <>
       <Drawer
         {...drawer}
+        sideClassName="z-50"
         side={<Sidebar title={title} />}
         end={false}
-        mobile={false}
         open={sidebarVisible}
         onClickOverlay={toggleSidebarVisible}
+        className="min-h-screen"
       >
         <div className="md:container mx-auto">
           <Navbar title={title} toggleSidebar={toggleSidebarVisible} />

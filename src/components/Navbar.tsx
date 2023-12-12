@@ -1,5 +1,5 @@
 import { ReactNode, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import {
   PuzzlePieceIcon,
   GlobeAltIcon,
@@ -53,55 +53,55 @@ export function Navbar({ title, toggleSidebar }: NavbarProps) {
           <Menu horizontal={true} className="gap-1">
             {settings.currentGameJesterId && (
               <Menu.Item>
-                <Link to={ROUTES.currentGame} className="rounded-lg" title="Active Game">
+                <NavLink to={ROUTES.currentGame} className="rounded-lg" title="Active Game">
                   <PuzzlePieceIcon className="w-6 h-6" />
                   <span className="hidden">Active Game</span>
-                </Link>
+                </NavLink>
               </Menu.Item>
             )}
           </Menu>
         </div>
         <div className="flex-none hidden md:block">
-          <Menu horizontal={true} className="gap-1">
+          <Menu horizontal={true} className="gap-1 p-0 items-center">
             {settings.currentGameJesterId && (
               <Menu.Item>
-                <Link to={ROUTES.currentGame} className="rounded-lg" title="Active Game">
+                <NavLink to={ROUTES.currentGame} className="rounded-lg" title="Active Game">
                   <PuzzlePieceIcon className="w-6 h-6" />
                   Active Game
-                </Link>
+                </NavLink>
               </Menu.Item>
             )}
 
             <Menu.Item>
-              <Link to={ROUTES.lobby} className="rounded-lg" title="Lobby">
+              <NavLink to={ROUTES.lobby} className="rounded-lg" title="Lobby">
                 <GlobeAltIcon className="w-6 h-6" />
                 Lobby
-              </Link>
+              </NavLink>
             </Menu.Item>
             <Menu.Item>
-              <Link to={ROUTES.search} className="rounded-lg" title="Search">
+              <NavLink to={ROUTES.search} className="rounded-lg" title="Search">
                 <MagnifyingGlassIcon className="w-6 h-6" />
                 <span className="hidden">Search</span>
-              </Link>
+              </NavLink>
             </Menu.Item>
             <Menu.Item>
-              <Link to={ROUTES.faq} className="rounded-lg" title="FAQ">
+              <NavLink to={ROUTES.faq} className="rounded-lg" title="FAQ">
                 <QuestionMarkCircleIcon className="w-6 h-6" />
                 <span className="hidden">FAQ</span>
-              </Link>
+              </NavLink>
             </Menu.Item>
             <Menu.Item>
-              <Link to={ROUTES.settings} className="rounded-lg" title="Settings">
+              <NavLink to={ROUTES.settings} className="rounded-lg" title="Settings">
                 <WrenchScrewdriverIcon className="w-6 h-6" />
                 <span className="hidden">Settings</span>
-              </Link>
+              </NavLink>
             </Menu.Item>
 
             {publicKeyOrNull && displayPubKey && (
               <Menu.Item>
                 <Link to={ROUTES.home} className="p-2 m-0 rounded-lg" title="Profile">
                   <RoboHashImg
-                    className="w-9 h-9 rounded-full shadow-sm-gray bg-base-300"
+                    className="h-8 w-8 rounded-full shadow-sm-gray bg-base-300"
                     value={publicKeyOrNull}
                     alt={displayPubKey}
                   />

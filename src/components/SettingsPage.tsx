@@ -22,7 +22,7 @@ import * as Bot from '../util/bot'
 import { DEFAULT_RELAYS } from '../util/app_nostr'
 import { displayKey } from '../util/app'
 
-const DEFAULT_THEMES = [
+const DEFAULT_THEMES: DataTheme[] = [
   'light',
   'dark',
   'cupcake',
@@ -378,7 +378,7 @@ export default function SettingsPage() {
   const checkboxColor = (readyState: number | undefined): CheckboxProps['color'] => {
     switch (readyState) {
       case WebSocket.CONNECTING:
-        return 'ghost'
+        return 'neutral'
       case WebSocket.OPEN:
         return 'success'
       case WebSocket.CLOSING:
@@ -394,16 +394,16 @@ export default function SettingsPage() {
     <div className="screen-settings pb-4">
       <H1>Settings</H1>
 
-      <Tabs
-        className="mb-8 border-b border-current"
-        size="lg"
-        value={currentTab}
-        onChange={setCurrentTab}
-        variant="bordered"
-      >
-        <Tabs.Tab value={0}>nostr</Tabs.Tab>
-        <Tabs.Tab value={1}>Theme</Tabs.Tab>
-        <Tabs.Tab value={2}>Dev</Tabs.Tab>
+      <Tabs className="mb-8" size="lg" variant="bordered">
+        <Tabs.Tab active={currentTab === 0} onClick={() => setCurrentTab(0)}>
+          nostr
+        </Tabs.Tab>
+        <Tabs.Tab active={currentTab === 1} onClick={() => setCurrentTab(1)}>
+          Theme
+        </Tabs.Tab>
+        <Tabs.Tab active={currentTab === 2} onClick={() => setCurrentTab(2)}>
+          Dev
+        </Tabs.Tab>
       </Tabs>
 
       <div className={`pb-16 ${currentTab === 2 ? 'block' : 'hidden'}`}>

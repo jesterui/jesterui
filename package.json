@@ -17,7 +17,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "@heroicons/react": "^2.0.14",
+    "@heroicons/react": "^2.0.18",
     "@noble/secp256k1": "^1.7.0",
     "@react-chess/chessground": "^1.3.4",
     "bech32": "^2.0.0",
@@ -27,7 +27,7 @@
     "dexie-react-hooks": "^1.1.1",
     "nostr-tools": "^0.23.2",
     "react": "^18.2.0",
-    "react-daisyui": "^3.0.2",
+    "react-daisyui": "^5.0.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
     "react-scripts": "5.0.1",

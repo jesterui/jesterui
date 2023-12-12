@@ -201,19 +201,19 @@ const GameStateMessage = ({
 }
 
 function ProposeTakebackButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
-  const [modalOpen, setModalOpen] = useState(false)
   const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
+  const modalRef = useRef<HTMLDialogElement>(null)
 
   return (
     <>
       <Tooltip message="Propose a takeback" position={tooltipPlacement}>
-        <Button shape="circle" color="ghost" onClick={() => setModalOpen(true)} disabled={disabled}>
+        <Button shape="circle" color="ghost" onClick={() => modalRef.current?.showModal()} disabled={disabled}>
           <ArrowUturnLeftIcon className="w-6 h-6" />
         </Button>
       </Tooltip>
 
-      <Modal open={modalOpen} onClickBackdrop={() => setModalOpen(false)}>
-        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => setModalOpen(false)}>
+      <Modal ref={modalRef} backdrop={true}>
+        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => modalRef.current?.close()}>
           ✕
         </Button>
         <Modal.Header className="font-bold">Propose a takeback</Modal.Header>
@@ -223,20 +223,21 @@ function ProposeTakebackButton({ disabled, vertical = false }: { disabled: boole
     </>
   )
 }
+
 function ResignButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
-  const [modalOpen, setModalOpen] = useState(false)
   const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
+  const modalRef = useRef<HTMLDialogElement>(null)
 
   return (
     <>
       <Tooltip message="Resign" position={tooltipPlacement}>
-        <Button shape="circle" color="ghost" onClick={() => setModalOpen(true)} disabled={disabled}>
+        <Button shape="circle" color="ghost" onClick={() => modalRef.current?.showModal()} disabled={disabled}>
           <XCircleIcon className="w-6 h-6" />
         </Button>
       </Tooltip>
 
-      <Modal open={modalOpen} onClickBackdrop={() => setModalOpen(false)}>
-        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => setModalOpen(false)}>
+      <Modal ref={modalRef} backdrop={true}>
+        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => modalRef.current?.close()}>
           ✕
         </Button>
         <Modal.Header className="font-bold">Resign</Modal.Header>
@@ -248,19 +249,19 @@ function ResignButton({ disabled, vertical = false }: { disabled: boolean; verti
 }
 
 function OfferDrawButton({ disabled, vertical = false }: { disabled: boolean; vertical?: boolean }) {
-  const [modalOpen, setModalOpen] = useState(false)
   const tooltipPlacement = useMemo(() => (vertical ? 'right' : 'top'), [vertical])
+  const modalRef = useRef<HTMLDialogElement>(null)
 
   return (
     <>
       <Tooltip message="Offer draw" position={tooltipPlacement}>
-        <Button shape="circle" color="ghost" onClick={() => setModalOpen(true)} disabled={disabled}>
+        <Button shape="circle" color="ghost" onClick={() => modalRef.current?.showModal()} disabled={disabled}>
           <ScaleIcon className="w-6 h-6" />
         </Button>
       </Tooltip>
 
-      <Modal open={modalOpen} onClickBackdrop={() => setModalOpen(false)}>
-        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => setModalOpen(false)}>
+      <Modal ref={modalRef} backdrop={true}>
+        <Button size="sm" shape="circle" className="absolute right-2 top-2" onClick={() => modalRef.current?.close()}>
           ✕
         </Button>
         <Modal.Header className="font-bold">Offer draw</Modal.Header>
@@ -841,14 +842,14 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
         </div>
       </div>
       {currentGameStart && (
-        <div className="bg-base-200 mt-4 my-2 p-2 rounded-box">
+        <div className="bg-base-300 mt-4 my-2 p-2 rounded-box">
           <Chat
             gameId={currentGameStart.event().id}
             player1PubKey={player1PubKey}
             player2PubKey={player2PubKey}
             privKey={privateKeyOrNull || undefined}
             ourPubKey={publicKeyOrNull || undefined}
-            avatar={(val) => <RoboHashImg value={val.pubkey} className="bg-base-300 rounded-full shadow-lg-gray" />}
+            avatar={(val) => <RoboHashImg value={val.pubkey} className="bg-base-100 rounded-full shadow-lg-gray" />}
             gameOver={!!isGameOver}
           />
         </div>

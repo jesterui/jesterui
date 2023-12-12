@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, ButtonProps, ChatBubble, Input } from 'react-daisyui'
+import { Button, ButtonProps, ChatBubble, Input, Form } from 'react-daisyui'
 
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
@@ -79,32 +79,38 @@ function ChatMessageInput({ value, onChange, onSubmit, disabled = false }: ChatM
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <div className="flex items-center gap-1">
-      <div className="grow form-control">
-        <Input
-          type="text"
-          value={value || ''}
-          maxLength={256}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              buttonRef.current?.click()
-            }
-          }}
-          disabled={disabled}
-        />
+    <Form
+      noValidate
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        onSubmit(value)
+      }}
+    >
+      <div className="flex  gap-1">
+        <div className="grow form-control">
+          <Input
+            type="text"
+            value={value || ''}
+            maxLength={256}
+            onChange={(event) => onChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                buttonRef.current?.click()
+              }
+            }}
+            disabled={disabled}
+          />
+        </div>
+
+        <div className="flex-none ml-1">
+          <Button type="submit" ref={buttonRef} title="Send" className="flex gap-1" color="neutral" disabled={disabled}>
+            <PaperAirplaneIcon title="Send" className="w-6 h-6" />
+          </Button>
+        </div>
       </div>
-      <Button
-        ref={buttonRef}
-        title="Send"
-        type="button"
-        className="flex gap-1 "
-        onClick={() => onSubmit(value)}
-        disabled={disabled}
-      >
-        <PaperAirplaneIcon title="Send" className="w-6 h-6" />
-      </Button>
-    </div>
+    </Form>
   )
 }
 

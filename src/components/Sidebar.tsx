@@ -1,5 +1,5 @@
 import { PropsWithChildren, ReactNode, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { Divider, Menu } from 'react-daisyui'
 import {
   HomeIcon,
@@ -26,7 +26,7 @@ export function Sidebar({ title, children }: PropsWithChildren<SidebarProps>) {
   const displayPubKey = useMemo(() => publicKeyOrNull && AppUtils.pubKeyDisplayName(publicKeyOrNull), [publicKeyOrNull])
 
   return (
-    <div className="p-4 menu w-60 md:w-80 bg-base-100">
+    <div className="menu w-80 md:w-80 bg-base-100 h-screen">
       <Menu horizontal={false} className="gap-1">
         <Menu.Title className="mb-2">
           <span>{title}</span>
@@ -34,60 +34,60 @@ export function Sidebar({ title, children }: PropsWithChildren<SidebarProps>) {
 
         {publicKeyOrNull && displayPubKey && (
           <Menu.Item>
-            <Link to={ROUTES.home}>
+            <NavLink to={ROUTES.home}>
               <RoboHashImg
                 className="w-6 h-6 rounded-full shadow-sm-gray bg-base-300"
                 value={publicKeyOrNull}
                 alt={displayPubKey}
               />
               Profile
-            </Link>
+            </NavLink>
           </Menu.Item>
         )}
 
         {settings.currentGameJesterId && (
           <Menu.Item>
-            <Link to={ROUTES.currentGame}>
+            <NavLink to={ROUTES.currentGame}>
               <PuzzlePieceIcon className="w-6 h-6" />
               Active Game
-            </Link>
+            </NavLink>
           </Menu.Item>
         )}
 
         {(settings.currentGameJesterId || (publicKeyOrNull && displayPubKey)) && <Divider />}
 
         <Menu.Item>
-          <Link to={{ pathname: ROUTES.home }}>
+          <NavLink to={{ pathname: ROUTES.home }}>
             <HomeIcon className="w-6 h-6" />
             Home
-          </Link>
+          </NavLink>
         </Menu.Item>
 
         <Menu.Item>
-          <Link to={{ pathname: ROUTES.lobby }}>
+          <NavLink to={{ pathname: ROUTES.lobby }}>
             <GlobeAltIcon className="w-6 h-6" />
             Lobby
-          </Link>
+          </NavLink>
         </Menu.Item>
         <Menu.Item>
-          <Link to={ROUTES.search}>
+          <NavLink to={ROUTES.search}>
             <MagnifyingGlassIcon className="w-6 h-6" />
             Search
-          </Link>
+          </NavLink>
         </Menu.Item>
 
         <Menu.Item>
-          <Link to={ROUTES.faq}>
+          <NavLink to={ROUTES.faq}>
             <QuestionMarkCircleIcon className="w-6 h-6" />
             FAQ
-          </Link>
+          </NavLink>
         </Menu.Item>
 
         <Menu.Item>
-          <Link to={ROUTES.settings}>
+          <NavLink to={ROUTES.settings}>
             <WrenchScrewdriverIcon className="w-6 h-6" />
             Settings
-          </Link>
+          </NavLink>
         </Menu.Item>
       </Menu>
       <>{children}</>
