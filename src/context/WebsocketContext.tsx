@@ -121,7 +121,7 @@ const WebsocketContext = createContext<WebsocketContextEntry | undefined>(undefi
 const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | undefined>) => {
   const settings = useSettings()
   const host = useMemo<string | null>(() => settings.relays[0] || null, [settings])
-  const [websocket, setWebsocket] = useState<WebSocket | null>(null)
+  const [websocket, setWebsocket] = useState<WebSocket | null>(() => (host ? createWebSocket(host) : null))
   const [websocketState, setWebsocketState] = useState<number | null>(null)
   const [isWebsocketHealthy, setIsWebsocketHealthy] = useState(false)
   const [connectionErrorCount, setConnectionErrorCount] = useState(0)
@@ -144,7 +144,7 @@ const WebsocketProvider = ({ children }: ProviderProps<WebsocketContextEntry | u
       console.debug('[Websocket] No connection established.. ')
       openWebsocketIfPossible(host)
     } else {
-      const isClosed = ![WebSocket.CONNECTING, WebSocket.OPEN].includes(websocket.readyState)
+      const isClosed = websocket.readyState !== WebSocket.CONNECTING && websocket.readyState !== WebSocket.OPEN
       if (isClosed) {
         console.debug('[Websocket] Previous connection is closed..')
         openWebsocketIfPossible(host)
