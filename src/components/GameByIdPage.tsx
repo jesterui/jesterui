@@ -751,17 +751,6 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div className="mt-4 my-2">
                 <CopyGameUrlInput value={window.location.href} />
               </div>
-              {currentGameStart && privateKeyOrNull && publicKeyOrNull && player1PubKey && player2PubKey && (
-                <div className="bg-base-200 mt-4 my-2 p-2 rounded-box">
-                  <Chat
-                    privKey={privateKeyOrNull}
-                    ourPubKey={publicKeyOrNull}
-                    player1PubKey={player1PubKey}
-                    player2PubKey={player2PubKey}
-                    gameId={currentGameStart.event().id}
-                  />
-                </div>
-              )}
             </>
           )}
         </div>
@@ -853,6 +842,18 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
           </div>
         </div>
       </div>
+      {currentGameStart && privateKeyOrNull && publicKeyOrNull && player1PubKey && player2PubKey && (
+        <div className="bg-base-200 mt-4 my-2 p-2 rounded-box">
+          <Chat
+            gameId={currentGameStart.event().id}
+            player1PubKey={player1PubKey}
+            player2PubKey={player2PubKey}
+            privKey={privateKeyOrNull}
+            ourPubKey={publicKeyOrNull}
+            avatar={(val) => <RoboHashImg value={val.pubkey} className="bg-base-300 rounded-full shadow-lg-gray" />}
+          />
+        </div>
+      )}
       {settings.dev && (
         <div className="my-4">
           <div className="mb-4">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChatBubble, Input } from 'react-daisyui'
+import { Button, ChatBubble, Input } from 'react-daisyui'
 
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
@@ -9,6 +9,7 @@ import { GameChatEvent } from '../util/app_db'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useGameStore } from '../context/GameEventStoreContext'
 import { timeElapsed, scrollToBottom } from '../util/utils'
+import { PaperAirplaneIcon } from '@heroicons/react/24/outline'
 
 export const constructChatMessage = (
   pubkey: NIP01.PubKey,
@@ -25,12 +26,13 @@ export const constructChatMessage = (
 }
 
 type ChatBubbles = {
-  ourPubKey: NIP01.PubKey
   messages: GameChatEvent[]
+  ourPubKey?: NIP01.PubKey
+  avatar?: (event: GameChatEvent) => React.ReactNode | null
   rerenderInterval?: Milliseconds
 }
 
-function ChatBubbles({ ourPubKey, messages, rerenderInterval = 5 * 1_000 }: ChatBubbles) {
+function ChatBubbles({ messages, ourPubKey, avatar, rerenderInterval = 5 * 1_000 }: ChatBubbles) {
   const setRerenderTriggerValue = useState(() => Date.now())[1]
 
   useEffect(() => {
@@ -46,14 +48,17 @@ function ChatBubbles({ ourPubKey, messages, rerenderInterval = 5 * 1_000 }: Chat
 
   return (
     <>
-      {messages.map(({ pubkey, content, created_at }, i) => {
-        const isMyMessage = pubkey === ourPubKey
+      {messages.map((message, index) => {
+        const isMyMessage = !!ourPubKey && ourPubKey === message.pubkey
         return (
-          <div key={i} className="flex flex-col gap-1">
+          <div key={index} className="flex flex-col gap-1">
             <ChatBubble end={isMyMessage}>
-              <ChatBubble.Message>{content}</ChatBubble.Message>
+              {avatar && <ChatBubble.Avatar className="w-10 h-10">{avatar(message)}</ChatBubble.Avatar>}
+              <ChatBubble.Message className="break-words" color={isMyMessage ? 'primary' : undefined}>
+                {message.content}
+              </ChatBubble.Message>
               <ChatBubble.Footer>
-                <ChatBubble.Time>{timeElapsed(created_at * 1_000)}</ChatBubble.Time>
+                <ChatBubble.Time>{timeElapsed(message.created_at * 1_000)}</ChatBubble.Time>
               </ChatBubble.Footer>
             </ChatBubble>
           </div>
@@ -63,18 +68,19 @@ function ChatBubbles({ ourPubKey, messages, rerenderInterval = 5 * 1_000 }: Chat
   )
 }
 
-type ChatProps = {
-  privKey: NIP01.PrivKey
-  ourPubKey: NIP01.PubKey
+type ChatProps = Pick<ChatBubbles, 'ourPubKey' | 'avatar'> & {
+  gameId: NIP01.EventId
   player1PubKey: NIP01.PubKey
   player2PubKey: NIP01.PubKey
-  gameId: NIP01.EventId
+  privKey?: NIP01.PrivKey
 }
 
-export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey, gameId }: ChatProps) {
+export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, avatar, ourPubKey }: ChatProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const outgoingNostr = useOutgoingNostrEvents()
   const gameStore = useGameStore()
+
+  const [messageInput, setMessageInput] = useState<string>()
 
   const chatMessages = useLiveQuery(
     async () => {
@@ -99,13 +105,12 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
   }, [chatMessages.length])
 
   const isPlayer = useMemo(
-    () => [player1PubKey, player2PubKey].includes(ourPubKey),
+    () => ourPubKey && [player1PubKey, player2PubKey].includes(ourPubKey),
     [ourPubKey, player1PubKey, player2PubKey]
   )
 
-  const [message, setMessage] = useState<string>()
-
   const sendChatMessage = async (message: string) => {
+    if (!privKey || !ourPubKey) return
     if (!outgoingNostr) {
       throw new Error('Nostr EventBus not ready..')
     }
@@ -119,22 +124,36 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
         } catch (e) {
           reject(e)
         }
-      }, 1)
+      }, 4)
     })
   }
 
-  const handleOnKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (message && event.key === 'Enter') {
-      sendChatMessage(message).then(() => {
-        setMessage(undefined)
+  const onSubmit = () => {
+    const message = messageInput?.trim()
+    if (message) {
+      sendChatMessage(message.trim()).then(() => {
+        setMessageInput(undefined)
       })
     }
   }
 
+  const handleOnKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      onSubmit()
+    }
+  }
+
+  const handleSubmitButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onSubmit()
+  }
+
   return (
     <div className="flex flex-col gap-2">
+      <div className="flex px-1">
+        <small>Chat with your opponent!</small>
+      </div>
       <div className="h-64 overflow-y-auto pr-4" ref={chatContainerRef}>
-        <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} />
+        <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} avatar={avatar} />
       </div>
       {isPlayer && (
         <>
@@ -142,14 +161,15 @@ export default function Chat({ privKey, ourPubKey, player1PubKey, player2PubKey,
             <div className="grow form-control">
               <Input
                 type="text"
-                value={message || ''}
-                onChange={(e) => setMessage(e.target.value)}
+                value={messageInput || ''}
+                onChange={(e) => setMessageInput(e.target.value)}
                 onKeyDown={handleOnKeyDown}
+                maxLength={256}
               />
             </div>
-          </div>
-          <div className="flex justify-center my-1">
-            <small className="text-secondary">Chat with your opponent!</small>
+            <Button type="button" className="flex gap-1" onClick={handleSubmitButtonClick}>
+              Send <PaperAirplaneIcon className="w-6 h-6" title="send" />
+            </Button>
           </div>
         </>
       )}

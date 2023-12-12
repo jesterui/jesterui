@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 
 import { Spinner } from './Spinner'
@@ -13,15 +13,8 @@ interface RoboHashImgProps {
   className?: string
 }
 
-export function RoboHashImg(props: RoboHashImgProps) {
-  const { value, alt = value, title = value, raw = false, className = '' } = props
-
-  const [image, setImage] = useState(raw ? value : hashWithSha256(value))
-
-  useEffect(() => {
-    setImage(raw ? value : hashWithSha256(value))
-  }, [value, raw])
-
+export function RoboHashImg({ value, alt = value, title = value, raw = false, className = '' }: RoboHashImgProps) {
+  const image = useMemo(() => (raw ? value : hashWithSha256(value)), [value, raw])
   return <img className={className} src={`https://robohash.org/${image}`} title={title} alt={alt} />
 }
 
