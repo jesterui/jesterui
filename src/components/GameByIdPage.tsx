@@ -747,11 +747,9 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
         </div>
         <div className="order-4 lg:order-5">
           {currentChessInstance !== null && (
-            <>
-              <div className="mt-4 my-2">
-                <CopyGameUrlInput value={window.location.href} />
-              </div>
-            </>
+            <div className="mt-4 my-2">
+              <CopyGameUrlInput value={window.location.href} />
+            </div>
           )}
         </div>
         <div className="ml-4 hidden order-5 lg:grid lg:order-4 grid-cols-1 h-full content-between">
@@ -851,6 +849,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
             privKey={privateKeyOrNull}
             ourPubKey={publicKeyOrNull}
             avatar={(val) => <RoboHashImg value={val.pubkey} className="bg-base-300 rounded-full shadow-lg-gray" />}
+            gameOver={!!isGameOver}
           />
         </div>
       )}

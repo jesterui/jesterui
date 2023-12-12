@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, ChatBubble, Input } from 'react-daisyui'
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react'
+import { Button, ButtonProps, ChatBubble, Input } from 'react-daisyui'
 
 import { useOutgoingNostrEvents } from '../context/NostrEventsContext'
 
@@ -75,32 +75,42 @@ type ChatMessageInputProps = {
 }
 
 function ChatMessageInput({ value, onChange, onSubmit }: ChatMessageInputProps) {
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      onSubmit(value)
-    }
-  }
-
-  const onSubmitButtonClick = (_: React.MouseEvent<HTMLButtonElement>) => {
-    onSubmit(value)
-  }
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <>
-      <div className="flex items-center gap-1">
-        <div className="grow form-control">
-          <Input
-            type="text"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={onKeyDown}
-            maxLength={256}
-          />
-        </div>
-        <Button type="button" className="flex gap-1 " onClick={onSubmitButtonClick}>
-          Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
-        </Button>
+    <div className="flex items-center gap-1">
+      <div className="grow form-control">
+        <Input
+          type="text"
+          value={value || ''}
+          maxLength={256}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              buttonRef.current?.click()
+            }
+          }}
+        />
       </div>
+      <Button ref={buttonRef} type="button" className="flex gap-1 " onClick={() => onSubmit(value)}>
+        Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
+      </Button>
+    </div>
+  )
+}
+
+type CustomChatMessageButtonProps = Omit<ButtonProps, 'value' | 'onClick'> &
+  PropsWithChildren<{
+    value: string
+    onClick: (value: string) => void
+  }>
+
+function CustomChatMessageButton({ title, value, onClick, children, ...props }: CustomChatMessageButtonProps) {
+  return (
+    <>
+      <Button title={title} onClick={(_) => onClick(value)} {...props} type="button" className="flex gap-1">
+        {children}
+      </Button>
     </>
   )
 }
@@ -198,18 +208,90 @@ export default function Chat({
         <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} avatar={avatar} />
       </div>
       {isPlayer && (
-        <>
-          <ChatMessageInput
-            value={messageInput}
-            onChange={setMessageInput}
-            onSubmit={async (val) =>
-              val &&
-              doSubmit(val.trim()).then(() => {
-                setMessageInput(undefined)
-              })
-            }
-          />
-        </>
+        <ChatMessageInput
+          value={messageInput}
+          onChange={setMessageInput}
+          onSubmit={async (val) =>
+            val &&
+            doSubmit(val.trim()).then(() => {
+              setMessageInput(undefined)
+            })
+          }
+        />
+      )}
+      {isPlayer && (
+        <div className="flex items-center justify-end gap-1">
+          <CustomChatMessageButton
+            size="sm"
+            title="GM!"
+            value="GM!"
+            onClick={(val) => doSubmit(val)}
+            disabled={isSending}
+          >
+            GM
+          </CustomChatMessageButton>
+          {!gameOver ? (
+            <>
+              <CustomChatMessageButton
+                size="sm"
+                title="Nice move!"
+                value="Nice move!"
+                onClick={(val) => doSubmit(val)}
+                disabled={isSending}
+              >
+                NM
+              </CustomChatMessageButton>
+            </>
+          ) : (
+            <>
+              <CustomChatMessageButton
+                size="sm"
+                title="Good game!"
+                value="Good game!"
+                onClick={(val) => doSubmit(val)}
+                disabled={isSending}
+              >
+                GG
+              </CustomChatMessageButton>
+              <CustomChatMessageButton
+                size="sm"
+                title="Well played!"
+                value="Well played!"
+                onClick={(val) => doSubmit(val)}
+                disabled={isSending}
+              >
+                WP
+              </CustomChatMessageButton>
+              <CustomChatMessageButton
+                size="sm"
+                title="Thank you!"
+                value="Thank you!"
+                onClick={(val) => doSubmit(val)}
+                disabled={isSending}
+              >
+                TY
+              </CustomChatMessageButton>
+              <CustomChatMessageButton
+                size="sm"
+                title="I've got to go!"
+                value="I've got to go!"
+                onClick={(val) => doSubmit(val)}
+                disabled={isSending}
+              >
+                GTG
+              </CustomChatMessageButton>
+              <CustomChatMessageButton
+                size="sm"
+                title="Goodbye!"
+                value="Goodbye!"
+                onClick={(val) => doSubmit(val)}
+                disabled={isSending}
+              >
+                BYE
+              </CustomChatMessageButton>
+            </>
+          )}
+        </div>
       )}
     </div>
   )
