@@ -25,15 +25,15 @@ export const constructChatMessage = (
   return NostrEvents.constructEvent(eventParts)
 }
 
-type ChatBubbles = {
+type ChatBubblesProps = {
   messages: GameChatEvent[]
   ourPubKey?: NIP01.PubKey
   avatar?: (event: GameChatEvent) => React.ReactNode | null
   rerenderInterval?: Milliseconds
 }
 
-function ChatBubbles({ messages, ourPubKey, avatar, rerenderInterval = 5 * 1_000 }: ChatBubbles) {
-  const setRerenderTriggerValue = useState(() => Date.now())[1]
+function ChatBubbles({ messages, ourPubKey, avatar, rerenderInterval = 5 * 1_000 }: ChatBubblesProps) {
+  const [_unusedOnPurpose, setRerenderTriggerValue] = useState(() => Date.now())
 
   useEffect(() => {
     const abortCtrl = new AbortController()
@@ -68,14 +68,60 @@ function ChatBubbles({ messages, ourPubKey, avatar, rerenderInterval = 5 * 1_000
   )
 }
 
-type ChatProps = Pick<ChatBubbles, 'ourPubKey' | 'avatar'> & {
+type ChatMessageInputProps = {
+  value: string | undefined
+  onChange: (value: string | undefined) => void
+  onSubmit: (value: string | undefined) => void
+}
+
+function ChatMessageInput({ value, onChange, onSubmit }: ChatMessageInputProps) {
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      onSubmit(value)
+    }
+  }
+
+  const onSubmitButtonClick = (_: React.MouseEvent<HTMLButtonElement>) => {
+    onSubmit(value)
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-1">
+        <div className="grow form-control">
+          <Input
+            type="text"
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={onKeyDown}
+            maxLength={256}
+          />
+        </div>
+        <Button type="button" className="flex gap-1 " onClick={onSubmitButtonClick}>
+          Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
+        </Button>
+      </div>
+    </>
+  )
+}
+
+type ChatProps = Pick<ChatBubblesProps, 'ourPubKey' | 'avatar'> & {
   gameId: NIP01.EventId
   player1PubKey: NIP01.PubKey
   player2PubKey: NIP01.PubKey
   privKey?: NIP01.PrivKey
+  gameOver?: boolean
 }
 
-export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, avatar, ourPubKey }: ChatProps) {
+export default function Chat({
+  gameId,
+  player1PubKey,
+  player2PubKey,
+  privKey,
+  avatar,
+  ourPubKey,
+  gameOver = false,
+}: ChatProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const outgoingNostr = useOutgoingNostrEvents()
   const gameStore = useGameStore()
@@ -134,28 +180,13 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
     })
   }
 
-  const onSubmit = () => {
-    const message = messageInput?.trim()
-    if (!isSending && message) {
+  const doSubmit = async (content: string) => {
+    if (!isSending && content) {
       setIsSending(true)
-      sendChatMessage(message.trim())
-        .then(() => {
-          setMessageInput(undefined)
-        })
-        .finally(() => {
-          setIsSending(false)
-        })
+      return sendChatMessage(content).finally(() => {
+        setIsSending(false)
+      })
     }
-  }
-
-  const handleOnKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      onSubmit()
-    }
-  }
-
-  const handleSubmitButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    onSubmit()
   }
 
   return (
@@ -168,20 +199,16 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
       </div>
       {isPlayer && (
         <>
-          <div className="flex items-center gap-1">
-            <div className="grow form-control">
-              <Input
-                type="text"
-                value={messageInput || ''}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyDown={handleOnKeyDown}
-                maxLength={256}
-              />
-            </div>
-            <Button type="button" className="flex gap-1 " onClick={handleSubmitButtonClick} disabled={isSending}>
-              Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
-            </Button>
-          </div>
+          <ChatMessageInput
+            value={messageInput}
+            onChange={setMessageInput}
+            onSubmit={async (val) =>
+              val &&
+              doSubmit(val.trim()).then(() => {
+                setMessageInput(undefined)
+              })
+            }
+          />
         </>
       )}
     </div>
