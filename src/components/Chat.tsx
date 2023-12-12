@@ -72,9 +72,10 @@ type ChatMessageInputProps = {
   value: string | undefined
   onChange: (value: string | undefined) => void
   onSubmit: (value: string | undefined) => void
+  disabled?: boolean
 }
 
-function ChatMessageInput({ value, onChange, onSubmit }: ChatMessageInputProps) {
+function ChatMessageInput({ value, onChange, onSubmit, disabled = false }: ChatMessageInputProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   return (
@@ -90,9 +91,10 @@ function ChatMessageInput({ value, onChange, onSubmit }: ChatMessageInputProps) 
               buttonRef.current?.click()
             }
           }}
+          disabled={disabled}
         />
       </div>
-      <Button ref={buttonRef} type="button" className="flex gap-1 " onClick={() => onSubmit(value)}>
+      <Button ref={buttonRef} type="button" className="flex gap-1 " onClick={() => onSubmit(value)} disabled={disabled}>
         Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
       </Button>
     </div>
@@ -117,8 +119,8 @@ function CustomChatMessageButton({ title, value, onClick, children, ...props }: 
 
 type ChatProps = Pick<ChatBubblesProps, 'ourPubKey' | 'avatar'> & {
   gameId: NIP01.EventId
-  player1PubKey: NIP01.PubKey
-  player2PubKey: NIP01.PubKey
+  player1PubKey?: NIP01.PubKey
+  player2PubKey?: NIP01.PubKey
   privKey?: NIP01.PrivKey
   gameOver?: boolean
 }
@@ -217,6 +219,7 @@ export default function Chat({
               setMessageInput(undefined)
             })
           }
+          disabled={!privKey}
         />
       )}
       {isPlayer && (

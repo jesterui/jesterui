@@ -840,14 +840,14 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
           </div>
         </div>
       </div>
-      {currentGameStart && privateKeyOrNull && publicKeyOrNull && player1PubKey && player2PubKey && (
+      {currentGameStart && (
         <div className="bg-base-200 mt-4 my-2 p-2 rounded-box">
           <Chat
             gameId={currentGameStart.event().id}
             player1PubKey={player1PubKey}
             player2PubKey={player2PubKey}
-            privKey={privateKeyOrNull}
-            ourPubKey={publicKeyOrNull}
+            privKey={privateKeyOrNull || undefined}
+            ourPubKey={publicKeyOrNull || undefined}
             avatar={(val) => <RoboHashImg value={val.pubkey} className="bg-base-300 rounded-full shadow-lg-gray" />}
             gameOver={!!isGameOver}
           />
