@@ -38,6 +38,8 @@ const createSubscriptionUpdate = (
     add: [],
   }
 
+  console.debug('[Subscription] new subs', newSubsBySubId)
+
   Object.entries(newSubsBySubId).forEach(([id, sub]) => {
     if (existingSubsBySubId[id] === undefined) {
       updates.add.push(sub)
@@ -54,6 +56,7 @@ const createSubscriptionUpdate = (
       updates.close.push(sub)
     }
   })
+  console.debug('[Subscription] new subs results in ', updates)
 
   return updates
 }
@@ -69,10 +72,13 @@ const NostrSubscriptionsProvider = ({ children }: ProviderProps<NostrSubscriptio
   const [subscriptionsUpdate, setSubscriptionsUpdate] = useState<SubscriptionUpdates>(EMPTY_UPDATE)
 
   const updateSubscription = useCallback((sub: Subscription) => {
+    console.debug('[Subscription] updateSubscription', sub)
     setNewSubscriptons((current) => {
       if (sub.filters.length === 0) {
+        console.debug('[Subscription] removing', sub.id)
         return Object.fromEntries(Object.entries(current).filter(([id, _]) => id !== sub.id))
       } else {
+        console.debug('[Subscription] adding', sub.id)
         return Object.fromEntries(Object.entries({ ...current, [sub.id]: sub }).sort())
       }
     })
@@ -85,26 +91,28 @@ const NostrSubscriptionsProvider = ({ children }: ProviderProps<NostrSubscriptio
   }, [outgoingNostr])
 
   useEffect(() => {
+    console.debug('[Subscription] new', newSubscriptions)
     if (!outgoingNostr) return
     if (currentSubscriptions === newSubscriptions) return
 
     const update = createSubscriptionUpdate(currentSubscriptions, newSubscriptions)
-    setSubscriptionsUpdate(update)
     setCurrentSubscriptions(newSubscriptions)
+    setSubscriptionsUpdate(update)
   }, [outgoingNostr, currentSubscriptions, newSubscriptions])
 
   useEffect(() => {
+    console.debug('[Subscription] update', subscriptionsUpdate)
     if (!outgoingNostr) return
     if (subscriptionsUpdate === EMPTY_UPDATE) return
 
     subscriptionsUpdate.close.forEach((sub) => {
+      console.debug('[Subscription] close', sub)
       outgoingNostr.emit(NIP01.ClientEventType.CLOSE, NIP01.createClientCloseMessage(sub.id))
     })
     ;[...subscriptionsUpdate.refresh, ...subscriptionsUpdate.add].forEach((sub) => {
+      console.debug('[Subscription] add', sub)
       outgoingNostr.emit(NIP01.ClientEventType.REQ, NIP01.createClientReqMessage(sub.id, sub.filters))
     })
-
-    setSubscriptionsUpdate(EMPTY_UPDATE)
   }, [outgoingNostr, subscriptionsUpdate])
 
   return (

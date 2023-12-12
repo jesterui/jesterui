@@ -15,7 +15,7 @@ export class AppNostrDexie extends Dexie {
 
   constructor() {
     super('app_nostr')
-    this.version(1).stores({
+    this.version(3).stores({
       nostr_events: '&id, pubkey, created_at', // primary key and indexed props
       nostr_event_refs: '&sourceId, *targetIds', // unique primary key and array of keys (Multi-valued)
       //nostr_pubkey_refs: '&sourceId, *targetIds',

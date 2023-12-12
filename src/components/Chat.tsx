@@ -94,8 +94,15 @@ function ChatMessageInput({ value, onChange, onSubmit, disabled = false }: ChatM
           disabled={disabled}
         />
       </div>
-      <Button ref={buttonRef} type="button" className="flex gap-1 " onClick={() => onSubmit(value)} disabled={disabled}>
-        Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
+      <Button
+        ref={buttonRef}
+        title="Send"
+        type="button"
+        className="flex gap-1 "
+        onClick={() => onSubmit(value)}
+        disabled={disabled}
+      >
+        <PaperAirplaneIcon title="Send" className="w-6 h-6" />
       </Button>
     </div>
   )
@@ -202,11 +209,11 @@ export default function Chat({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 w-full">
       <div className="flex px-1">
         <small>Chat with your opponent!</small>
       </div>
-      <div className="h-64 overflow-y-auto pr-4" ref={chatContainerRef}>
+      <div className="h-96 grow overflow-y-auto pr-4" ref={chatContainerRef}>
         <ChatBubbles ourPubKey={ourPubKey} messages={chatMessages} avatar={avatar} />
       </div>
       {isPlayer && (
