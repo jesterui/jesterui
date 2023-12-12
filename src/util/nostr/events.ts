@@ -1,4 +1,4 @@
-import * as secp256k1 from '@noble/secp256k1'
+import { schnorr } from '@noble/curves/secp256k1'
 import { bytesToHex } from '@noble/hashes/utils'
 
 import { hashWithSha256 } from '../../util/utils'
@@ -67,9 +67,9 @@ export const signEvent = (unsignedEvent: NIP01.UnsignedEvent, privKey: PrivKey):
 }
 
 export const createSignature = (event: NIP01.UnsignedEvent, privKey: PrivKey): NIP01.Sig => {
-  return bytesToHex(secp256k1.schnorr.signSync(createEventHash(event), privKey))
+  return bytesToHex(schnorr.sign(createEventHash(event), privKey))
 }
 
 export const verifySignature = (event: NIP01.Event) => {
-  return secp256k1.schnorr.verifySync(event.sig, event.id, event.pubkey)
+  return schnorr.verify(event.sig, event.id, event.pubkey)
 }

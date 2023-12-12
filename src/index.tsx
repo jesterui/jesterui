@@ -1,4 +1,3 @@
-import { prepareSecp256k1 } from './util'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
@@ -16,8 +15,6 @@ import 'chessground/assets/chessground.base.css'
 import 'chessground/assets/chessground.brown.css'
 import 'chessground/assets/chessground.cburnett.css'
 import './index.css'
-
-prepareSecp256k1()
 
 declare global {
   interface AppGlobal {
