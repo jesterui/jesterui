@@ -127,6 +127,6 @@ export const timeElapsed = (d1: Milliseconds, d2: Milliseconds = Date.now()) => 
   return RELATIVE_TIME_FORMAT.format(Math.round(elapsedInMillis / units['second']), 'second')
 }
 
-export const scrollToBottom = (element: HTMLElement) => {
-  element.scrollBy({ top: element.scrollHeight, behavior: 'smooth' })
+export const scrollToBottom = (element: HTMLElement, options?: ScrollOptions) => {
+  element.scrollBy({ top: element.scrollHeight, behavior: 'smooth', ...options })
 }

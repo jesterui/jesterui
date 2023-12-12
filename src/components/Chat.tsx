@@ -9,7 +9,7 @@ import { GameChatEvent } from '../util/app_db'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useGameStore } from '../context/GameEventStoreContext'
 import { timeElapsed, scrollToBottom } from '../util/utils'
-import { PaperAirplaneIcon } from '@heroicons/react/24/outline'
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 
 export const constructChatMessage = (
   pubkey: NIP01.PubKey,
@@ -48,11 +48,11 @@ function ChatBubbles({ messages, ourPubKey, avatar, rerenderInterval = 5 * 1_000
 
   return (
     <>
-      {messages.map((message, index) => {
-        const isMyMessage = !!ourPubKey && ourPubKey === message.pubkey
-        return (
-          <div key={index} className="flex flex-col gap-1">
-            <ChatBubble end={isMyMessage}>
+      <div className="flex flex-col gap-1">
+        {messages.map((message, index) => {
+          const isMyMessage = !!ourPubKey && ourPubKey === message.pubkey
+          return (
+            <ChatBubble key={index} end={isMyMessage}>
               {avatar && <ChatBubble.Avatar className="w-10 h-10">{avatar(message)}</ChatBubble.Avatar>}
               <ChatBubble.Message className="break-words" color={isMyMessage ? 'primary' : undefined}>
                 {message.content}
@@ -61,9 +61,9 @@ function ChatBubbles({ messages, ourPubKey, avatar, rerenderInterval = 5 * 1_000
                 <ChatBubble.Time>{timeElapsed(message.created_at * 1_000)}</ChatBubble.Time>
               </ChatBubble.Footer>
             </ChatBubble>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </>
   )
 }
@@ -81,6 +81,7 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
   const gameStore = useGameStore()
 
   const [messageInput, setMessageInput] = useState<string>()
+  const [isSending, setIsSending] = useState(false)
 
   const chatMessages = useLiveQuery(
     async () => {
@@ -96,13 +97,17 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
   useEffect(() => {
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
-      !abortCtrl.signal.aborted && chatContainerRef.current && scrollToBottom(chatContainerRef.current)
+      !abortCtrl.signal.aborted &&
+        chatContainerRef.current &&
+        scrollToBottom(chatContainerRef.current, {
+          behavior: 'auto',
+        })
     }, 21)
     return () => {
       abortCtrl.abort()
       clearTimeout(timer)
     }
-  }, [chatMessages.length])
+  }, [chatMessages.length, isSending])
 
   const isPlayer = useMemo(
     () => ourPubKey && [player1PubKey, player2PubKey].includes(ourPubKey),
@@ -114,6 +119,7 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
     if (!outgoingNostr) {
       throw new Error('Nostr EventBus not ready..')
     }
+
     return await new Promise<NIP01.Event>(function (resolve, reject) {
       setTimeout(() => {
         try {
@@ -130,10 +136,15 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
 
   const onSubmit = () => {
     const message = messageInput?.trim()
-    if (message) {
-      sendChatMessage(message.trim()).then(() => {
-        setMessageInput(undefined)
-      })
+    if (!isSending && message) {
+      setIsSending(true)
+      sendChatMessage(message.trim())
+        .then(() => {
+          setMessageInput(undefined)
+        })
+        .finally(() => {
+          setIsSending(false)
+        })
     }
   }
 
@@ -167,8 +178,8 @@ export default function Chat({ gameId, player1PubKey, player2PubKey, privKey, av
                 maxLength={256}
               />
             </div>
-            <Button type="button" className="flex gap-1" onClick={handleSubmitButtonClick}>
-              Send <PaperAirplaneIcon className="w-6 h-6" title="send" />
+            <Button type="button" className="flex gap-1 " onClick={handleSubmitButtonClick} disabled={isSending}>
+              Send <PaperAirplaneIcon title="send" className="w-6 h-6" />
             </Button>
           </div>
         </>
