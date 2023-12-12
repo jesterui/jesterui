@@ -42,7 +42,8 @@
     "format": "prettier --write --no-error-on-unmatched-pattern 'src/**/*.{ts,tsx,json,css,md}'",
     "regtest:clear": "docker-compose --file docker/regtest/docker-compose.yml down --volumes --remove-orphans",
     "regtest:up": "docker-compose --file docker/regtest/docker-compose.yml up",
-    "regtest:down": "docker-compose --file docker/regtest/docker-compose.yml down"
+    "regtest:down": "docker-compose --file docker/regtest/docker-compose.yml down",
+    "regtest:pull": "npm run regtest:clear && docker-compose --file docker/regtest/docker-compose.yml pull"
   },
   "eslintConfig": {
     "extends": [
