@@ -26,7 +26,6 @@
     "chess.js": "^1.0.0-beta.3",
     "dexie": "^3.2.3",
     "dexie-react-hooks": "^1.1.1",
-    "nostr-tools": "^1.3.2",
     "react": "^18.2.0",
     "react-daisyui": "^5.0.0",
     "react-dom": "^18.2.0",
