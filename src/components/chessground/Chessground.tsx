@@ -3,10 +3,7 @@ import Chessground from '@react-chess/chessground'
 import * as cg from 'chessground/types'
 import { Config as CgConfig } from 'chessground/config'
 
-// @ts-ignore
-import { ChessInstance, Square } from '../ChessJsTypes'
-// @ts-ignore
-import { SQUARES } from 'chess.js'
+import { Chess as ChessInstance, Square, SQUARES } from 'chess.js'
 
 type MoveableColor = cg.Color[]
 const moveableColorProp = (c: MoveableColor) => {
@@ -67,7 +64,7 @@ const StyledChessboard = ({
     setChessgroundConfig({
       fen: game.fen(),
       turnColor: game.turn() === 'b' ? 'black' : 'white', // turn to play. white | black
-      viewOnly: userColor.length === 0 || game.game_over(), // don't bind events: the user will never be able to move pieces around
+      viewOnly: userColor.length === 0 || game.isGameOver(), // don't bind events: the user will never be able to move pieces around
       lastMove: lastMove,
       ...config,
       movable: {
@@ -95,14 +92,13 @@ const StyledChessboard = ({
   )
 }
 
-export default function Chessboard({
-  game,
-  userColor,
-  onAfterMoveFinished,
-}: {
+type CessboardProps = {
   game: ChessInstance
   userColor: MoveableColor
-} & { onAfterMoveFinished: (fn: (g: ChessInstance) => void) => void }) {
+  onAfterMoveFinished: (fn: (g: ChessInstance) => void) => void
+}
+
+export default function Chessboard({ game, userColor, onAfterMoveFinished }: CessboardProps) {
   const [chessgroundConfig, setChessgroundConfig] = useState<Partial<CgConfig>>({} as Partial<CgConfig>)
 
   const onAfter = useCallback(

@@ -1,7 +1,6 @@
-// @ts-ignore
 import * as Chess from 'chess.js'
 
-export type ShortMove = { from: string; to: string }
+export type ShortMove = Pick<Chess.Move, 'from' | 'to'>
 export type EvalResult = {
   totalEvaluation: number
 }
@@ -9,7 +8,7 @@ export type Fen = string
 export type UninitialisedEngine = () => Engine
 export type Engine = {
   move: (fen: Fen) => Promise<ShortMove>
-  eval: (game: Chess.ChessInstance) => Promise<EvalResult>
+  eval: (game: Chess.Chess) => Promise<EvalResult>
   terminate: () => void
   isTerminated: () => boolean
 }
@@ -23,7 +22,7 @@ const TOTAL_EVALUATION_REGEX = /^Total [E|e]valuation:\s(-?\d+\.?\d+)[\s\S]+$/
 // e.g. "info depth 1 seldepth 1 multipv 1 score cp 593 nodes 482 nps 28352 time 17 pv a2a4 d5a5 e1d1 bmc 5"
 var SCORE_REGEX = /^info .*\bscore (\w+) (-?\d+)/
 
-const getMovesForStockfish = (game: Chess.ChessInstance) => {
+const getMovesForStockfish = (game: Chess.Chess) => {
   const history = game.history({ verbose: true })
 
   let moves = ''
@@ -36,10 +35,11 @@ const getMovesForStockfish = (game: Chess.ChessInstance) => {
 }
 
 export const prepareEngine =
-  (file: string, actions: Array<string>): UninitialisedEngine =>
+  (name: string, file: string, actions: Array<string>): UninitialisedEngine =>
   () => {
     let terminated = false
-    const worker = new Worker(file)
+    DEV && console.debug(`[UCI]`, `Creating new worker for ${name} from ${file}`)
+    const worker = new Worker(file, { name })
 
     let bestmoveResolver: ((move: ShortMove) => void) | null = null
     let evalResolver: ((result: EvalResult) => void) | null = null
@@ -47,7 +47,7 @@ export const prepareEngine =
     worker.addEventListener('message', (uciMessage) => {
       if (uciMessage.data === '') return
 
-      DEV && console.debug(`[Engine]`, uciMessage)
+      DEV && console.debug(`[UCI]`, uciMessage)
 
       const move = uciMessage.data.match(BESTMOVE_REGEX)
       if (move && bestmoveResolver) {
@@ -110,6 +110,7 @@ export const prepareEngine =
           evalResolver = resolve
 
           const moves = getMovesForStockfish(game)
+          DEV && console.debug(`[UCI] POST 2 messages ${name}.`)
           worker.postMessage(`position startpos moves ${moves}`)
           worker.postMessage(`eval`)
         })
@@ -120,6 +121,7 @@ export const prepareEngine =
 
         terminated = true
         worker.terminate()
+        DEV && console.debug(`[UCI] Terminate worker ${name}.`)
       },
       isTerminated: () => terminated,
     }

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Button, Input, Tooltip, Modal } from 'react-daisyui'
+import { Button, Input, Tooltip, Modal, Divider } from 'react-daisyui'
 import { ArrowUturnLeftIcon, ScaleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 
 import { useSettings, useSettingsDispatch } from '../context/SettingsContext'
@@ -12,7 +12,7 @@ import Chessboard from '../components/chessground/Chessground'
 import PgnTable from '../components/chessground/PgnTable'
 import { CopyButtonWithConfirmation } from '../components/CopyButton'
 import { CreateGameOrNewIdentityButton, LoginOrNewIdentityButton } from '../components/CreateGameOrNewIdentityButton'
-import { ChessInstance } from '../components/ChessJsTypes'
+import { Chess as ChessInstance } from 'chess.js'
 import { RoboHashImg, UnknownImg } from '../components/RoboHashImg'
 import Chat from '../components/Chat'
 
@@ -34,9 +34,10 @@ import * as AppUtils from '../util/app'
 import * as Utils from '../util/utils'
 import { GameMoveEvent, GameStartEvent } from '../util/app_db'
 import { getSession } from '../util/session'
-// @ts-ignore
+
 import * as Chess from 'chess.js'
 import * as cg from 'chessground/types'
+import { normalizePgn, Pgn } from '../util/chess'
 
 type MovableColor = [] | [cg.Color] | ['white', 'black']
 const MOVE_COLOR_NONE: MovableColor = []
@@ -48,14 +49,14 @@ const MIN_LOADING_INDICATOR_DURATION_IN_MS = 750
 const MAX_LOADING_INDICATOR_DURATION_IN_MS = process.env.NODE_ENV === 'development' ? 3_000 : 5_000
 
 const titleMessage = (game: ChessInstance, color: MovableColor) => {
-  if (game.game_over()) {
+  if (game.isGameOver()) {
     if (color.length !== 1) {
-      if (game.in_draw()) {
+      if (game.isDraw()) {
         return 'Draw'
       }
       return 'Game Over'
     } else {
-      if (game.in_draw()) {
+      if (game.isDraw()) {
         return '💪 Draw'
       }
 
@@ -79,8 +80,8 @@ const titleMessage = (game: ChessInstance, color: MovableColor) => {
 }
 
 const gameStateMessage = (game: ChessInstance, color: MovableColor) => {
-  if (game.game_over()) {
-    if (game.in_draw()) {
+  if (game.isGameOver()) {
+    if (game.isDraw()) {
       return 'Draw'
     }
     return 'Game Over'
@@ -100,16 +101,18 @@ interface BoardContainerProps {
   game: ChessInstance
   color: MovableColor
   size: number
-  onGameChanged: (game: ChessInstance) => void
+  onGameChanged: (pgn: Pgn) => void
 }
 
 function BoardContainer({ size, game, color, onGameChanged }: BoardContainerProps) {
+  const copyOfGame = useRef(new ChessInstance())
+
   const updateGameCallback = useCallback(
     (modify: (g: ChessInstance) => void) => {
       console.debug('[Chess] updateGameCallback invoked')
-      const copyOfGame = { ...game }
-      modify(copyOfGame)
-      onGameChanged(copyOfGame)
+      copyOfGame.current.loadPgn(normalizePgn(game.pgn()))
+      modify(copyOfGame.current)
+      onGameChanged(normalizePgn(copyOfGame.current.pgn()))
     },
     [game, onGameChanged]
   )
@@ -150,21 +153,21 @@ const CopyGameUrlInput = ({ value }: { value: string }) => {
 }
 
 const GameOverMessage = ({ game }: { game: ChessInstance }) => {
-  if (!game.game_over()) {
+  if (!game.isGameOver()) {
     return <></>
   }
 
-  if (game.in_stalemate()) {
+  if (game.isStalemate()) {
     return <>Stalemate</>
   }
-  if (game.in_threefold_repetition()) {
+  if (game.isThreefoldRepetition()) {
     return <>Threefold repetition</>
   }
-  if (game.insufficient_material()) {
+  if (game.isInsufficientMaterial()) {
     return <>Insufficient material</>
   }
 
-  if (game.in_draw()) {
+  if (game.isDraw()) {
     return <>Draw</>
   }
 
@@ -288,7 +291,7 @@ interface GameboardWithLoaderProps {
   color: MovableColor
   isLoading: boolean
   isSearchingHead: boolean
-  onChessboardChanged: (chessboard: ChessInstance) => Promise<void>
+  onChessboardChanged: (pgn: Pgn) => Promise<void>
 }
 
 function GameboardWithLoader({
@@ -335,7 +338,7 @@ function GameboardWithLoader({
   )
 }
 
-interface ActionButtonsProps {
+type ActionButtonsProps = {
   isLoading: boolean
   isSearchingHead: boolean
   vertical?: boolean
@@ -357,7 +360,11 @@ function ActionButtons({ isLoading, isSearchingHead, vertical = false }: ActionB
   )
 }
 
-export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: JesterId }) {
+type GameByIdProps = {
+  jesterId?: JesterId
+}
+
+export default function GameByIdPage({ jesterId: argJesterId }: GameByIdProps) {
   const { jesterId: paramsJesterId } = useParams<{ jesterId?: JesterId }>()
 
   const [jesterId] = useState<JesterId | undefined>(
@@ -377,7 +384,7 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
   const [currentGameHead, setCurrentGameHead] = useState<JesterMove | null>(null)
   const [color, setColor] = useState<MovableColor>(MOVE_COLOR_NONE)
   const [isSearchingHead, setIsSearchingHead] = useState(true)
-  const isGameOver = useMemo(() => currentChessInstance && currentChessInstance.game_over(), [currentChessInstance])
+  const isGameOver = useMemo(() => currentChessInstance && currentChessInstance.isGameOver(), [currentChessInstance])
 
   // TODO: "isLoading" is more like "isWaiting",.. e.g. no game is found.. can be in incoming events the next second,
   // in 10 seconds, or never..
@@ -453,11 +460,12 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
     [player2PubKey]
   )
 
-  const onChessboardChanged = async (chessboard: ChessInstance) => {
+  const onChessboardChanged = async (pgn: Pgn) => {
     if (!currentChessInstance) return
 
     try {
-      await sendGameStateViaNostr(chessboard)
+      currentChessInstance.loadPgn(normalizePgn(pgn))
+      await sendGameStateViaNostr(currentChessInstance)
     } catch (e) {
       console.error(e)
     }
@@ -528,22 +536,17 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
         return newGame
       }
 
-      // TODO: does the "game" really need to change, or can you just do:
-      // current.game.load_pgn(history.join('\n'))
-      // without returning a copy?
-      if (currentGameHead.isStart()) {
-        return newGame
-      } else {
-        const pgn = currentGameHead.pgn()
-        const loaded = newGame.load_pgn(pgn)
-        if (!loaded) {
-          // should not happen as currentGameHead contains a valid pgn
-          throw new Error(`Cannot load new game state from pgn: ${pgn}`)
-        }
-
-        console.info('loaded new game state from pgn', pgn)
-        return newGame
+      // TODO: does the "game" really need to be a new instance?
+      const pgn = currentGameHead.content().pgn
+      try {
+        newGame.loadPgn(normalizePgn(pgn))
+      } catch (e) {
+        // should not happen as currentGameHead contains a valid pgn
+        throw new Error(`Cannot load new game state from pgn: ${pgn}`, { cause: e })
       }
+
+      console.info('loaded new game state from pgn', newGame.pgn())
+      return newGame
     })
   }, [isSearchingHead, currentGameHead])
 
@@ -877,6 +880,18 @@ export default function GameByIdPage({ jesterId: argJesterId }: { jesterId?: Jes
               <div>{`isLoading: ${isLoading}`}</div>
               <div>{`isSearchingHead: ${isSearchingHead}`}</div>
               <div>{`Moves: ${currentGameMoves.length}`}</div>
+            </pre>
+            <Divider />
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
+              {`currentHead.event: ${JSON.stringify(currentGameHead?.event(), null, 2)}`}
+            </pre>
+            <Divider />
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
+              {`currentHead.event.pgn: ${JSON.parse(currentGameHead?.event().content || '{}').pgn}`}
+            </pre>
+            <Divider />
+            <pre className="py-4" style={{ overflowX: 'scroll' }}>
+              {`Chessboard PGN: ${currentChessInstance?.pgn()}`}
             </pre>
           </div>
         </div>

@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import { SelectedBot } from '../components/BotSelector'
-import { ChessInstance } from '../components/ChessJsTypes'
+import * as Chess from 'chess.js'
 
 import * as UCI from '../util/uci'
 import { AnalyticsEngine } from '../util/bot'
+import { GameStartEvent, GameMoveEvent } from '../util/app_db'
+import * as JesterUtils from '../util/jester'
+import { normalizePgn } from '../util/chess'
 
 interface MoveAndFen {
   move: UCI.ShortMove
@@ -16,7 +19,7 @@ interface BotMoveSuggestion {
   move: MoveAndFen | null
 }
 
-const botConsole =
+const engineConsole =
   process.env.NODE_ENV === 'development'
     ? console
     : {
@@ -26,21 +29,41 @@ const botConsole =
         error: () => {},
       }
 
-export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessInstance | null): BotMoveSuggestion {
-  const [isThinking, setIsThinking] = useState(false)
+export default function useBotSuggestion(
+  selectedBot: SelectedBot,
+  gameEvent: GameStartEvent | GameMoveEvent | undefined
+): BotMoveSuggestion {
+  const isThinking = useRef(false)
   const [thinkingFens, setThinkingFens] = useState<UCI.Fen[]>([])
 
   const [suggestion, setSuggestion] = useState<BotMoveSuggestion>({
-    isThinking: false,
+    isThinking: isThinking.current,
     move: null,
   })
 
+  const game = useRef<Chess.Chess>(new Chess.Chess())
+
   useEffect(() => {
+    if (!gameEvent) {
+      game.current.reset()
+      return
+    }
+
+    const content: JesterUtils.JesterProtoContent = JSON.parse(gameEvent.content)
+
+    try {
+      game.current.loadPgn(normalizePgn(content.pgn))
+    } catch (e) {
+      engineConsole.error('[Engine] Current gameEvent has no valid pgn', { cause: e })
+      return
+    }
+
     setThinkingFens((currentFens) => {
-      if (game === null || game.game_over()) {
+      if (game.current.isGameOver()) {
         return []
       }
-      const newFen = game.fen()
+
+      const newFen = game.current.fen()
 
       if (currentFens[currentFens.length - 1] === newFen) {
         return currentFens
@@ -48,18 +71,18 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
       return [...currentFens, newFen]
     })
 
-    if (game !== null && !game.game_over()) {
-      AnalyticsEngine.eval(game)
+    if (game.current !== undefined && !game.current.isGameOver()) {
+      AnalyticsEngine.eval(game.current)
         .then((result) => {
-          botConsole.info(`[Engine] Evaluation of ${game.fen()}: `, result)
+          engineConsole.info(`[Engine] Evaluation of ${game.current?.fen()}: `, result)
         })
-        .catch((e: Error) => botConsole.warn('[Engine] Error during eval', e))
+        .catch((e: Error) => engineConsole.warn('[Engine] Error during eval', e))
     }
-  }, [game])
+  }, [game, gameEvent])
 
   useEffect(() => {
     if (!selectedBot) return
-    if (isThinking) return
+    if (isThinking.current === true) return
     if (thinkingFens.length === 0) return
 
     const thinkingFen = thinkingFens[thinkingFens.length - 1]
@@ -67,25 +90,29 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
     const abortCtrl = new AbortController()
     const timer = setTimeout(() => {
       if (abortCtrl.signal.aborted) {
-        botConsole.warn(`[Bot] '${selectedBot.name}' wanted to search for ${thinkingFen} - but operation was aborted.`)
+        engineConsole.warn(
+          `[Engine] '${selectedBot.name}' wanted to search for ${thinkingFen} - but operation was aborted.`
+        )
         return
       }
       const inBetweenUpdate = thinkingFen !== thinkingFens[thinkingFens.length - 1]
       if (inBetweenUpdate) return
 
-      setIsThinking(true)
-      botConsole.info(`[Bot] Asking '${selectedBot.name}' for move suggestion to ${thinkingFen}...`)
+      isThinking.current = true
+      engineConsole.info(`[Engine] Asking '${selectedBot.name}' for move suggestion to ${thinkingFen}...`)
 
       selectedBot.bot
         .move(thinkingFen)
         .then(({ from, to }: UCI.ShortMove) => {
-          /*if (abortCtrl.signal.aborted) {
-            console.warn(`Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`)
+          if (abortCtrl.signal.aborted) {
+            console.warn(
+              `[Engine] Bot ${selectedBot.name} found move from ${from} to ${to} - but operation was aborted.`
+            )
             return
-        }*/
-          botConsole.info(`[Bot] '${selectedBot.name}' found move from ${from} to ${to}.`)
+          }
+          engineConsole.info(`[Engine] '${selectedBot.name}' found move from ${from} to ${to}.`)
 
-          setIsThinking(false)
+          isThinking.current = false
           setSuggestion({
             isThinking: false,
             move: {
@@ -106,8 +133,8 @@ export default function useBotSuggestion(selectedBot: SelectedBot, game: ChessIn
             return copy
           })
         })
-        .catch((e: Error) => botConsole.warn('[Bot] Error during move suggestion', e))
-    }, 100)
+        .catch((e: Error) => engineConsole.warn('[Engine] Error during move suggestion', e))
+    }, 1)
 
     return () => {
       abortCtrl.abort()

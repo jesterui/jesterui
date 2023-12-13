@@ -1,10 +1,8 @@
-import { ChessInstance } from '../components/ChessJsTypes'
-
 import { Pgn } from '../util/chess'
 import * as NIP01 from '../util/nostr/nip01'
 import * as NostrEvents from '../util/nostr/events'
 import * as JesterUtils from '../util/jester'
-// @ts-ignore
+
 import * as Chess from 'chess.js'
 
 const DEFAULT_EXAMPLE_DEVEL_GAME_PGN = '1. f3 e5 2. g4 Qh4#'
@@ -20,16 +18,17 @@ type DevelGame = {
 }
 
 export const createDevelGameEvents = async (keyPair: KeyPair) => {
-  return createGameEventsOfPgn(keyPair, DEFAULT_EXAMPLE_DEVEL_GAME_PGN)
+  return __createGameEventsOfPgn(keyPair, DEFAULT_EXAMPLE_DEVEL_GAME_PGN)
 }
 
-export const createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise<DevelGame> => {
-  const fullChessInstance: ChessInstance = new Chess.Chess()
-  const stateChessInstance: ChessInstance = new Chess.Chess()
+const __createGameEventsOfPgn = async (keyPair: KeyPair, pgn: Pgn): Promise<DevelGame> => {
+  const fullChessInstance: Chess.Chess = new Chess.Chess()
+  const stateChessInstance: Chess.Chess = new Chess.Chess()
 
-  const loaded = fullChessInstance.load_pgn(pgn)
-  if (!loaded) {
-    throw new Error(`Could not load pgn`)
+  try {
+    fullChessInstance.loadPgn(pgn)
+  } catch (e) {
+    throw new Error(`Could not load pgn`, { cause: e })
   }
 
   const gameStart = NostrEvents.signEvent(JesterUtils.constructStartGameEvent(keyPair.publicKey), keyPair.privateKey)

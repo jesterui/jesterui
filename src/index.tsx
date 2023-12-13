@@ -1,4 +1,3 @@
-import { prepareSecp256k1 } from './util'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
@@ -17,8 +16,6 @@ import 'chessground/assets/chessground.brown.css'
 import 'chessground/assets/chessground.cburnett.css'
 import './index.css'
 
-prepareSecp256k1()
-
 declare global {
   interface AppGlobal {
     PUBLIC_PATH: string
@@ -31,6 +28,8 @@ declare global {
   }
 }
 
+const DEFAULT_BOT_NAME = 'Risky Alice'
+
 const defaultAppSettings: AppSettings = {
   dev: process.env.NODE_ENV === 'development',
   theme: 'dark',
@@ -38,29 +37,31 @@ const defaultAppSettings: AppSettings = {
     // 'wss://relayer.fiatjaf.com', // good uptime
     // 'wss://nostr.rocks', // bad uptime - TODO: remove after testing
   ],
-  botName: null,
+  botName: DEFAULT_BOT_NAME,
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
-  <StrictMode>
-    {/*Using HashRouter for GitHub Pages compatibility */}
-    <HashRouter>
-      <SettingsProvider value={{ defaultValues: defaultAppSettings }}>
-        <WebsocketProvider value={undefined}>
-          <NostrEventsProvider value={undefined}>
-            <NostrStoreProvider value={undefined}>
-              <GameEventStoreProvider value={undefined}>
-                <NostrSubscriptionsProvider value={undefined}>
-                  <JesterBotProvider value={undefined}></JesterBotProvider>
-                  <App />
-                </NostrSubscriptionsProvider>
-              </GameEventStoreProvider>
-            </NostrStoreProvider>
-          </NostrEventsProvider>
-        </WebsocketProvider>
-      </SettingsProvider>
-    </HashRouter>
-  </StrictMode>
+  <>
+    <StrictMode>
+      {/*Using HashRouter for GitHub Pages compatibility */}
+      <HashRouter>
+        <SettingsProvider value={{ defaultValues: defaultAppSettings }}>
+          <WebsocketProvider value={undefined}>
+            <NostrEventsProvider value={undefined}>
+              <NostrStoreProvider value={undefined}>
+                <GameEventStoreProvider value={undefined}>
+                  <NostrSubscriptionsProvider value={undefined}>
+                    <JesterBotProvider value={{ defaultBotName: DEFAULT_BOT_NAME }}></JesterBotProvider>
+                    <App />
+                  </NostrSubscriptionsProvider>
+                </GameEventStoreProvider>
+              </NostrStoreProvider>
+            </NostrEventsProvider>
+          </WebsocketProvider>
+        </SettingsProvider>
+      </HashRouter>
+    </StrictMode>
+  </>
 )
